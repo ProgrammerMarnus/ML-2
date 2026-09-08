@@ -83,6 +83,54 @@ def _info_event_perturbation(bars_index, events, symbol, seed: int = 7) -> dict:
             "max_abs_delta_history": max_delta, "passed": bool(max_delta < 1e-12)}
 
 
+def _info_event_membership_perturbation(bars_index, events, symbol,
+                                        seed: int = 7) -> dict:
+    """PREFIX-INVARIANCE (A01): ADDING or REMOVING a future event must not change
+    historical features.  This is the exact gap the audit identified: the classic
+    perturbation flips a future event's *content*, but a later SYNDICATION /
+    delayed publication about an old topic is a membership change that the
+    old global pre-dedup pipeline leaked into history.
+    """
+    feats_base = build_information_features(bars_index, events, symbol)
+    split = _split(len(bars_index))
+    split_ts = bars_index[split]
+    history = feats_base.index[:split]
+    if feats_base.size == 0:
+        return {"max_abs_delta_history": 0.0, "passed": True}
+    rng = np.random.default_rng(seed)
+
+    # (a) ADD a brand-new future event (never available in the history)
+    future_ts = split_ts + pd.Timedelta(days=1)
+    extra = _synthetic_event("added-future-a01", symbol, future_ts, rng)
+    ev_add = pd.concat([events.copy(), pd.DataFrame([extra])], ignore_index=True)
+    feats_add = build_information_features(bars_index, ev_add, symbol)
+    d_add = float(np.nanmax(_history_delta(feats_base, feats_add, split))) \
+        if history.size else 0.0
+
+    # (b) REMOVE all currently-FUTURE events (availability at/after split --
+    #     the PIT-relevant future notion, matching the audit's complaint that a
+    #     late publication about an OLD event escapes an event_time mask)
+    d_remove = 0.0
+    if events is not None and len(events):
+        future_av = pd.to_datetime(events["availability_time"], utc=True) >= split_ts
+        if future_av.any():
+            ev_rm = events.loc[~future_av]
+            feats_rm = build_information_features(bars_index, ev_rm, symbol)
+            d_remove = float(np.nanmax(_history_delta(feats_base, feats_rm, split)))
+    max_delta = max(d_add, d_remove)
+    return {"max_abs_delta_history": max_delta, "passed": bool(max_delta < 1e-12)}
+
+
+def _synthetic_event(eid, symbol, ts, rng) -> dict:
+    """A schema-valid event for membership perturbations."""
+    return dict(
+        event_id=eid, symbol=symbol,
+        event_time=ts, publication_time=ts, availability_time=ts,
+        source="a01-probe", raw_value=1.0, processed_value=0.5,
+        sentiment=float(rng.normal(0, 0.5)), novelty=1.0, topic="a01_topic",
+    )
+
+
 def feature_leakage_report(
     close: pd.DataFrame, volume: pd.DataFrame, target: str,
     info_events: pd.DataFrame | None = None,
@@ -134,6 +182,17 @@ def feature_leakage_report(
                        "max_abs_delta_history": 0.0, "passed": True}
         dims["future_information_event"] = 0.0
 
+    # 5b. PREFIX-INVARIANCE: adding/removing a future event must not change
+    # history (A01).  Always checked when events are supplied; a schema-valid
+    # synthetic future event is used when the supplied set has none.
+    if info_events is not None and len(info_events):
+        membership = _info_event_membership_perturbation(
+            close.index, info_events, target, seed=seed + 999)
+        dims["future_information_event_membership"] = membership["max_abs_delta_history"]
+    else:
+        membership = {"max_abs_delta_history": 0.0, "passed": True}
+        dims["future_information_event_membership"] = 0.0
+
     max_delta = max(dims.values()) if dims else 0.0
     passed = bool(max_delta < 1e-12)  # strict: untouched history must be bit-identical
     return {
@@ -141,6 +200,7 @@ def feature_leakage_report(
         "max_abs_delta_history": float(max_delta),
         "dimensions": dims,
         "information_event": info_report,
+        "information_event_membership": membership,
         "passed": passed,
         "detail": "features on unchanged history identical under future-data perturbation",
     }

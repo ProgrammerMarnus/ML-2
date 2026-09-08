@@ -71,8 +71,19 @@ def run_placebo_null(
         else:  # block_permute
             X = features
             idx = _block_permute(np.arange(len(y)), block_len, rng)
-            y_r = y.iloc[idx]
-            f_r = fwd.iloc[idx]
+            # A03: the permuted VALUES must be assigned to the ORIGINAL
+            # chronological index.  The previous code kept each permuted
+            # value's original timestamp (y.iloc[idx] carries the source
+            # position's index), so the pipeline's chronological .loc lookup
+            # silently restored the original date-to-target pairing while the
+            # risk history (a shift over a non-chronological index) was
+            # scrambled.  Here values move; dates never do.
+            y_r = pd.Series(y.to_numpy()[idx], index=y.index, name=y.name)
+            f_r = pd.Series(fwd.to_numpy()[idx], index=fwd.index, name=fwd.name)
+        if not y_r.index.is_monotonic_increasing or not f_r.index.is_monotonic_increasing:
+            raise ValueError(
+                f"placebo mode {mode!r} produced a non-chronological index; "
+                "risk returns must be derived on a sorted timeline")
         res = run_pipeline(X, y_r, f_r)
         rows.append(
             {

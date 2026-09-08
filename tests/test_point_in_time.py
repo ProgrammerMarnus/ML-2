@@ -166,3 +166,65 @@ def test_information_features_respect_availability(idx):
     assert info.loc[idx[8], "info_attention"] == pytest.approx(one_event)
     # e2 live by idx[9]: two live events
     assert info.loc[idx[9], "info_attention"] == pytest.approx(float(np.log1p(2)))
+
+
+def _story_event(eid, available, event_time="2024-01-05", topic="rates",
+                 sentiment=1.0):
+    return dict(event_id=eid, symbol="SPY",
+                event_time=pd.Timestamp(event_time, tz="UTC"),
+                publication_time=pd.Timestamp(available, tz="UTC"),
+                availability_time=pd.Timestamp(available, tz="UTC"),
+                source=eid, raw_value=1.0, processed_value=0.5,
+                sentiment=sentiment, novelty=1.0, topic=topic)
+
+
+def test_corroboration_is_prefix_point_in_time():
+    """A01: corroboration is a PIT observation.  A copy available later must
+    not change the retained story's corroboration on an earlier bar.  The audit
+    reproduction: prefix-only and full-history must agree on 5 January (1)."""
+    idx = pd.bdate_range("2024-01-05", periods=10, tz="UTC")
+    early = _story_event("early", "2024-01-05T00:00:00Z")
+    late = _story_event("late", "2024-01-12T00:00:00Z")  # same underlying story
+    a = build_information_features(idx, pd.DataFrame([early]), "SPY")
+    b = build_information_features(idx, pd.DataFrame([early, late]), "SPY")
+    assert a.iloc[0]["info_corroboration"] == pytest.approx(1.0)
+    assert b.iloc[0]["info_corroboration"] == pytest.approx(1.0)
+    # once the copy is available, corroboration grows to 2 at the 12 January bar
+    jan12 = idx[idx >= pd.Timestamp("2024-01-12", tz="UTC")][0]
+    assert b.loc[jan12, "info_corroboration"] == pytest.approx(2.0)
+
+
+def test_adding_unavailable_event_does_not_change_any_history():
+    """A01: prefix-invariance across ALL information columns.  Adding a later
+    syndication / delayed publication must leave every feature bit-identical
+    on every earlier bar."""
+    idx = pd.bdate_range("2024-01-05", periods=10, tz="UTC")
+    early = _story_event("early", "2024-01-05T00:00:00Z")
+    late_sync = _story_event("late_sync", "2024-01-12T00:00:00Z")  # syndication
+    late_delayed = _story_event("late_delayed", "2024-01-15T00:00:00Z",
+                                event_time="2024-01-03")  # delayed publication
+    from quant_research.features.information import INFO_COLUMNS
+
+    base = build_information_features(idx, pd.DataFrame([early]), "SPY")
+    for extra in (late_sync, late_delayed):
+        full = build_information_features(
+            idx, pd.DataFrame([early, extra]), "SPY")
+        # only bars BEFORE the extra's availability are required to match
+        av = pd.Timestamp(extra["availability_time"])
+        history = idx[idx < av]
+        pd.testing.assert_frame_equal(
+            base.loc[history, INFO_COLUMNS],
+            full.loc[history, INFO_COLUMNS])
+
+
+def test_weekend_event_decays_from_first_eligible_session():
+    """A18: an event available on a weekend/holiday must decay normally from
+    the first eligible session, never stay at full intensity forever."""
+    idx = pd.bdate_range("2024-01-08", periods=15, tz="UTC")  # starts Monday
+    sat = _story_event("sat", "2024-01-06T10:00:00Z", event_time="2024-01-05")
+    info = build_information_features(idx, pd.DataFrame([sat]), "SPY",
+                                      decay_halflife_bars=5.0)
+    first = info.iloc[0]["info_intensity"]
+    last = info.iloc[-1]["info_intensity"]
+    assert first == pytest.approx(1.0)  # full attention on the first session
+    assert last < first  # decays over the 15 business bars

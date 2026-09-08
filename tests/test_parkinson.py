@@ -394,4 +394,7 @@ def test_preexisting_registry_hashes_unchanged():
     assert registry_hash(["momentum_63"]) == "6566acb216cd4dd9"
     assert registry_hash(["momentum_63", "trend_50"]) == "41defd3a42afc18f"
     assert registry_hash(legacy_pv) == "bed4faf87a02829e"
-    assert registry_hash(legacy_info) == "097636ade2605930"
+    # info hash consciously updated with INFO_FEATURE_VERSION bump info-2.1.0
+    # -> info-2.1.1: A01 prefix-invariant corroboration (PIT story counts) and
+    # A18 first-eligible-session decay changed the feature definitions.
+    assert registry_hash(legacy_info) == "c76876a9cc703644"

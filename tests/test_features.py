@@ -150,3 +150,57 @@ def test_leakage_information_event_perturbation(close_panel, volume_panel):
     assert rep["passed"], rep
     assert rep["dimensions"]["future_information_event"] < 1e-12
     assert rep["information_event"]["passed"]
+    # prefix-invariance (A01): adding/removing a future event leaves history alone
+    assert rep["dimensions"]["future_information_event_membership"] < 1e-12
+    assert rep["information_event_membership"]["passed"]
+
+
+def test_leakage_membership_detects_old_style_dedup_contamination(
+        close_panel, volume_panel, monkeypatch):
+    """A01: the membership probe must START FAILING if the feature builder is
+    regressed to the old global pre-dedup (corroboration counted before its
+    copies are available)."""
+    import quant_research.features.leakage as leak_mod
+    from quant_research.features import point_in_time
+    from quant_research.features.information import (
+        INFO_COLUMNS,
+        deduplicate_events,
+    )
+
+    idx = close_panel.index
+
+    def _ev(eid, avail):
+        return {"event_id": eid, "symbol": "SPY",
+                "event_time": pd.Timestamp("2020-01-10", tz="UTC"),
+                "publication_time": pd.Timestamp(avail, tz="UTC"),
+                "availability_time": pd.Timestamp(avail, tz="UTC"),
+                "source": eid, "raw_value": 1.0, "processed_value": 0.5,
+                "sentiment": 1.0, "topic": "rates"}
+
+    # e1 available early; e2 is a late syndication about the SAME underlying
+    # story (identical event_time, availability far in the future)
+    events = pd.DataFrame([_ev("e1", "2020-06-01T00:00:00Z"),
+                           _ev("e2", "2025-01-10T00:00:00Z")])
+
+    def legacy_builder(bars_index, ev, symbol, deduplicate=True,
+                       decay_halflife_bars=5.0):
+        # old code path: dedup the FULL collection up front, then PIT-join the
+        # kept set -- so corroboration carries not-yet-available copies.
+        kept = deduplicate_events(ev)
+        joins = point_in_time.join_events_asof(bars_index, kept)
+        if joins.empty or len(joins) == 0:
+            return pd.DataFrame(0.0, index=bars_index, columns=INFO_COLUMNS)
+        linked = joins.join(kept.set_index("event_id"), on="event_id")
+        linked["corroboration"] = pd.to_numeric(
+            linked["corroboration"], errors="coerce").fillna(1.0)
+        out = linked.groupby("bar_timestamp")["corroboration"].max()
+        out = out.reindex(bars_index).fillna(0.0)
+        frame = pd.DataFrame(0.0, index=bars_index, columns=INFO_COLUMNS)
+        frame["info_corroboration"] = out
+        return frame
+
+    monkeypatch.setattr(leak_mod, "build_information_features", legacy_builder)
+    res = leak_mod._info_event_membership_perturbation(idx, events, "SPY")
+    # the old builder leaks: removing the not-yet-available copy changes the
+    # retained story's historical corroboration, so the probe must fail
+    assert not res["passed"]

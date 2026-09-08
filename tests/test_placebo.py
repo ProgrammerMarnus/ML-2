@@ -105,6 +105,40 @@ def test_placebo_permute_target_passes_permuted_inputs(setup):
     assert not pd.Series(seen["ff"].fillna(-999)).equals(fwd.fillna(-999))
 
 
+def test_block_permute_assigns_values_to_original_chronology(setup):
+    """A03: the block permutation must randomize the DATED targets -- values
+    move, the chronological index never does.  The old code kept each value's
+    original timestamp, so the pipeline's .loc lookup silently restored the
+    original date-to-target pairing while the risk history was scrambled."""
+    cfg, feats, y, fwd = setup
+    seen = {}
+
+    def capture_run(X, yy, ff):
+        seen["yy"] = yy.copy()
+        seen["ff"] = ff.copy()
+        return {"mean_oos_sharpe": 0.0, "median_oos_sharpe": 0.0}
+
+    run_placebo_null(feats, y, fwd, capture_run, n_runs=1, seed=3,
+                     mode="block_permute", block_len=21)
+    y_r, f_r = seen["yy"], seen["ff"]
+    # chronology preserved: original index, monotonic increasing (risk history
+    # derived as shift(1) stays valid)
+    assert y_r.index.equals(y.index)
+    assert y_r.index.is_monotonic_increasing
+    assert f_r.index.equals(fwd.index)
+    assert f_r.index.is_monotonic_increasing
+    # the VALUES actually move: dated targets are genuinely randomized
+    assert not pd.Series(y_r.fillna(-999)).equals(y.fillna(-999))
+    assert not pd.Series(f_r.fillna(-999)).equals(fwd.fillna(-999))
+    # label/return pairing is preserved: y and fwd were permuted with the SAME
+    # index positions, so the (label, return) pair at each bar is an original
+    # pair (sign relation survives), and missingness travels with the pair
+    live = y_r.notna() & f_r.notna()
+    assert ((f_r[live] > 0).astype(float) == y_r[live]).all()
+    assert y_r.isna().sum() == y.isna().sum()
+    assert (y_r.isna() == f_r.isna()).all()
+
+
 def test_placebo_statistics_full_report():
     null = pd.DataFrame({"mean_oos_sharpe": np.linspace(-1, 1, 21)})
     s = placebo_statistics(0.0, null)

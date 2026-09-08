@@ -2,8 +2,15 @@
 
 Aggregates point-in-time events into per-bar information features.  All joins
 are availability-time aware (see features.point_in_time).  Syndicated/copied
-stories are deduplicated first: one underlying event across many feeds must
-not count as independent evidence without justification.
+stories are deduplicated: one underlying event across many feeds must not count
+as independent evidence without justification.
+
+PREFIX-INVARIANCE (A01): corroboration is a PIT observation, not a global
+count.  A feature at bar t may only count copies whose ``availability_time``
+has arrived by t.  Adding or removing an event that is not yet available can
+never change any historical feature.  Corroboration for the retained story
+grows over time as corroborating copies become available, and decays from the
+first eligible session (A18).
 """
 
 from __future__ import annotations
@@ -11,9 +18,9 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from .point_in_time import join_events_asof, validate_events
+from .point_in_time import validate_events
 
-INFO_FEATURE_VERSION = "info-2.1.0"
+INFO_FEATURE_VERSION = "info-2.1.1"
 DEFAULT_DECAY_HALFLIFE_BARS = 5.0
 
 
@@ -21,12 +28,14 @@ def deduplicate_events(
     events: pd.DataFrame,
     topic_window: pd.Timedelta | str = "12h",
 ) -> pd.DataFrame:
-    """Deduplicate syndicated/copied stories.
+    """Deduplicate syndicated/copied stories (static view).
 
     Events from different sources sharing symbol+topic with event_time inside
     `topic_window` are the same underlying story: the earliest-published copy
-    is kept, its `corroboration` count incremented, the copies dropped.
-    Availability semantics of the kept event are never changed.
+    is kept, its `corroboration` count incremented by every absorbed copy, the
+    copies dropped.  This is the STATIC (full-collection) summary of the story
+    count.  For point-in-time feature construction, corroboration must grow as
+    copies become available (use the feature builder, which is prefix-invariant).
     """
     ev = validate_events(events)
     if "topic" not in ev.columns or ev["topic"].isna().all():
@@ -61,6 +70,47 @@ def deduplicate_events(
     return kept.reset_index(drop=True)
 
 
+def _assign_clusters(ev: pd.DataFrame,
+                     topic_window: pd.Timedelta | str = "12h") -> pd.DataFrame:
+    """Assign each event to its dedup cluster (matching ``deduplicate_events``)
+    WITHOUT dropping copies.
+
+    Adds ``_canonical_id`` (event_id of the retained story) and ``_is_copy``.
+    ``_is_copy == True`` events are absorbed copies that must NOT contribute
+    independent sentiment/attention, but DO extend the retained story's
+    corroboration once their own availability has arrived.
+    """
+    out = ev.copy()
+    if "topic" not in out.columns or out["topic"].isna().all():
+        out["_canonical_id"] = out["event_id"].astype(object)
+        out["_is_copy"] = False
+        return out
+    window = pd.Timedelta(topic_window).to_pytimedelta()
+    out = out.sort_values(["publication_time", "event_id"]).reset_index(drop=True)
+    canonical = np.empty(len(out), dtype=object)
+    is_copy = np.zeros(len(out), dtype=bool)
+    topics = out["topic"].astype("string").fillna("")
+    symbols = out["symbol"].astype("string").fillna("")
+    etimes = out["event_time"]
+    eids = out["event_id"].astype(object).to_numpy()
+    for i in range(len(out)):
+        if is_copy[i]:
+            continue
+        canonical[i] = eids[i]
+        for j in range(i + 1, len(out)):
+            if is_copy[j] or symbols.iloc[j] != symbols.iloc[i]:
+                continue
+            if topics.iloc[i] == "" or topics.iloc[j] != topics.iloc[i]:
+                continue
+            if abs((etimes.iloc[j] - etimes.iloc[i]).to_pytimedelta()) > window:
+                continue
+            is_copy[j] = True
+            canonical[j] = eids[i]
+    out["_canonical_id"] = pd.Series(canonical, index=out.index)
+    out["_is_copy"] = is_copy
+    return out.reset_index(drop=True)
+
+
 INFO_COLUMNS = [
     "info_sentiment",
     "info_abs_sentiment",
@@ -83,57 +133,84 @@ def build_information_features(
     """Aggregate events into availability-aware information features.
 
     For each bar t only events with availability_time <= t contribute
-    (enforced via join_events_asof).  Features: recency-decayed sentiment /
-    |sentiment| / novelty, attention (log count), source breadth,
-    disagreement, event intensity, max corroboration.  Bars with no live
-    events get explicit zeros - never forward-filled stale values.
+    (enforced via join_events_asof semantics).  Deduplication is PREFIX-INVARIANT:
+    a retained story's corroboration at bar t equals 1 plus the number of its
+    absorbed copies AVAILABLE by t -- later (not-yet-available) copies can never
+    change an earlier feature.  Features: recency-decayed sentiment /
+    |sentiment| / novelty, attention (log count of distinct live stories),
+    source breadth, disagreement, event intensity, and the maximum live-story
+    corroboration.  Bars with no live events get explicit zeros - never
+    forward-filled stale values.  Event age (half-life decay) is measured from
+    the first eligible session (the first bar at/after availability), so
+    weekend/holiday/prehistory events decay normally instead of never (A18).
     """
     ev = events
     if ev is not None and not ev.empty and symbol is not None:
         ev = ev[ev["symbol"].astype("string") == symbol]
-    if deduplicate and ev is not None and not ev.empty:
-        ev = deduplicate_events(ev)
-    if ev is not None and not ev.empty:
-        ev = validate_events(ev)
-    else:
-        ev = pd.DataFrame()
-
-    links = join_events_asof(bars_index, ev)
     n = len(bars_index)
-    if links.empty:
+    if ev is None or ev.empty:
         return pd.DataFrame(0.0, index=bars_index, columns=INFO_COLUMNS)
+    ev = validate_events(ev)
 
-    ev = ev.set_index("event_id")
-    linked = links.join(ev, on="event_id")
-    linked["bar_timestamp"] = pd.to_datetime(linked["bar_timestamp"], utc=True)
-    bar_pos = {t: i for i, t in enumerate(bars_index)}
-    linked["bar_idx"] = linked["bar_timestamp"].map(bar_pos).astype(int)
-    av_pos = pd.to_datetime(linked["availability_time"], utc=True).map(
-        lambda t: bar_pos.get(t.floor("D"), n)
-    )
-    age_bars = np.maximum(linked["bar_idx"].to_numpy() - av_pos.to_numpy(), 0)
-    linked["decay"] = 0.5 ** (age_bars / max(decay_halflife_bars, 1e-9))
-    for col in ("sentiment", "novelty", "corroboration"):
-        if col in linked.columns:
-            linked[col] = pd.to_numeric(linked[col], errors="coerce")
-        else:
-            linked[col] = np.nan
-    linked["sentiment"] = linked["sentiment"].fillna(0.0)
-    linked["novelty"] = linked["novelty"].fillna(0.0)
-    linked["corroboration"] = linked["corroboration"].fillna(1.0)
+    ts = pd.DatetimeIndex(bars_index)
+    if ts.tz is None:
+        ts = ts.tz_localize("UTC")
+    else:
+        ts = ts.tz_convert("UTC")
+    ts_int = ts.asi8  # ns since epoch, sorted
+    halflife = max(float(decay_halflife_bars), 1e-9)
+
+    if deduplicate and len(ev) > 1:
+        evc = _assign_clusters(ev)
+        canon = evc[~evc["_is_copy"]].reset_index(drop=True)
+        copies = evc[evc["_is_copy"]]
+        # copy availability (ns) per canonical story, sorted, for live counting
+        copy_by_canon: dict = {}
+        if len(copies):
+            for cid, grp in copies.groupby("_canonical_id", sort=False):
+                av = pd.to_datetime(grp["availability_time"], utc=True).astype("int64")
+                copy_by_canon[cid] = np.sort(av.to_numpy())
+    else:
+        canon = ev.assign(_canonical_id=ev["event_id"].astype(object))
+        copy_by_canon = {}
+
+    canon_av = pd.to_datetime(canon["availability_time"], utc=True)
+    first_bar = np.searchsorted(ts_int, canon_av.astype("int64").to_numpy(),
+                                side="left")
+
+    def _num(col: str, default: float) -> np.ndarray:
+        if col in canon.columns:
+            return pd.to_numeric(canon[col], errors="coerce").fillna(default).to_numpy()
+        return np.full(len(canon), default)
+
+    sentiment = _num("sentiment", 0.0)
+    novelty = _num("novelty", 0.0)
+    sources = canon["source"].astype("string").fillna("").to_numpy()
+    cid_arr = canon["_canonical_id"].astype(object).to_numpy()
+    avail = canon_av.astype("int64").to_numpy()
 
     rows = np.zeros((n, len(INFO_COLUMNS)))
-    for idx, grp in linked.groupby("bar_idx"):
-        i = int(idx)
-        w = grp["decay"].to_numpy()
-        s = grp["sentiment"].to_numpy()
+    for i, t in enumerate(ts_int):
+        live = avail <= t
+        if not live.any():
+            continue
+        age = np.maximum(i - first_bar[live], 0)
+        w = 0.5 ** (age / halflife)
+        s = sentiment[live]
+        nv = novelty[live]
         wsum = w.sum()
         rows[i, 0] = float(np.average(s, weights=w)) if wsum > 0 else 0.0
         rows[i, 1] = float(np.average(np.abs(s), weights=w)) if wsum > 0 else 0.0
-        rows[i, 2] = float(np.log1p(len(grp)))
-        rows[i, 3] = float(grp["source"].nunique())
-        rows[i, 4] = float(np.average(grp["novelty"].to_numpy(), weights=w)) if wsum > 0 else 0.0
+        rows[i, 2] = float(np.log1p(int(live.sum())))
+        rows[i, 3] = float(np.unique(sources[live]).size)
+        rows[i, 4] = float(np.average(nv, weights=w)) if wsum > 0 else 0.0
         rows[i, 5] = abs(rows[i, 0]) - rows[i, 1]
         rows[i, 6] = float(np.max(np.abs(s) * w))
-        rows[i, 7] = float(grp["corroboration"].max())
+        # corroboration of each live story: 1 (itself) + live absorbed copies
+        counts = np.ones(int(live.sum()), dtype=float)
+        for k, cid in enumerate(cid_arr[live]):
+            ck = copy_by_canon.get(cid)
+            if ck is not None and len(ck):
+                counts[k] += float(np.searchsorted(ck, t, side="right"))
+        rows[i, 7] = float(counts.max()) if len(counts) else 1.0
     return pd.DataFrame(rows, index=bars_index, columns=INFO_COLUMNS)
