@@ -92,3 +92,27 @@ def test_var_cvar_and_risk_report(close_panel):
 def test_concentration_hhi():
     assert concentration_hhi(pd.Series([0.5, 0.5])) == pytest.approx(0.5)
     assert concentration_hhi(pd.Series([1.0])) == pytest.approx(1.0)
+
+
+def test_risk_report_turnover_uses_engine_ledger_convention():
+    """A14: ``annual_turnover`` must come from the ACTUAL position ledger with
+    the engine's charged-turnover convention (first bar charges |position|), so
+    a constant-hold series (all 1.0) has turnover 1.0 total, not 0."""
+    idx = pd.bdate_range("2024-01-01", periods=5, freq="B").tz_localize("UTC")
+    rets = pd.Series([0.0] * 5, index=idx)
+    w = pd.Series([1.0] * 5, index=idx)
+    r = risk_report(rets, weights=w)
+    assert r["avg_gross_exposure"] == pytest.approx(1.0)
+    assert r["annual_turnover"] == pytest.approx(1.0 / (5 / 252.0))
+
+
+def test_drawdown_control_de_risks_after_initial_loss():
+    """A15: the drawdown controller's high-water mark starts at initial capital,
+    so a 20% first-bar loss de-risks the NEXT bar (causal one-bar shift), it
+    does not leave the controller at full exposure."""
+    rets = pd.Series([-0.20, 0.0, 0.0, 0.0])
+    w = pd.Series(1.0, index=rets.index)
+    controlled = apply_drawdown_control(rets, w, dd_trigger=-0.10,
+                                        dd_release=-0.04, de_risked_weight=0.5)
+    assert controlled.iloc[0] == pytest.approx(1.0)   # no prior obs at bar 0
+    assert (controlled.iloc[1:] < 1.0).all()          # de-risked from bar 1 on

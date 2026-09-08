@@ -64,7 +64,7 @@ def _robustness(cost_sharpe=-0.1, delay_sharpe=-0.1):
 
 def base_summary(**kw):
     s = {"median_oos_sharpe": 0.4, "mean_oos_sharpe": 0.3, "worst_oos_dd": -0.2,
-         "single_fold_share": 0.3, "annual_turnover": 20.0}
+         "full_oos_max_dd": -0.2, "single_fold_share": 0.3, "annual_turnover": 20.0}
     s.update(kw)
     return s
 
@@ -143,3 +143,17 @@ def test_gates_reject_integrity_and_lookahead_failures():
     decision = promotion_decision(checks)
     assert "data_integrity" in decision["failed_gates"]
     assert "lookahead_resolved" in decision["failed_gates"]
+
+
+def test_gates_use_full_path_drawdown_not_per_fold():
+    """A15: the drawdown gate must apply to the CONCATENATED portfolio path,
+    not the worst individual fold.  Consecutive losing folds can breach the
+    portfolio limit while each fold remains within it: per-fold -0.2 is fine,
+    but the full path -0.55 must fail the -0.50 limit."""
+    rob = _robustness(cost_sharpe=0.3, delay_sharpe=0.2)
+    boot, placebo = base_stats()
+    checks = evaluate_gates(
+        base_summary(worst_oos_dd=-0.2, full_oos_max_dd=-0.55),
+        rob, boot, placebo, True, True, 3, PromotionConfig())
+    decision = promotion_decision(checks)
+    assert "worst_dd_within_limit" in decision["failed_gates"]

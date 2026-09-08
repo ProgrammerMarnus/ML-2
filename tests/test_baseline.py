@@ -76,7 +76,8 @@ def test_summary_shape(universe, small_config):
     res = run_walk_forward(feats, y, fwd, small_config)
     s = summarize_experiment(res)
     for key in ("mean_oos_sharpe", "median_oos_sharpe", "mean_oos_auc",
-                "worst_oos_dd", "positive_folds", "n_folds", "full_oos_sharpe"):
+                "worst_oos_dd", "full_oos_max_dd", "positive_folds",
+                "n_folds", "full_oos_sharpe"):
         assert key in s
     assert s["n_folds"] == len(res.folds)
 

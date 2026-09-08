@@ -55,10 +55,14 @@ def apply_drawdown_control(returns: pd.Series, weights: pd.Series,
     changes that same bar's weight (the return is not known when the position
     is held).  The first bar has no prior drawdown observation and starts at
     full weight.
+
+    The high-water mark starts from INITIAL capital (1.0), so an initial loss
+    (before any peak) is counted and de-risks the next bar's weight.
     """
     equity = (1 + returns.fillna(0)).cumprod()
-    dd = equity / equity.cummax() - 1
-    dd_prev = dd.shift(1).fillna(0.0)  # drawdown observed at decision time
+    peak = np.maximum.accumulate(np.concatenate([[1.0], equity.to_numpy()]))[1:]
+    dd_series = pd.Series(equity.to_numpy() / peak - 1.0, index=equity.index)
+    dd_prev = dd_series.shift(1).fillna(0.0)  # drawdown observed at decision time
     state = 1.0
     states = []
     for d in dd_prev:

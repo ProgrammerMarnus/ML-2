@@ -51,7 +51,14 @@ def risk_report(net_returns: pd.Series, weights: pd.Series | None = None,
     """Structured risk diagnostics for one return stream.
 
     ``weights`` (a single time series) is used for EXPOSURE/activity metrics
-    only.  Cross-sectional concentration HHI is MEANINGFUL only over a real
+    only; pass the ACTUAL executed position ledger (e.g. ``baseline.oos_positions``)
+    -- never a synthetic/proxy position schedule.  Turnover follows the
+    engine's convention: the first bar charges |position| as its entry, so
+    ``annual_turnover`` reconciles exactly with the backtester's charged
+    turnover.  ``benchmark`` must be the same realized interval the strategy
+    actually earns (forward close-to-close).
+
+    Cross-sectional concentration HHI is MEANINGFUL only over a real
     per-timestamp weight MATRIX (``weight_matrix``); when it is not supplied we
     explicitly report ``concentration_hhi=None`` rather than a misleading
     number computed over a single pseudo-position's time series.
@@ -71,7 +78,9 @@ def risk_report(net_returns: pd.Series, weights: pd.Series | None = None,
     if weights is not None:
         out["avg_gross_exposure"] = float(weights.abs().mean())
         out["max_gross_exposure"] = float(weights.abs().max())
-        turnover = weights.diff().abs().dropna()
+        turnover = weights.diff().abs()
+        if len(turnover):
+            turnover.iloc[0] = abs(weights.iloc[0])  # engine ledger convention
         out["annual_turnover"] = float(turnover.sum() / max(len(weights) / TRADING_DAYS, 1e-9))
     # Cross-sectional concentration only when a real weight matrix is present.
     if weight_matrix is not None and len(weight_matrix) > 0 and weight_matrix.shape[1] >= 1:

@@ -30,8 +30,19 @@ def test_sharpe_known_values():
 def test_max_drawdown_simple():
     r = pd.Series([0.10, -0.10, -0.10, 0.05])
     equity = (1 + r).cumprod()
-    expected = float((equity / equity.cummax() - 1).min())
+    peak = np.maximum.accumulate(np.concatenate([[1.0], equity.to_numpy()]))[1:]
+    expected = float((equity.to_numpy() / peak - 1).min())
     assert max_drawdown(r) == pytest.approx(expected)
+
+
+def test_max_drawdown_includes_initial_capital():
+    """A15: a drawdown that starts before ANY peak must be counted.  The
+    high-water mark begins at initial capital 1.0, not at the first
+    post-return equity value."""
+    r = pd.Series([-0.20, 0.0, 0.0])
+    assert max_drawdown(r) == pytest.approx(-0.20)
+    # a first-bar loss followed by recovery is still a -10% drawdown
+    assert max_drawdown(pd.Series([-0.10, 0.10])) == pytest.approx(-0.10)
 
 
 def test_cagr_reasonable():

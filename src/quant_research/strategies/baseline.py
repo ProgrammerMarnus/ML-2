@@ -29,7 +29,7 @@ from sklearn.preprocessing import StandardScaler
 from ..config import AppConfig, ExecutionConfig, ModelConfig
 from ..data.schemas import DataValidationError
 from ..evaluation.backtest import EXECUTION_CONTRACT, backtest
-from ..evaluation.metrics import compute_metrics, sharpe_ratio
+from ..evaluation.metrics import compute_metrics, max_drawdown, sharpe_ratio
 from ..evaluation.walk_forward import FoldSpec, LockedTestProtocol, walk_forward_splits
 
 
@@ -341,6 +341,10 @@ def summarize_experiment(result: ExperimentResult) -> dict:
         "mean_oos_auc": float(f["oos_auc"].mean()),
         "mean_oos_brier": float(f["oos_brier"].mean()),
         "worst_oos_dd": float(f["oos_max_dd"].min()),
+        # Full concatenated OOS path drawdown (actual portfolio path, initial
+        # capital included).  Promotion gates use THIS; per-fold worst_oos_dd
+        # is retained as a stability diagnostic (A15).
+        "full_oos_max_dd": float(max_drawdown(net)) if len(net) else float("nan"),
         "total_oos_trades": int(f["oos_trades"].sum()),
         "positive_folds": int((f["oos_sharpe"] > 0).sum()),
         "n_folds": int(len(f)),

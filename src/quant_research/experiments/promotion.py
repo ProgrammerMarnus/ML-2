@@ -90,8 +90,12 @@ def evaluate_gates(
     ))
     checks.append(GateCheck(
         "worst_dd_within_limit",
-        summary.get("worst_oos_dd", float("nan")) >= cfg.max_oos_dd,
-        f"worst OOS drawdown {summary.get('worst_oos_dd')} >= {cfg.max_oos_dd}",
+        summary.get("full_oos_max_dd",
+                    summary.get("worst_oos_dd", float("nan"))) >= cfg.max_oos_dd,
+        f"full OOS path drawdown "
+        f"{summary.get('full_oos_max_dd', summary.get('worst_oos_dd'))} >= "
+        f"{cfg.max_oos_dd} (concatenated portfolio path, per-fold drawdowns are "
+        f"kept as a separate security diagnostic)",
     ))
 
     checks.append(GateCheck(

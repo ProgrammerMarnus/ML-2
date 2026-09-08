@@ -210,7 +210,6 @@ def _finish_pipeline(cfg, out, report, close, volume, price_feats, features, inf
     report["parameter_perturbation"] = battery["parameter_perturbation"]
     report["missing_data_stress"] = battery["missing_data"]
     signal = baseline.predictions["prob"]
-    session_ret = close[cfg.data.target] / close[cfg.data.target].shift(1) - 1.0
     regime_flags = pd.DataFrame({
         "high_vol": price_feats["regime_high_vol"].reindex(signal.index),
         "drawdown_deep": (price_feats["regime_drawdown"] < -0.05)
@@ -271,9 +270,16 @@ def _finish_pipeline(cfg, out, report, close, volume, price_feats, features, inf
     }
 
     # --- 7. portfolio / risk ------------------------------------------------------
-    bench = session_ret.reindex(signal.index).fillna(0.0)
-    pseudo_weights = signal.apply(lambda p: 1.0 if p > 0.55 else 0.0)
-    risk = risk_report(baseline.oos_returns, weights=pseudo_weights, benchmark=bench)
+    # Risk diagnostics describe the ACTUAL executed portfolio: the continuous
+    # OOS position ledger (real per-fold thresholds, execution lag, vol sizing
+    # -- not a 0.55 probability proxy) and the forward-return benchmark
+    # aligned to the interval the strategy actually earns (A14).
+    oos_idx = baseline.oos_returns.index
+    risk = risk_report(
+        baseline.oos_returns,
+        weights=baseline.oos_positions.reindex(oos_idx),
+        benchmark=fwd.reindex(oos_idx),
+    )
     report["risk"] = risk
     return _register_and_decide(cfg, out, report, baseline, summary, robustness, boot,
                                 placebo, counter, start_count, dataset_version,

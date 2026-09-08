@@ -9,13 +9,19 @@ import pandas as pd
 import pytest
 
 from quant_research.data.loaders import generate_synthetic_ohlcv, to_panels
+from quant_research.evaluation.metrics import beta
 from quant_research.evaluation.walk_forward import LockedTestProtocol
 from quant_research.experiments.leaderboard import build_leaderboard
 from quant_research.experiments.registry import ExperimentRegistry, TrialCounter
 from quant_research.execution.paper import PaperBroker, PaperOrder
 from quant_research.execution.safeguards import Safeguards
+from quant_research.features.information import build_information_features
 from quant_research.features.price_volume import build_price_volume_features
-from quant_research.run import run_research_pipeline
+from quant_research.run import (
+    generate_synthetic_events,
+    run_research_pipeline,
+)
+from quant_research.strategies.baseline import run_walk_forward
 from quant_research.strategies.discovery import discover_strategies, evaluate_candidate_oos
 
 
@@ -120,3 +126,44 @@ def test_locked_test_survives_across_pipeline_runs(small_config, tmp_output):
     lines = [json.loads(l) for l in reg_file.read_text().strip().splitlines()]
     assert len(lines) == 2
     assert lines[0]["test_period"] == lines[1]["test_period"]
+
+
+def _reconstruct_pipeline_inputs(cfg):
+    """Replicate the pipeline's exact stage-1/3 inputs (price/volume +
+    information features) so an independent run_walk_forward reproduces the
+    baseline, then the risk report can be checked against the true ledger."""
+    from quant_research.data.loaders import generate_synthetic_ohlcv, to_panels
+
+    ohlcv = generate_synthetic_ohlcv(cfg.data.assets, cfg.data.start, cfg.data.end, seed=42)
+    close, volume = to_panels(ohlcv)
+    price = build_price_volume_features(close, volume, cfg.data.target)
+    events = generate_synthetic_events(close.index, cfg.data.target)
+    info = build_information_features(close.index, events, cfg.data.target)
+    feats = price.join(info, how="left")
+    y = (close[cfg.data.target].shift(-1) > close[cfg.data.target]).astype(float)
+    y[close[cfg.data.target].shift(-1).isna()] = np.nan
+    fwd = close[cfg.data.target].shift(-1) / close[cfg.data.target] - 1.0
+    return feats, y, fwd
+
+
+def test_pipeline_risk_report_uses_executed_positions_and_forward_benchmark(
+        small_config, tmp_output):
+    """A14 integration: the risk report must describe the ACTUAL executed
+    portfolio (real position ledger + forward-return benchmark), not the old
+    0.55 probability proxy / same-session benchmark."""
+    report = run_research_pipeline(small_config, str(tmp_output))
+    feats, y, fwd = _reconstruct_pipeline_inputs(small_config)
+    res = run_walk_forward(feats, y, fwd, small_config)
+    pos = res.oos_positions
+    # exposure == actual mean |position|
+    assert report["risk"]["avg_gross_exposure"] == pytest.approx(
+        float(pos.abs().mean()), abs=1e-9)
+    # annual turnover == the engine's charged ledger turnover annualized
+    ledger_turn = float(pos.diff().abs().sum()) + float(abs(pos.iat[0]))
+    assert report["risk"]["annual_turnover"] == pytest.approx(
+        ledger_turn / (len(res.oos_returns) / 252.0), rel=1e-6)
+    # beta is against the forward-return benchmark (the interval the engine
+    # actually earns), never the same-session close-to-close return
+    bench_fwd = fwd.reindex(res.oos_returns.index)
+    assert report["risk"]["beta_to_benchmark"] == pytest.approx(
+        beta(res.oos_returns, bench_fwd), abs=1e-9)

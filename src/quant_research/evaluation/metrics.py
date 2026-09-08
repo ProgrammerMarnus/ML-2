@@ -43,9 +43,11 @@ def max_drawdown(returns: pd.Series) -> float:
     r = _clean(returns)
     if len(r) == 0:
         return float("nan")
+    # High-water mark starts from INITIAL capital (1.0), so a loss before the
+    # first peak is counted: returns [-0.20, 0, 0] must report -0.20, not 0.
     equity = (1.0 + r).cumprod()
-    peak = equity.cummax()
-    dd = equity / peak - 1.0
+    peak = np.maximum.accumulate(np.concatenate([[1.0], equity.to_numpy()]))[1:]
+    dd = equity / pd.Series(peak, index=equity.index) - 1.0
     return float(dd.min())
 
 
