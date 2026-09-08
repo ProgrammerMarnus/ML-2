@@ -1,0 +1,15 @@
+{
+  "first_test_period": [
+    "2020-08-26",
+    "2021-12-01"
+  ],
+  "second_test_period": [
+    "2020-08-26",
+    "2021-12-15"
+  ],
+  "first_fold_n_test": 40,
+  "second_fold_n_test": 30,
+  "same_output_directory_accepted_changed_test_layout": true,
+  "first_experiment": "20260908T135540Z_bfb2e53009986d2e",
+  "second_experiment": "20260908T135555Z_0a3d49ab039a8fc7"
+}

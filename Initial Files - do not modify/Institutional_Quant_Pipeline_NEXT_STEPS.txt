@@ -1,0 +1,429 @@
+INSTITUTIONAL QUANT PIPELINE — NEXT STEPS / RESEARCH ENGINE V2
+
+CURRENT FILES
+1. Institutional_Quant_Pipeline_Combined_3plus4_IMPROVED.ipynb
+   - Repaired core research/backtest pipeline.
+
+2. Institutional_Quant_Pipeline_Combined_3plus4_ALTERNATIVE_DATA.ipynb
+   - Adds external information sources and data adapters.
+
+3. Institutional_Quant_Pipeline_Combined_3plus4_FULL_INFORMATION_LAYER.ipynb
+   - Main/master version.
+   - Adds information scoring, deduplication, decay, source-quality diagnostics,
+     social-quality diagnostics, and source ablation tests.
+
+RECOMMENDATION
+Use the FULL_INFORMATION_LAYER notebook as the master version.
+Keep the other two as archived intermediate versions.
+Do not build three separate research systems.
+
+GOAL
+Turn the current notebook into a disciplined end-to-end quantitative research platform:
+
+Data
+→ Point-in-time features
+→ Strategy generation
+→ Walk-forward testing
+→ Robustness testing
+→ Portfolio construction
+→ Risk management
+→ Paper trading
+→ Live trading
+
+PHASE 1 — GET THE DATA PIPELINE RUNNING
+1. Choose the markets/assets to research first.
+2. Choose the historical period and timeframe.
+3. Obtain price/volume data.
+4. Obtain fundamentals where relevant.
+5. Connect macro sources.
+6. Connect SEC filings where applicable.
+7. Connect news providers.
+8. Connect Reddit.
+9. Connect X using an official/authenticated API.
+10. Store raw data before transformation.
+
+For every observation/event, preserve:
+symbol
+event_time
+publication_time
+source
+raw_value
+processed_value
+availability_time
+
+CRITICAL RULE:
+A feature may only be used at a timestamp after the information was actually
+available to the strategy. Never use revised/future information.
+
+PHASE 2 — BUILD THE POINT-IN-TIME FEATURE ENGINE
+Standardize all information into a common feature table.
+
+Possible feature groups:
+- Momentum
+- Trend
+- Mean reversion
+- Volatility
+- Volume/liquidity
+- Market breadth
+- Fundamentals
+- Earnings surprises
+- Macro regime
+- News sentiment
+- News novelty
+- News attention
+- News source breadth
+- Reddit attention
+- X attention
+- Cross-source disagreement
+- Information decay
+- Event intensity
+
+Every feature needs:
+- definition
+- source
+- timestamp/availability rule
+- missing-data behavior
+- look-ahead test
+- scaling/normalization rule
+
+PHASE 3 — BUILD A PROPER WALK-FORWARD TESTING FRAMEWORK
+Do NOT optimize on the full historical dataset.
+
+Use rolling or expanding windows:
+
+Train → Validation → Test
+then roll forward.
+
+Example:
+Train: 2016–2021
+Validation: 2022
+Test: 2023
+then roll forward.
+
+The exact dates should depend on the dataset.
+
+For every strategy, preserve:
+- training period
+- validation period
+- test period
+- parameters selected
+- features selected
+- number of trials
+- final untouched OOS result
+
+PHASE 4 — ROBUSTNESS / ANTI-OVERFITTING TESTS
+Every promising strategy should pass several checks:
+
+1. Parameter perturbation
+   Test nearby parameter values.
+
+2. Transaction-cost stress
+   Increase commissions/fees.
+
+3. Slippage stress
+   Test worse execution assumptions.
+
+4. Signal-delay test
+   Delay the signal by one or more bars.
+
+5. Missing-data test
+   Remove or corrupt portions of input data.
+
+6. Regime test
+   Test separately in:
+   - bull markets
+   - bear markets
+   - high volatility
+   - low volatility
+   - high inflation/rate environments where relevant
+
+7. Cross-asset test
+   Determine whether the effect survives outside the original instruments.
+
+8. Placebo / randomized feature test
+   Replace a feature with noise or shuffled values.
+   A real edge should deteriorate.
+
+9. Bootstrap / resampling
+   Estimate uncertainty around returns and risk statistics.
+
+10. Multiple-hypothesis correction
+    Account for the number of strategies/features tried.
+
+11. Backtest-overfitting diagnostics
+    Measure how likely the observed best result is a search artifact.
+
+12. Deflated/performance-adjusted statistics where appropriate.
+
+PHASE 5 — STRATEGY DISCOVERY ENGINE
+Create a controlled strategy search system.
+
+Search combinations of:
+technical features
+× fundamental features
+× macro regime
+× information features
+× entry rules
+× exit rules
+× position-sizing rules
+× risk rules
+
+BUT:
+The discovery engine must enforce:
+- no look-ahead
+- no survivorship bias
+- no future universe selection
+- no data leakage between folds
+- bounded parameter ranges
+- trial counting
+- reproducible random seeds
+- out-of-sample evaluation
+- rejection of fragile strategies
+
+Do not select the strategy with the highest in-sample Sharpe.
+Select based on robust OOS performance.
+
+PHASE 6 — INFORMATION / NEWS ENGINE
+Create a unified event model.
+
+For each article/post/event:
+- source
+- author/account/source identifier where legally/appropriately available
+- publication time
+- asset/entity
+- topic/event type
+- sentiment
+- confidence
+- novelty
+- engagement
+- source quality
+- corroboration
+- disagreement
+- availability time
+
+Deduplicate syndicated/copied stories.
+Avoid counting the same event 20 times because it appears on 20 feeds.
+
+Build information scores such as:
+- sentiment
+- absolute sentiment
+- attention
+- novelty
+- source breadth
+- corroboration
+- disagreement
+- event intensity
+- recency decay
+
+Test each information source independently before combining them.
+
+PHASE 7 — SOCIAL DATA QUALITY CONTROLS
+For Reddit/X:
+- engagement normalization
+- account/source quality
+- burst detection
+- duplicate/copied content detection
+- bot-like/anomalous activity flags where feasible
+- coordinated activity indicators where feasible
+- source concentration
+- sentiment disagreement
+
+Do NOT automatically assume high social engagement means high predictive value.
+
+The system must test whether social information adds incremental OOS information after accounting for price/volume/news.
+
+PHASE 8 — SOURCE ABLATION TESTING
+Run comparisons such as:
+
+Baseline price/volume model
+Baseline + macro
+Baseline + fundamentals
+Baseline + news
+Baseline + Reddit
+Baseline + X
+Baseline + all information
+
+Measure:
+- OOS Sharpe
+- CAGR
+- max drawdown
+- Calmar
+- Sortino
+- hit rate
+- turnover
+- costs
+- tail loss
+- stability
+- statistical uncertainty
+
+The objective is to determine which information sources actually add incremental value.
+
+PHASE 9 — PORTFOLIO CONSTRUCTION
+Move from individual strategies to portfolio-level analysis.
+
+Add:
+- volatility targeting
+- position sizing
+- exposure limits
+- sector limits
+- asset limits
+- correlation controls
+- concentration limits
+- turnover controls
+- drawdown controls
+- cash allocation
+- regime-aware allocation where justified
+
+Compare:
+equal-weighted strategies
+vs
+risk-weighted strategies
+vs
+correlation-aware portfolio construction.
+
+PHASE 10 — RISK ENGINE
+Build explicit portfolio risk monitoring.
+
+Track:
+- realized volatility
+- drawdown
+- VaR/CVaR where appropriate
+- beta
+- factor exposure
+- concentration
+- liquidity
+- turnover
+- gap risk
+- tail-risk measures
+- correlation spikes
+
+Add hard safety rules for live deployment.
+
+PHASE 11 — RESEARCH LEADERBOARD
+Every experiment should automatically produce a standard record.
+
+Example fields:
+
+Strategy
+Features
+Universe
+Timeframe
+Train period
+Validation period
+Test period
+# trials
+OOS Sharpe
+CAGR
+Max DD
+Calmar
+Sortino
+Turnover
+Trade count
+Costs
+Slippage
+Statistical confidence
+Robustness score
+Information sources
+Pass/Fail
+
+Only strategies that pass predefined criteria should be promoted.
+
+PHASE 12 — EXPERIMENT TRACKING / REPRODUCIBILITY
+Every experiment should save:
+- configuration
+- dataset/version
+- feature version
+- strategy code/version
+- random seed
+- parameters
+- results
+- timestamps
+- source metadata
+
+Use unique experiment IDs.
+
+Never overwrite prior experiment results.
+
+PHASE 13 — PAPER TRADING
+Do NOT move directly from backtest to real money.
+
+First:
+- generate live signals
+- record expected execution
+- simulate fills
+- record latency/slippage
+- compare predictions with realized results
+- monitor data outages
+- monitor feature drift
+- monitor model/strategy degradation
+
+Run this long enough to establish that live behavior resembles research assumptions.
+
+PHASE 14 — LIVE TRADING
+Only after paper trading and monitoring are satisfactory.
+
+Start with very small capital.
+
+Use:
+- position limits
+- max daily loss
+- max portfolio drawdown
+- kill switch
+- API failure handling
+- stale-data detection
+- duplicate-order protection
+- reconciliation
+- trade logging
+- alerting
+
+IMPORTANT
+A strategy that looks excellent in backtests is not automatically tradable.
+The goal is not the highest backtest return.
+The goal is a robust, reproducible, economically plausible edge that survives
+out-of-sample testing, costs, regime changes, and live execution.
+
+RECOMMENDED ORDER OF IMPLEMENTATION
+
+1. Finish data ingestion and storage.
+2. Validate timestamps / point-in-time behavior.
+3. Finish unified feature engine.
+4. Build walk-forward testing.
+5. Add robustness and anti-overfitting tests.
+6. Build strategy discovery.
+7. Add information-source ablation.
+8. Build portfolio construction.
+9. Build risk engine.
+10. Build leaderboard and experiment tracking.
+11. Run paper trading.
+12. Only then consider live trading.
+
+WHAT YOU SHOULD DO RIGHT NOW
+
+Open:
+Institutional_Quant_Pipeline_Combined_3plus4_FULL_INFORMATION_LAYER.ipynb
+
+Then:
+1. Run the notebook from the top.
+2. Confirm the existing cells execute without errors.
+3. Identify which API/data sources you already have credentials for.
+4. Start with one market/universe rather than everything at once.
+5. Download/build a clean historical dataset.
+6. Run the point-in-time and leakage checks before strategy optimization.
+7. Do not optimize strategies yet if the data/timestamp validation is not passing.
+
+BEST NEXT DEVELOPMENT TARGET
+
+The next version should be called something like:
+
+Institutional_Quant_Research_Engine_V2.ipynb
+
+It should consolidate the current notebook and add:
+- unified point-in-time data schema
+- automated walk-forward experimentation
+- strategy discovery
+- anti-overfitting framework
+- portfolio optimization
+- risk engine
+- experiment registry/leaderboard
+
+That is the logical next step from the three notebooks you currently have.

@@ -1,0 +1,53 @@
+# Institutional Quant Research Engine V2.1 - baseline configuration
+# Deterministic defaults. This file is hashed into every experiment fingerprint.
+
+data:
+  mode: synthetic          # synthetic | csv | yfinance
+  assets: [SPY, QQQ, AAPL, MSFT, JPM, GLD, TLT]
+  target: SPY
+  start: "2012-01-01"
+  end: "2026-01-01"
+  frequency: 1d
+  csv_path: null           # required when mode=csv
+  raw_snapshot_dir: data/raw_snapshots
+
+evaluation:
+  train_window: 1260       # bars (~5y) in rolling mode; minimum history in expanding mode
+  validation_window: 252
+  test_window: 252
+  step_bars: 252
+  purge_bars: 5
+  embargo_bars: 5
+  expanding: true
+
+execution:
+  fee_bps: 5.0
+  slippage_bps: 1.0
+  signal_delay_bars: 0
+  target_vol: 0.10
+  max_position: 1.0
+
+model:
+  type: logistic           # logistic | gradient_boosting
+  random_seed: 42
+  parameters:
+    C: 1.0
+    max_iter: 1000
+
+research:
+  max_trials: 48
+  bootstrap_samples: 500
+  placebo_runs: 20
+  threshold_candidates: [0.50, 0.52, 0.54, 0.56, 0.58, 0.60, 0.62, 0.64, 0.66]
+  hold_candidates: [1, 2, 3, 5]
+
+promotion:
+  min_median_oos_sharpe: 0.0
+  min_mean_oos_sharpe: 0.0
+  max_oos_dd: -0.50
+  cost_stress_fee_bps: 10.0
+  delay_stress_bars: 1
+  min_bootstrap_positive_prob: 0.60
+  min_placebo_percentile: 0.95
+  max_single_fold_share: 0.60
+  max_annual_turnover: 60.0

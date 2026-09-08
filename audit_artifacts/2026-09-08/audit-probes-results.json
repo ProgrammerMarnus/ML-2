@@ -1,0 +1,142 @@
+{
+  "pit_future_corroboration": {
+    "early_bar": "2024-01-05 00:00:00+00:00",
+    "later_availability": "2024-01-12 00:00:00+00:00",
+    "prefix_only": 1.0,
+    "full_history": 2.0,
+    "existing_leakage_probe_passed": true
+  },
+  "weekend_decay": {
+    "intensity_first": 1.0,
+    "intensity_15th_bar": 1.0,
+    "halflife_bars": 5
+  },
+  "block_permutation": {
+    "labels_unchanged_after_production_alignment": true,
+    "returns_unchanged_after_production_alignment": true,
+    "later_date_precedes_earlier_date_in_risk_history": 2
+  },
+  "fold_state_and_exit_cost": {
+    "continuous_boundary_position": 1.0,
+    "fold_boundary_position": 0.0,
+    "previous_fold_final_position": 1.0,
+    "boundary_exit_fee_charged": 0.0,
+    "required_fee_plus_slippage": 0.0006
+  },
+  "single_fold_share": {
+    "balanced_four_profitable_folds_reported_share": 1.0,
+    "one_winner_dominated_reported_share": 0.5268138801261829,
+    "actual_largest_positive_share": 0.9980039920159681
+  },
+  "counter_stale_writer": {
+    "increments_requested": [
+      100,
+      1
+    ],
+    "persisted_count": 1,
+    "persisted_highwater": 1
+  },
+  "pbo_rank_axis": {
+    "reported_pbo": 0.0,
+    "actual_fraction_below_variant_median": 1.0,
+    "splits": 70
+  },
+  "dsr_formula": {
+    "annualized_sharpe": 1.5,
+    "trials": 50,
+    "n_obs": 1000,
+    "skew": -3.0,
+    "kurtosis": 10.0,
+    "implementation_p": 0.3194663531837191,
+    "p_using_paper_denominator_same_benchmark": 0.2669381630332295,
+    "function_named_annualized_expected_max": 0.07201904272918366,
+    "actual_annualized_value": 1.1432668603341267
+  },
+  "initial_loss_drawdown": {
+    "returns": [
+      -0.2,
+      0.0,
+      0.0
+    ],
+    "reported_max_drawdown": 0.0,
+    "actual_max_drawdown": -0.2,
+    "controlled_weights": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "sortino_downside": {
+    "returns": [
+      0.03,
+      -0.01,
+      0.03,
+      -0.01
+    ],
+    "reported_sortino": "nan",
+    "zero_target_downside_deviation_sortino": 22.44994432064365
+  },
+  "missing_universe_and_boundaries": {
+    "requested_assets": [
+      "SPY",
+      "QQQ"
+    ],
+    "loaded_assets": [
+      "SPY"
+    ],
+    "requested_dates": [
+      "2020-01-01",
+      "2025-01-01"
+    ],
+    "loaded_dates": [
+      "2024-01-02 00:00:00+00:00",
+      "2024-02-29 00:00:00+00:00"
+    ],
+    "reported_missing_sessions": 0
+  },
+  "ohlcv_validation": {
+    "accepted_close_outside_high_low": true,
+    "accepted_infinite_volume": true
+  },
+  "dataset_hash_collision": {
+    "distinct_numeric_data": true,
+    "hash_equal": true,
+    "hash": "38d6cd429973b7f8"
+  },
+  "placebo_gate_resolution": {
+    "n_runs": 1,
+    "percentile": 1.0,
+    "adjusted_p": 0.5,
+    "gate_passed": true
+  },
+  "gradient_boosting_stress": {
+    "baseline_completed": true,
+    "stress_error": "'GradientBoostingClassifier' object has no attribute 'coef_'"
+  },
+  "configured_nonzero_delay": {
+    "baseline_completed": true,
+    "stress_error": "delay=0 replay positions differ from baseline positions"
+  },
+  "holding_rule_replay": {
+    "holding_bars": 5,
+    "changed_positions_on_no_override_replay": 53,
+    "total_positions": 160
+  },
+  "overlapping_oos_windows": {
+    "test_window": 40,
+    "step_bars": 20,
+    "oos_rows": 280,
+    "duplicate_timestamps": 120,
+    "stress_error": "ValueError: cannot reindex on an axis with duplicate labels"
+  },
+  "discovery_future_selection": {
+    "first_test_bars": 252,
+    "bars_used_again_in_second_validation": 247,
+    "later_validation_is_in_global_candidate_ranking": true
+  },
+  "test_lock_membership": {
+    "removed_test_timestamp_accepted": true,
+    "original_bars": 40,
+    "changed_bars": 39
+  }
+}

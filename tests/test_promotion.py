@@ -1,0 +1,145 @@
+"""Promotion gate tests."""
+
+from __future__ import annotations
+
+import pandas as pd
+import pytest
+
+from quant_research.config import PromotionConfig
+from quant_research.experiments.promotion import evaluate_gates, promotion_decision
+
+
+def valid_record(**overrides):
+    base = {
+        "strategy": "test_strategy",
+        "features": ["momentum_63"],
+        "universe": ["SPY"],
+        "target": "SPY",
+        "timeframe": "1d",
+        "train_period": ["2020-01-01", "2021-01-01"],
+        "validation_period": ["2021-01-01", "2021-06-01"],
+        "test_period": ["2021-06-01", "2022-01-01"],
+        "trials": 3,
+        "dataset_version": "abc123",
+        "feature_version": "def456",
+        "strategy_version": "1.0",
+        "code_version": "V2.1.0",
+        "seed": 42,
+        "gross_metrics": {"sharpe": 0.5},
+        "net_metrics": {"sharpe": 0.4},
+        "costs": {"fee_bps": 5},
+        "slippage": {"bps": 1},
+        "oos_metrics": {"mean_oos_sharpe": 0.4},
+        "bootstrap_interval": {"lo": -0.2, "hi": 0.8},
+        "robustness": {
+            "survives_cost_stress": True,
+            "survives_delay_stress": True,
+            "cost_stress": [],
+            "delay_stress": [],
+            "slippage_stress": [],
+            "parameter_perturbation": [],
+            "missing_data": [],
+        },
+        "placebo_statistics": {"percentile": 0.97},
+        "information_sources": ["price_volume"],
+        "promotion_state": "RESEARCH_ONLY",
+    }
+    base.update(overrides)
+    return base
+
+
+def _robustness(cost_sharpe=-0.1, delay_sharpe=-0.1):
+    cost = pd.DataFrame({"fee_bps": [5.0, 10.0], "sharpe": [0.5, cost_sharpe]})
+    delay = pd.DataFrame({"delay_bars": [0, 1], "sharpe": [0.5, delay_sharpe]})
+    return {
+        "survives_cost_stress": bool(cost_sharpe > 0),
+        "survives_delay_stress": bool(delay_sharpe > 0),
+        "cost_stress": cost.to_dict("records"),
+        "delay_stress": delay.to_dict("records"),
+        "slippage_stress": [],
+        "parameter_perturbation": [],
+        "missing_data": [],
+    }
+
+
+def base_summary(**kw):
+    s = {"median_oos_sharpe": 0.4, "mean_oos_sharpe": 0.3, "worst_oos_dd": -0.2,
+         "single_fold_share": 0.3, "annual_turnover": 20.0}
+    s.update(kw)
+    return s
+
+
+def base_stats(**kw):
+    boot = {"positive_prob": 0.8}
+    placebo = {"percentile": 0.99}
+    boot.update({k: v for k, v in kw.items() if k in boot})
+    placebo.update({k: v for k, v in kw.items() if k in placebo})
+    return boot, placebo
+
+
+def test_gates_pass_for_healthy_strategy():
+    rob = _robustness(cost_sharpe=0.3, delay_sharpe=0.2)
+    boot, placebo = base_stats()
+    checks = evaluate_gates(base_summary(), rob, boot, placebo,
+                            True, True, 3, PromotionConfig())
+    decision = promotion_decision(checks)
+    assert decision["failed_gates"] == []
+    assert decision["state"] == "CANDIDATE"
+
+
+def test_gates_reject_weak_oos():
+    rob = _robustness(cost_sharpe=0.3, delay_sharpe=0.2)
+    boot, placebo = base_stats()
+    checks = evaluate_gates(base_summary(mean_oos_sharpe=-0.5, median_oos_sharpe=-0.2),
+                            rob, boot, placebo, True, True, 3, PromotionConfig())
+    decision = promotion_decision(checks)
+    assert decision["state"] == "RESEARCH_ONLY"
+    assert "median_oos_sharpe_positive" in decision["failed_gates"]
+
+
+def test_gates_reject_when_placebo_comparable_or_better():
+    rob = _robustness(cost_sharpe=0.3, delay_sharpe=0.2)
+    boot, placebo = base_stats(percentile=0.3)  # barely beats the null
+    checks = evaluate_gates(base_summary(), rob, boot, placebo,
+                            True, True, 3, PromotionConfig())
+    decision = promotion_decision(checks)
+    assert "placebo_separates" in decision["failed_gates"]
+
+
+def test_gates_reject_cost_and_delay_failure():
+    rob = _robustness(cost_sharpe=-0.1, delay_sharpe=-0.1)
+    boot, placebo = base_stats()
+    checks = evaluate_gates(base_summary(), rob, boot, placebo,
+                            True, True, 3, PromotionConfig())
+    decision = promotion_decision(checks)
+    assert "cost_stress_survives" in decision["failed_gates"]
+    assert "delay_stress_survives" in decision["failed_gates"]
+
+
+def test_gates_reject_bootstrap_uncertainty():
+    rob = _robustness(cost_sharpe=0.3, delay_sharpe=0.2)
+    boot, placebo = base_stats(positive_prob=0.3)
+    checks = evaluate_gates(base_summary(), rob, boot, placebo,
+                            True, True, 3, PromotionConfig())
+    decision = promotion_decision(checks)
+    assert "bootstrap_positive_prob" in decision["failed_gates"]
+
+
+def test_gates_reject_single_fold_domination_and_turnover():
+    rob = _robustness(cost_sharpe=0.3, delay_sharpe=0.2)
+    boot, placebo = base_stats()
+    checks = evaluate_gates(base_summary(single_fold_share=0.9, annual_turnover=200.0),
+                            rob, boot, placebo, True, True, 3, PromotionConfig())
+    decision = promotion_decision(checks)
+    assert "not_single_fold" in decision["failed_gates"]
+    assert "turnover_plausible" in decision["failed_gates"]
+
+
+def test_gates_reject_integrity_and_lookahead_failures():
+    rob = _robustness(cost_sharpe=0.3, delay_sharpe=0.2)
+    boot, placebo = base_stats()
+    checks = evaluate_gates(base_summary(), rob, boot, placebo,
+                            False, False, 3, PromotionConfig())
+    decision = promotion_decision(checks)
+    assert "data_integrity" in decision["failed_gates"]
+    assert "lookahead_resolved" in decision["failed_gates"]

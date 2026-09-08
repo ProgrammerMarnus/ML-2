@@ -1,0 +1,66 @@
+{
+  "audit_completed_utc": "2026-09-08T14:07:00.017176+00:00",
+  "project": "/home/marnus/VS-Code/ML-2",
+  "report": "/home/marnus/VS-Code/ML-2/DEEP_AUDIT_2026-09-08.md",
+  "source_files_hashed": 67,
+  "source_manifest_reverified": true,
+  "changed_project_inputs": [],
+  "review_mode": "read-only project inputs; report and evidence added",
+  "scope": "active quant_research modules, configs, notebook orchestration, tests, registries, saved real-data baseline",
+  "git_history": "not accessible in exposed .git directory",
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "dependencies": {
+    "pytest": "9.1.1",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0",
+    "scipy": "1.18.1",
+    "PyYAML": "6.0.2",
+    "nbformat": "5.11.1",
+    "nbclient": "0.11.0",
+    "pyarrow": "25.0.1",
+    "yfinance": "1.7.0"
+  },
+  "numeric_threads": 1,
+  "existing_suite": {
+    "passed": 210,
+    "failed": 0,
+    "warnings": 1642,
+    "duration_seconds": 336.23
+  },
+  "audit_probes": {
+    "count": 20,
+    "probe_errors": 0
+  },
+  "additional_checks": [
+    "discovery future-return selection perturbation",
+    "two full synthetic pipelines with changed test layouts",
+    "exact stored real-snapshot baseline replay",
+    "notebook schema and compilation"
+  ],
+  "real_replay": {
+    "summary_fields_compared": 17,
+    "all_summary_deltas": 0,
+    "provider_network_refresh": false
+  },
+  "findings": {
+    "P1": 12,
+    "P2": 11,
+    "P3": 1,
+    "total": 24
+  },
+  "evidence_files": {
+    "audit_probes.py": "140cea3d850d8373b9971c142e36c0172f0f5af81807208a5c8cd092f32f74cd",
+    "audit_extra_probes.py": "55a6661b53a94f5defc194bb7afb7db50ee642e36f0f470c9d7025b2a9d47b19",
+    "audit-probes-results.json": "400a469b588c432d80d459e9121731ce9cfc887809bf362402785adfc52d9d9f",
+    "audit-probes.log": "11065269fa78c5eaa91867e7fc21a33e677a5e7cc8ea07946daf4e2be599f420",
+    "discovery-selection-perturbation.json": "2d9ed6ac30b6a1e0a049f1b0a63d77bb5b721c83fdd403b1b3771cdb31fc94e2",
+    "real-baseline-replay.json": "76054ce69b700a86b1e6f3afe7fc0a3cdc412c0bf0614c6f016e3f718f57c8ab",
+    "real-baseline-replay-folds.csv": "2a9f183bd22990e9b3964caa27fc74233a463a894d9bbd0b966cf59eab5d66cd",
+    "locked-test-pipeline-probe.json": "799de8edfe290b32890d5cde3b491da5c7ca43c3afaf5c7c81c940b122cd2ce7",
+    "pytest.log": "b60f9a90961cd86f78530d656cd4c23818625c1b32f726e5fa9bbc8ccf5b7b8a",
+    "pytest-results.xml": "7a8176b992d0296dbc5d078c0559973929000b27b2574b1c762a4c1955b00072",
+    "source-manifest.json": "01cdaa52407a625c7bfd835828ab3ca5c7a078fbe78c5b63639534b9f6cba6b6"
+  },
+  "report_sha256": "652d40d939c6987d01ebfd228314ca23df370d1181dee25cf46e4240547049bb"
+}

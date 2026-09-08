@@ -1,0 +1,45 @@
+[
+  {
+    "perturbation_seed": 0,
+    "selected_before": 3,
+    "selected_after": 2,
+    "first_fold_training_returns_unchanged": true,
+    "first_fold_validation_returns_unchanged": true,
+    "baseline_scores": [
+      {
+        "candidate_id": 3,
+        "robust_adjusted_score": 1.5023219707963409
+      },
+      {
+        "candidate_id": 0,
+        "robust_adjusted_score": 1.2965672462143978
+      },
+      {
+        "candidate_id": 1,
+        "robust_adjusted_score": 0.9911867779986197
+      },
+      {
+        "candidate_id": 2,
+        "robust_adjusted_score": -1.1097539806081695
+      }
+    ],
+    "perturbed_scores": [
+      {
+        "candidate_id": 2,
+        "robust_adjusted_score": 2.5149693923513365
+      },
+      {
+        "candidate_id": 0,
+        "robust_adjusted_score": 2.1517652344020637
+      },
+      {
+        "candidate_id": 1,
+        "robust_adjusted_score": 1.422716471072553
+      },
+      {
+        "candidate_id": 3,
+        "robust_adjusted_score": 1.3181838966130734
+      }
+    ]
+  }
+]

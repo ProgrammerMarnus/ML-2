@@ -1,0 +1,65 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/ml2-deep-audit-20260908-3z7j5bqr
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.15.0, typeguard-4.4.2
+collected 210 items
+
+tests/test_accounting.py ...                                             [  1%]
+tests/test_backtest.py .........                                         [  5%]
+tests/test_baseline.py .....                                             [  8%]
+tests/test_config.py ........                                            [ 11%]
+tests/test_data_validation.py ............                               [ 17%]
+tests/test_delay_invariants.py .......                                   [ 20%]
+tests/test_features.py .............                                     [ 27%]
+tests/test_integrity.py .............                                    [ 33%]
+tests/test_metrics.py ..........                                         [ 38%]
+tests/test_parkinson.py .........................................        [ 57%]
+tests/test_phase_a_invariants.py ......                                  [ 60%]
+tests/test_pipeline.py ........                                          [ 64%]
+tests/test_placebo.py ....                                               [ 66%]
+tests/test_point_in_time.py .............                                [ 72%]
+tests/test_portfolio.py .......                                          [ 75%]
+tests/test_promotion.py .......                                          [ 79%]
+tests/test_registry.py ........                                          [ 82%]
+tests/test_robustness.py ......                                          [ 85%]
+tests/test_selection_isolation.py ...                                    [ 87%]
+tests/test_snapshots.py ....                                             [ 89%]
+tests/test_statistics.py ............                                    [ 94%]
+tests/test_trial_accounting.py ....                                      [ 96%]
+tests/test_walk_forward.py .......                                       [100%]
+
+=============================== warnings summary ===============================
+tests/test_accounting.py: 51 warnings
+tests/test_baseline.py: 48 warnings
+tests/test_phase_a_invariants.py: 54 warnings
+tests/test_pipeline.py: 1032 warnings
+tests/test_placebo.py: 36 warnings
+tests/test_robustness.py: 75 warnings
+tests/test_selection_isolation.py: 39 warnings
+tests/test_trial_accounting.py: 295 warnings
+  /home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+    warnings.warn(
+
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+  /home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+  /home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+    ret = ret.dtype.type(ret / rcount)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /tmp/ml2-deep-audit-20260908-3z7j5bqr/pytest-results.xml -
+================ 210 passed, 1642 warnings in 336.23s (0:05:36) ================

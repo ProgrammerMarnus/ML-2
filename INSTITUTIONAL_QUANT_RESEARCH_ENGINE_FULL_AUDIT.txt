@@ -1,0 +1,454 @@
+INSTITUTIONAL QUANT RESEARCH ENGINE V2.1.2 — FULL AUDIT
+Date: 2026-09-07
+Basis: supplied Repomix repository export + bundled artifacts/results + local test execution
+
+EXECUTIVE VERDICT
+=================
+The project is materially stronger than a typical retail backtesting script. It has a good research-contract philosophy and several real safeguards: immutable snapshots, point-in-time event schema, fold-local preprocessing, explicit train/validation/test separation, a locked test protocol, cost/slippage/delay robustness, persistent trial accounting, an append-only registry, and conservative promotion gates.
+
+However, it is NOT yet an institutional-grade evidence engine. Several implementation details contradict the stated research contract, and some of the strongest statistical controls are implemented as standalone utilities rather than actually enforced in the production pipeline. The most serious issues affect risk-scaling timing, discovery-to-OOS reproducibility, portfolio drawdown control, statistical multiple-testing, and portfolio risk diagnostics.
+
+Overall status: RESEARCH_ONLY. Do not promote or trade from the current engine.
+
+SEVERITY SCALE
+==============
+CRITICAL = can invalidate research conclusions or introduce look-ahead / false evidence.
+HIGH = materially weakens evidence or reproducibility, but does not necessarily create direct leakage.
+MEDIUM = important institutional-quality gap.
+LOW = cleanup/efficiency/documentation.
+
+1. CONFIRMED STRENGTHS
+======================
+1.1 Architecture
+- Clear pipeline separation: data -> PIT -> features -> walk-forward -> robustness -> registry.
+- Source tree is modular: data, features, evaluation, strategy, portfolio, experiments, execution.
+- Configuration is typed and fingerprinted.
+
+1.2 Time-series hygiene
+- Timezone-naive timestamps are explicitly rejected.
+- Event availability_time is mandatory.
+- Event publication/availability ordering is validated.
+- Fold-local imputer/scaler/model fitting is used.
+- Locked test protocol exists.
+
+1.3 Execution conservatism
+- No same-bar signal fill is attempted.
+- Transaction costs are charged on absolute position changes.
+- Gross and net return paths are separately retained.
+- Delay/cost/slippage stress tests reuse the baseline OOS specification.
+
+1.4 Experiment governance
+- Registry is append-only in normal operation.
+- Trial counter is persistent and monotonic.
+- Synthetic results are explicitly labelled as not being market evidence.
+- Promotion defaults to rejection when evidence is weak.
+
+1.5 Testing
+- The repository actually contains about 152 test functions by AST inspection, despite README documentation saying 121 tests.
+- Pure/statistical/data/PIT/config/registry test groups executed successfully in the local audit environment.
+- The full end-to-end pipeline test is computationally expensive and exceeded the available execution window; verbose execution showed the expensive point is the full pipeline test, not test collection.
+
+2. CRITICAL / HIGH ISSUES
+=========================
+
+2.1 CRITICAL — Volatility targeting is built from the forward-return series
+--------------------------------------------------------------------------
+In the backtester, volatility scale is computed from `session_returns`. The production walk-forward code passes `fwd_returns`, where fwd[t] = close[t+1]/close[t]-1.
+
+The scale is then shifted by one row. That means the risk estimate can incorporate the return of the current trading session when the strategy position is conceptually established for that session. This is not the same as using an observable trailing close-to-close return history at the decision/fill time.
+
+Impact:
+- Can create look-ahead through risk sizing even when the feature leakage test passes.
+- The current leakage test checks feature construction, not portfolio/risk-state causality.
+
+Fix:
+- Separate `signal_time`, `execution_time`, and `risk_observation_time`.
+- Use an explicitly observable return series (e.g. close[t]/close[t-1]-1) for volatility estimation.
+- Feed enough pre-validation/pre-test history into the backtester so the first OOS bars do not restart volatility estimation from scratch.
+- Add a test that perturbs current/future realized returns and proves the position at that same timestamp does not change.
+
+2.2 HIGH — OOS test slices restart the volatility history
+-----------------------------------------------------------
+Each validation/test backtest is called on only that slice. The rolling 20-day volatility therefore loses the historical context immediately before the slice and begins with zero exposure during warm-up.
+
+Impact:
+- OOS economics are not exactly the same as a continuously running strategy.
+- Fold boundary behavior is artificial.
+- Validation threshold choices can be affected by the artificial warm-up.
+
+Fix:
+- Give the backtester an explicit history/context frame before each evaluation window.
+- Compute indicators/risk state from the full pre-window history while scoring only the evaluation window.
+
+2.3 HIGH — Daily execution semantics and return semantics are not fully aligned
+--------------------------------------------------------------------------------
+The code says signals are generated through bar t close, filled on t+1. But the scored forward return is a close[t] -> close[t+1] return. That is not an exact representation of an order filled at the next session open unless the fill price and intraday/overnight return decomposition are modeled consistently.
+
+Impact:
+- The backtest is conservative in some places but not economically exact.
+- News/event timestamps and daily bar timestamps can be misaligned by many hours.
+
+Fix:
+- Either use explicit next-open execution with open-to-close/close-to-next-close return accounting, or clearly define the strategy as a close-to-close signal with a one-period lag and model it consistently.
+- Store session-open/session-close timestamps instead of date-midnight timestamps whenever intraday availability matters.
+
+2.4 HIGH — Portfolio drawdown control is same-day reactive
+-----------------------------------------------------------
+`apply_drawdown_control` calculates drawdown from the current return series and immediately applies the resulting state to weights at the same timestamps.
+
+That allows a day's realized return to affect that day's weight. In live trading, the day's loss is not known before the day's position was held.
+
+Impact:
+- Direct potential look-ahead if this function is used for strategy construction.
+
+Fix:
+- Shift the drawdown state by one decision period before applying it to weights.
+- Add an invariant test: changing today's return cannot change today's weight.
+
+2.5 HIGH — Discovery candidate configuration is not faithfully reproduced on OOS
+-------------------------------------------------------------------------------
+Discovery explicitly searches `hold_bars`, and it computes a candidate threshold. But `evaluate_candidate_oos` passes only the feature set and model type into the baseline walk-forward function. The selected candidate's `hold_bars` and candidate threshold are not faithfully pinned into the final OOS run.
+
+Impact:
+- The strategy claimed to be evaluated is not necessarily the strategy that was selected.
+- This is a serious experiment-definition/reproducibility problem.
+
+Fix:
+- Persist the exact per-fold selected thresholds.
+- Persist hold period and all model parameters.
+- Pass them into OOS as fixed values.
+- Test that changing the candidate's hold_bars changes OOS behavior while keeping the candidate specification immutable.
+
+2.6 HIGH — Statistical anti-overfitting modules exist but are not enforced by the main pipeline
+-----------------------------------------------------------------------------------------------
+The repository contains PBO/CSCV, expected-max-Sharpe, deflated-Sharpe, Bonferroni, Holm, and Benjamini-Hochberg implementations. The production run path does not use these functions to determine promotion or final candidate acceptance.
+
+Impact:
+- The project advertises a stronger anti-overfitting framework than it actually enforces.
+- The current promotion process does not fully account for the number of tested variants.
+
+Fix:
+- Make multiple-testing treatment mandatory for any candidate search.
+- Add explicit search-family IDs and a complete trial ledger.
+- Use a method appropriate to the search design (e.g. family-wise correction, SPA-like testing, or a carefully implemented deflated Sharpe / reality-check procedure).
+- Store the exact search universe and candidate-generation rule.
+
+2.7 HIGH — Trial count mixes local trials and cumulative global trials
+---------------------------------------------------------------
+The registry writes both `trials` and `n_trials_global` from the same cumulative counter value.
+
+Impact:
+- `trials` does not actually mean “trials in this experiment”.
+- Search-class and any future statistical correction can be wrong if the wrong field is consumed.
+
+Fix:
+Store separately:
+- trials_this_experiment
+- trials_this_search_family
+- n_trials_global
+- unique_hypotheses_tested
+- experiment/search-family ID
+
+2.8 HIGH — Portfolio risk concentration metric is semantically wrong for the pipeline usage
+--------------------------------------------------------------------------------------------
+`risk_report` accepts `weights` as a Series and computes concentration HHI over the observations of that Series. In the current research pipeline the Series is a time series of a single pseudo-position, not a cross-sectional asset weight vector.
+
+Impact:
+- The reported concentration HHI is not actually measuring portfolio asset concentration.
+
+Fix:
+- Make concentration explicitly cross-sectional per timestamp using a weight matrix.
+- Report median/worst HHI over time.
+- Keep time-series exposure metrics separate from cross-sectional concentration metrics.
+
+2.9 HIGH — “Portfolio construction / risk” is not actually integrated into the research pipeline
+-----------------------------------------------------------------------------------------------
+The main pipeline calls `risk_report` using a pseudo-weight derived from probability, rather than running `construct_portfolio` with the documented position limits, turnover controls, and drawdown controls.
+
+Impact:
+- README architecture overstates what the end-to-end run actually evaluates.
+- Strategy promotion may be based on a risk report that is not the actual portfolio implementation.
+
+Fix:
+- Integrate the actual portfolio constructor into the pipeline.
+- Score OOS on the final post-control portfolio returns, not a pseudo-risk proxy.
+
+2.10 MEDIUM/HIGH — Placebo evidence is too weak for the stated gate
+--------------------------------------------------------------------
+Default placebo runs are only 20. With a finite empirical null of 20 runs, the resolution of a 95th-percentile gate is poor and the smallest +1-adjusted tail probability is around 1/21.
+
+The project notes elsewhere that n>=100 is preferable, but the default configuration remains much smaller.
+
+Fix:
+- Use >=100 placebo runs for research-grade evidence.
+- Prefer block-preserving/randomization schemes that preserve the important dependence structure.
+- Report Monte Carlo uncertainty for the estimated percentile/p-value.
+- Promotion should use the strongest appropriate null, not only the feature-shuffle null.
+
+2.11 MEDIUM — Placebo modes are computed but promotion uses only one mode
+-----------------------------------------------------------------------
+The pipeline calculates shuffle-feature, target-permutation and block-permutation nulls, but the promotion gate is fed a single placebo statistic.
+
+Fix:
+- Require the candidate to beat the relevant null family or use a predeclared primary null with the others as sensitivity analyses.
+- Do not choose the favorable null after seeing results.
+
+2.12 MEDIUM — Sortino implementation is non-standard
+------------------------------------------------------
+The denominator is the sample standard deviation of only the negative observations. Standard downside deviation is generally based on downside semivariance/semi-deviation relative to a target/0 threshold.
+
+Fix:
+- Replace with an explicit downside-deviation definition and document it.
+- Add tests against hand-calculated known cases.
+
+2.13 MEDIUM — Experiment registry is not concurrency-safe
+-----------------------------------------------------------
+The registry uses append-mode file writes and the trial counter performs read/modify/write without a file lock or atomic transaction.
+
+Impact:
+- Parallel searches can lose increments, interleave writes, or create inconsistent counters.
+
+Fix:
+- Add OS-level file locking.
+- Use atomic temp-file + rename for counter state.
+- Add a corruption/recovery journal or SQLite backend for research-grade parallelism.
+
+2.14 MEDIUM — Dataset hashing deliberately rounds floating-point data
+---------------------------------------------------------------------
+The dataset hash formats floats to 10 decimals before hashing.
+
+Impact:
+- Distinct datasets closer than the rounding resolution collide.
+
+Fix:
+- Hash canonical binary/Parquet bytes or a lossless canonical numeric representation.
+
+2.15 MEDIUM — Registry does not fully capture the executable model specification
+--------------------------------------------------------------------------------
+The registry records model type/seed but not the full model hyperparameter dictionary, exact execution config, per-fold thresholds, fold specification hash, or all search configuration.
+
+Fix:
+- Add serialized model config, execution config, evaluation config, per-fold threshold map, feature registry version, data-source/provider version, dependency lock information, and fold hash.
+
+3. REAL-DATA RESULTS AUDIT
+==========================
+
+3.1 Latest real-data result is NOT evidence of a tradable edge
+---------------------------------------------------------------
+The latest real SPY/QQQ experiment in the supplied artifacts reports approximately:
+- full OOS net Sharpe: 0.043
+- full OOS gross Sharpe: 0.290
+- full OOS net return: about 0.5%
+- mean OOS fold Sharpe: about 0.195
+- median OOS fold Sharpe: about 0.342
+- 4 positive folds out of 7
+- annual turnover: about 25.9x
+- placebo percentile: 0.40
+- bootstrap P(Sharpe > 0): 0.566
+- cost-stress gate: failed at the required 10 bps stress
+- single-fold concentration: about 0.636, above the 0.60 gate
+- final promotion state: RESEARCH_ONLY
+
+Interpretation: the system is behaving correctly in the sense that it is refusing to promote a weak/uncertain real-data result.
+
+3.2 The gross-vs-net gap is important
+---------------------------------------
+The latest real result has materially higher gross Sharpe than net Sharpe. Transaction costs are not a detail; they absorb most of the small gross edge.
+
+This is a central research constraint: future strategy ideas should target substantially lower turnover or significantly stronger raw edge before statistical optimization.
+
+3.3 Synthetic results are not market evidence
+----------------------------------------------
+The strongest synthetic run has a much better result than the real run, but the repository itself labels synthetic datasets as offline/demo data rather than market evidence. It must never be promoted on that basis.
+
+3.4 Stored artifact consistency problem
+---------------------------------------
+Some historical real-data artifacts report a calendar expectation of 3,508 sessions and therefore fail the data-integrity gate, while the current repository tests assert that the 2012-01-03 .. 2025-12-31 NYSE session count should be 3,520.
+
+That means older artifacts should be treated as outputs from an earlier implementation and should not be mixed with current-code conclusions without rerunning them under the current code version.
+
+4. TEST SUITE AUDIT
+===================
+
+Confirmed good coverage:
+- PIT timestamp validation
+- walk-forward geometry
+- test-selection isolation
+- accounting reconciliation
+- delay invariants
+- snapshot immutability
+- statistics determinism
+- registry/trial monotonicity
+- promotion gates
+- data validation
+- paper-broker duplicate fill protection
+- basic safeguard behavior
+
+Missing/high-value tests:
+1. Risk-state causality: current return cannot affect current position.
+2. OOS warm-start equivalence with sufficient historical context.
+3. Exact discovery candidate replay: hold_bars, threshold, feature set, model parameters.
+4. Portfolio drawdown-control causal shift.
+5. Portfolio concentration HHI semantics.
+6. Parallel registry/trial-counter contention.
+7. Corrupted registry recovery.
+8. Hash collision sensitivity / exact data-hash behavior.
+9. Full dependency/environment fingerprint reproducibility.
+10. Calendar-aware stale-data tests across weekends and exchange holidays.
+11. Execution-price consistency tests using explicit next-open data.
+12. Statistical-family tests that prove the actual production pipeline consumes the multiple-testing correction.
+13. Null-family selection tests preventing post-hoc choice of the most favorable placebo.
+14. A “research freeze” test preventing code/config/data mutation after OOS lock.
+
+5. DATA / INFORMATION LAYER AUDIT
+==================================
+
+Current state:
+- Price/volume features are implemented.
+- Synthetic information/news events are implemented for offline PIT testing.
+- Real yfinance price data is available.
+- Real news, Reddit, X, SEC, fundamentals and macro feeds are not part of the current end-to-end production pipeline.
+
+Important consequence:
+Do not treat `information_sources` / information-layer infrastructure as evidence that real news/social alpha has been tested. The present real-data run is essentially a price/volume baseline.
+
+Recommended feed architecture:
+A. Raw immutable ingestion layer
+B. Provider metadata + retrieval timestamp
+C. Event-time/publication-time/availability-time normalization
+D. Entity resolution
+E. Story deduplication / syndicated-story clustering
+F. Sentiment, novelty, attention, source breadth, disagreement
+G. Revision/version handling
+H. Feature decay model
+I. PIT join
+J. source-specific ablation
+K. cost/latency impact of each source
+
+The critical rule remains: no feature is usable before its actual availability time.
+
+6. STRATEGY DISCOVERY AUDIT
+===========================
+
+Good ideas already present:
+- bounded search
+- deterministic search
+- validation-based ranking
+- robustness-adjusted validation score
+- explicit model families
+
+Changes needed:
+- search should be balanced, not just `grid[:max_trials]` because search ordering otherwise determines which hypotheses are never tested.
+- search-space hash should be stored.
+- each candidate needs a unique hypothesis ID.
+- candidate evaluation should be nested/locked and exactly replayable.
+- model hyperparameters, thresholds, hold rules, sizing and risk rules must all be part of the candidate object.
+- trial accounting must count every hypothesis attempted, not only threshold candidates in the baseline pipeline.
+
+7. PORTFOLIO / RISK UPGRADE TARGET
+===================================
+
+Current architecture is single-target / pseudo-portfolio oriented. For a genuinely useful research engine, add:
+- multi-asset cross-sectional weights
+- covariance estimation fitted on training history only where model-based
+- shrinkage covariance / robust covariance
+- gross and net exposure
+- factor exposure diagnostics
+- beta decomposition
+- sector/asset-class limits
+- liquidity/ADV participation constraints
+- portfolio turnover budget
+- max daily risk
+- drawdown state machine with causal timing
+- stress scenarios
+- gap/overnight risk
+- concentration by asset and by factor
+- risk contribution, not only weight concentration
+
+8. EXECUTION / PAPER TRADING AUDIT
+===================================
+
+Current paper broker is a minimal simulation layer, not a production paper-trading environment.
+
+Missing for serious paper trading:
+- order lifecycle states
+- order IDs
+- partial fills
+- rejection handling
+- market/limit order semantics
+- explicit fill timestamps
+- latency measurement
+- cash/margin accounting
+- position reconciliation
+- P&L attribution
+- exchange-hours checks
+- stale quote/data handling
+- retry logic
+- audit trail
+- persistent kill-switch state
+- alerting
+- failure/restart tests
+
+9. RECOMMENDED V2.2 / V2.3 ROADMAP
+==================================
+
+PHASE A — CORRECTNESS FREEZE
+1. Fix causal risk scaling.
+2. Fix portfolio drawdown timing.
+3. Fix candidate OOS replay.
+4. Fix risk concentration semantics.
+5. Strengthen locked-test hashing.
+6. Record exact executable configuration.
+7. Add causal invariant tests for all stateful/risk transformations.
+
+PHASE B — STATISTICAL GOVERNANCE
+1. Make trial taxonomy explicit.
+2. Integrate a defensible multiple-testing framework.
+3. Raise placebo count to >=100 for serious runs.
+4. Add block/bootstrap uncertainty with documented dependence assumptions.
+5. Add a candidate-family PBO/overfit report where enough variants exist.
+6. Predeclare primary hypothesis/null before looking at results.
+
+PHASE C — REAL INFORMATION
+1. Add a real news feed with publication timestamps.
+2. Add SEC filings / structured fundamentals.
+3. Add macro series with release/vintage timestamps.
+4. Add Reddit/X only through compliant, authenticated sources.
+5. Preserve raw payloads and revisions.
+6. Run source-by-source ablation and latency tests.
+
+PHASE D — RESEARCH ENGINE
+1. Nested discovery.
+2. Balanced search allocation.
+3. Exact hypothesis registry.
+4. Strategy-family IDs.
+5. Portfolio-level multi-asset evaluation.
+6. Capacity / liquidity model.
+
+PHASE E — PAPER
+1. End-to-end live signal generation.
+2. Simulated next-open execution.
+3. Latency/slippage tracking.
+4. Data outage tests.
+5. Drift monitoring.
+6. Reconciliation.
+7. Persistent safeguards.
+
+Only after these phases should promotion beyond RESEARCH_ONLY be considered.
+
+10. FINAL GO / NO-GO
+====================
+
+CURRENT ENGINE:
+NO-GO for live trading.
+NO-GO for strategy promotion.
+GO for further research development.
+
+CURRENT REAL SPY/QQQ BASELINE:
+NO-GO as evidence of alpha.
+
+SYNTHETIC RESULTS:
+Useful for pipeline testing only; NOT market evidence.
+
+THE MOST IMPORTANT NEXT STEP:
+Do not add more indicators or more complex ML yet. First correct the causal execution/risk path and make discovery/research trials statistically accountable. Then rerun a clean real-data baseline from the current code version and only afterward begin controlled strategy discovery.

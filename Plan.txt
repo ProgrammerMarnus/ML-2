@@ -1,0 +1,41 @@
+
+=================================================================
+V2.1.3 — PHASE A CORRECTNESS FREEZE (audit response)
+=================================================================
+
+Triggered by the post-V2.1.2 audit identifying 5 code-level issues:
+  2.1 vol-targeting uses forward returns (timing look-ahead)
+  2.2 OOS slices restart vol history (20-bar zero warmup per fold)
+  2.5 discovery discards hold_bars/threshold when evaluating OOS
+  2.4 drawdown control applied today's return for today's weight
+  2.7/2.15 trial counter == n_trials_global (both cumulative); no per-run delta
+
+Fixes applied:
+  - backtest() gains explicit risk_returns param (observable trailing
+    close-to-close). scale[t] now uses only information known at close[t-1].
+  - backtest() accepts a context frame for warm-start vol state.
+  - Discovery pins per-fold thresholds + hold_bars and replays them via the
+    fixed_thresholds mechanism (no discard).
+  - Drawdown control state shifted to t-1 (causal).
+  - run.py captures start_count; records trials_this_experiment (per-run
+    delta) alongside n_trials_global (cumulative high-water).
+  - Version bumped to V2.1.3; fresh artifacts_real_v4 run.
+
+V2.1.3 real-data result (exp 20260907T192434Z_b7d280a2f7b6276a):
+  code_version: V2.1.3
+  promotion: RESEARCH_ONLY
+  failed gates: cost_stress_survives, delay_stress_survives,
+                bootstrap_positive_prob, placebo_separates
+  (data_integrity now PASSES)
+  net Sharpe: -0.0712 | gross Sharpe: 0.1572
+  cost drag: 11.90% (fees 9.88% + slippage 1.98%)
+  integrity: SPY/QQQ 0 missing, 0 closures
+  placebo: percentile 0.45, adjusted p 0.571 (n=20)
+  trials: 63 (fresh artifacts_real_v4 directory)
+
+Interpretation: the causal risk-timing fix honestly worsened net Sharpe
+(from +0.043 to -0.071). This is expected — the prior number benefited
+from subtle timing look-ahead in the vol scale. The current number is the
+honest causal result. Strategy remains RESEARCH_ONLY.
+
+Engine is frozen again at V2.1.3 as the baseline research platform.

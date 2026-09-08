@@ -1,0 +1,438 @@
+INSTITUTIONAL QUANT RESEARCH ENGINE V2.1
+REAL-DATA VALIDATION / NEXT DEVELOPMENT PLAN
+
+OBJECTIVE
+Turn the rebuilt Institutional Quant Research Engine V2 into a disciplined, reproducible research platform using real point-in-time market data before any further strategy optimization.
+
+CURRENT STATUS
+- V2 engine rebuilt and executes end-to-end.
+- Core research/backtest architecture consolidated into one engine.
+- Leakage controls, walk-forward evaluation, robustness tests, experiment tracking, and promotion gates are implemented.
+- Initial validation used synthetic data and is therefore NOT evidence of market alpha.
+- Initial synthetic validation indicates weak/noisy predictive signal and confirms that the new gates can reject fragile strategies.
+- The current research status remains RESEARCH_ONLY.
+
+IMMEDIATE PRIORITY
+Do NOT optimize Sharpe yet.
+Do NOT add more model complexity yet.
+Do NOT move to paper or live trading yet.
+
+First establish a clean real-data baseline and verify that the entire research process is behaving correctly.
+
+PHASE 1 — REAL POINT-IN-TIME DATASET
+1. Start with one market/universe: SPY initially.
+2. Define the historical period and timeframe explicitly.
+3. Obtain clean OHLCV data.
+4. Preserve raw downloaded data before transformation.
+5. Version the dataset.
+6. Standardize timestamps and timezone handling.
+7. Define exactly when each bar becomes available to the strategy.
+8. Build automated data-quality checks for:
+   - missing bars
+   - duplicate timestamps
+   - invalid OHLC relationships
+   - volume anomalies
+   - timestamp ordering
+   - timezone consistency
+   - corporate-action handling where relevant
+9. Never use revised/future information.
+
+REQUIRED RAW/PIT FIELDS
+- symbol
+- event_time
+- publication_time where applicable
+- source
+- raw_value
+- processed_value
+- availability_time
+
+CRITICAL RULE
+A feature may only be used after the information was actually available to the strategy.
+
+PHASE 2 — POINT-IN-TIME FEATURE ENGINE
+Build one standardized feature table.
+
+INITIAL FEATURE SET
+- returns/momentum
+- trend
+- moving-average relationships
+- mean reversion
+- volatility
+- volume/liquidity
+- market breadth where available
+- regime variables
+
+For every feature record:
+- definition
+- source
+- timestamp rule
+- availability rule
+- missing-data behavior
+- look-ahead test
+- normalization/scaling rule
+
+All transformations must be fitted only on information available in the corresponding training window.
+
+PHASE 3 — BASELINE MODEL
+Create a deliberately simple baseline before any information-layer features.
+
+Baseline sequence:
+price/volume
+→ point-in-time features
+→ simple model
+→ signal
+→ position sizing
+→ transaction costs/slippage
+→ walk-forward OOS evaluation
+
+Run at least:
+- logistic regression
+- one tree-based model
+
+Do not select a model because it has the highest in-sample Sharpe.
+
+PHASE 4 — TRUE WALK-FORWARD FRAMEWORK
+Use rolling or expanding windows:
+Train → Validation → Test → roll forward.
+
+For every fold save:
+- train start/end
+- validation start/end
+- test start/end
+- purge/embargo gap
+- features used
+- parameters selected
+- model version
+- number of trials
+- OOS predictions
+- OOS returns
+
+The final OOS test must remain untouched until the research specification is frozen.
+
+No full-history optimization.
+No test-period tuning.
+No feature selection using future folds.
+No information leakage across folds.
+
+PHASE 5 — BASELINE DIAGNOSTICS
+For the clean real-data baseline calculate:
+- OOS Sharpe
+- CAGR
+- max drawdown
+- Calmar
+- Sortino
+- hit rate
+- turnover
+- trade count
+- transaction costs
+- slippage
+- tail loss
+- AUC where applicable
+- calibration metrics where applicable
+- beta/market exposure
+- volatility
+
+Also compare against:
+- buy and hold benchmark
+- cash/zero-return benchmark where useful
+- simple naïve signal benchmark
+
+PHASE 6 — ANTI-OVERFITTING / ROBUSTNESS GATES
+Every promising strategy must pass:
+
+1. Parameter perturbation
+   Test nearby parameter values.
+
+2. Transaction-cost stress
+   Test progressively higher costs.
+
+3. Slippage stress
+   Test worse execution.
+
+4. Signal-delay stress
+   Test one or more bars of delay.
+
+5. Missing-data stress
+   Remove/corrupt selected inputs.
+
+6. Regime analysis
+   Separate bull, bear, high-volatility, and low-volatility periods.
+
+7. Cross-asset validation
+   Only after the SPY baseline is stable.
+
+8. Placebo/randomized-feature tests
+   Shuffle/replace features and verify that the real strategy performs materially better than the null.
+
+9. Bootstrap/resampling
+   Estimate uncertainty around returns and risk statistics.
+
+10. Multiple-hypothesis correction
+    Account for the number of strategies/features tried.
+
+11. Backtest-overfitting diagnostics
+    Measure the probability that the best result is a search artifact.
+
+12. Deflated/performance-adjusted statistics where appropriate.
+
+PROMOTION RULE
+A strategy should not be promoted merely because its raw OOS Sharpe is positive.
+It must survive costs, delay, perturbation, placebo testing, and uncertainty checks.
+
+PHASE 7 — INVESTIGATE THE CURRENT AUC / PLACEBO PROBLEM
+The first V2 validation showed that low predictive AUC and placebo results can coexist with apparently positive backtest statistics.
+
+Therefore explicitly test whether return improvements arise from:
+- genuine directional information
+- threshold effects
+- volatility timing
+- market exposure
+- regime selection
+- path dependence
+- accidental optimization/search noise
+
+Required diagnostics:
+- prediction distribution
+- long/short or exposure distribution
+- return attribution by signal bucket
+- return attribution by volatility bucket
+- return attribution by market regime
+- feature permutation importance
+- placebo/null distribution
+- benchmark-relative performance
+
+PHASE 8 — CONTROLLED STRATEGY DISCOVERY
+Only after the baseline passes data and leakage checks.
+
+Search bounded combinations of:
+- technical features
+- entry rules
+- exit rules
+- position sizing
+- risk rules
+
+Later add:
+- macro
+- fundamentals
+- news
+- social information
+
+Discovery must enforce:
+- no look-ahead
+- no survivorship bias
+- no future universe selection
+- no cross-fold leakage
+- bounded parameter ranges
+- reproducible random seeds
+- exact trial counting
+- untouched OOS evaluation
+- rejection of fragile strategies
+
+PHASE 9 — INFORMATION LAYER / ABLATION
+Build the information layer only after the market-only baseline is stable.
+
+Test independently:
+Baseline
+Baseline + Macro
+Baseline + Fundamentals
+Baseline + News
+Baseline + Reddit
+Baseline + X
+Baseline + All Information
+
+For each source measure incremental OOS contribution using:
+- Sharpe
+- CAGR
+- max drawdown
+- Calmar
+- Sortino
+- hit rate
+- turnover
+- costs
+- tail loss
+- stability
+- statistical uncertainty
+
+Do not assume that more information produces a better strategy.
+
+PHASE 10 — NEWS / SOCIAL DATA QUALITY
+For news, Reddit and X:
+- deduplicate copied/syndicated content
+- preserve publication and availability timestamps
+- normalize engagement
+- measure source quality
+- detect bursts
+- detect anomalous/bot-like activity where feasible
+- measure source concentration
+- measure disagreement
+- calculate novelty/recency decay
+- test incremental OOS information after controlling for price/volume/news
+
+Official/authenticated APIs only where required and legally/appropriately available.
+
+PHASE 11 — PORTFOLIO CONSTRUCTION
+After individual strategies demonstrate stable OOS behavior, combine them using:
+- equal weighting
+- risk weighting
+- correlation-aware allocation
+
+Add:
+- volatility targeting
+- position sizing
+- exposure limits
+- sector/asset limits
+- concentration limits
+- turnover controls
+- drawdown controls
+- cash allocation
+- regime-aware allocation only where justified by OOS evidence
+
+PHASE 12 — RISK ENGINE
+Track continuously:
+- realized volatility
+- drawdown
+- VaR/CVaR where appropriate
+- beta
+- factor exposure
+- concentration
+- liquidity
+- turnover
+- gap risk
+- tail risk
+- correlation spikes
+
+Implement hard deployment safety controls.
+
+PHASE 13 — RESEARCH LEADERBOARD
+Every experiment must create a standard record containing at minimum:
+- experiment_id
+- timestamp
+- strategy
+- features
+- universe
+- timeframe
+- train period
+- validation period
+- test period
+- dataset version
+- feature version
+- strategy/code version
+- number of trials
+- random seed
+- OOS Sharpe
+- CAGR
+- max drawdown
+- Calmar
+- Sortino
+- turnover
+- trade count
+- costs
+- slippage
+- statistical confidence
+- robustness score
+- information sources
+- pass/fail
+- promotion status
+
+Never overwrite previous experiments.
+
+PHASE 14 — PAPER TRADING
+Only after a strategy passes the research gates.
+
+Paper-trading system must:
+- generate live signals
+- record expected execution
+- simulate fills
+- record latency/slippage
+- compare predictions with realized outcomes
+- monitor data outages
+- monitor feature drift
+- monitor model degradation
+- compare live behavior with backtest assumptions
+
+Do not move directly from backtest to real capital.
+
+PHASE 15 — LIVE DEPLOYMENT
+Only after successful paper trading.
+
+Start with very small capital.
+
+Required controls:
+- position limits
+- max daily loss
+- max portfolio drawdown
+- kill switch
+- API failure handling
+- stale-data detection
+- duplicate-order protection
+- order reconciliation
+- complete trade logging
+- alerting
+
+GO / NO-GO CRITERIA
+A strategy is eligible for paper trading only if all of the following are satisfied:
+- data-quality checks pass
+- point-in-time checks pass
+- no known leakage exists
+- OOS evaluation is genuinely untouched
+- transaction-cost stress is acceptable
+- slippage stress is acceptable
+- signal-delay stress is acceptable
+- placebo performance is materially weaker than real performance
+- uncertainty is acceptable
+- performance is not isolated to one narrow regime
+- implementation is reproducible
+- experiment is fully registered
+
+A strategy is NOT eligible merely because:
+- in-sample Sharpe is high
+- one walk-forward result is high
+- the backtest return is high
+- a complex model beats a simple model
+- social/news features improve one experiment
+
+RECOMMENDED IMPLEMENTATION ORDER
+1. Real SPY OHLCV dataset.
+2. Timestamp/availability validation.
+3. Point-in-time feature engine.
+4. Simple baseline models.
+5. True walk-forward evaluation.
+6. Costs/slippage/delay tests.
+7. Placebo/bootstrap/multiple-testing diagnostics.
+8. Diagnose signal vs exposure/regime effects.
+9. Controlled strategy discovery.
+10. Information-source ablation.
+11. Portfolio construction.
+12. Risk engine.
+13. Research leaderboard/experiment registry hardening.
+14. Paper trading.
+15. Only then consider live trading.
+
+NEXT CONCRETE DELIVERABLE
+Create Institutional_Quant_Research_Engine_V2.1.ipynb from the current V2 notebook.
+
+V2.1 must:
+- default to real-data ingestion rather than synthetic data when credentials/data paths are available
+- retain an explicit offline/demo mode for testing
+- make data versioning mandatory
+- make availability timestamps mandatory for point-in-time features
+- freeze the OOS test set once a research run begins
+- strengthen placebo/null diagnostics
+- report model-vs-benchmark attribution
+- produce the standard experiment registry automatically
+- finish with a clear RESEARCH_ONLY / PAPER_READY / LIVE_READY gate
+
+SUCCESS DEFINITION
+The goal is not the highest backtest return.
+The goal is a robust, reproducible, economically plausible edge that survives:
+- point-in-time validation
+- true out-of-sample testing
+- transaction costs
+- slippage
+- execution delay
+- regime changes
+- placebo tests
+- multiple-hypothesis risk
+- live execution differences
+
+Until those conditions are satisfied, the system remains a research platform only.
