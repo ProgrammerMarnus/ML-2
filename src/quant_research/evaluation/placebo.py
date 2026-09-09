@@ -108,14 +108,18 @@ def placebo_statistics(observed_sharpe: float, null: pd.DataFrame, metric: str =
     null_vals = null_vals[np.isfinite(null_vals)]
     if len(null_vals) == 0 or not np.isfinite(observed_sharpe):
         return {"percentile": float("nan"), "adjusted_p": float("nan"),
+                "percentile_mc_se": float("nan"),
                 "null_mean": float("nan"), "null_median": float("nan"),
                 "null_std": float("nan"), "null_p95": float("nan"),
                 "n_runs": len(null_vals), "observed": observed_sharpe}
     percentile = float((null_vals < observed_sharpe).mean())
     adjusted_p = float((1.0 + (null_vals >= observed_sharpe).sum()) / (1.0 + len(null_vals)))
+    # Monte Carlo uncertainty of the empirical percentile (binomial SE)
+    mc_se = float(np.sqrt(percentile * (1.0 - percentile) / len(null_vals)))
     return {
         "percentile": percentile,
         "adjusted_p": adjusted_p,
+        "percentile_mc_se": mc_se,
         "null_mean": float(null_vals.mean()),
         "null_median": float(np.median(null_vals)),
         "null_std": float(null_vals.std(ddof=1)),

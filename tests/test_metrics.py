@@ -60,6 +60,31 @@ def test_sortino_uses_downside_only():
     assert np.isnan(sortino_ratio(up))  # no downside -> undefined, not faked
 
 
+def test_sortino_uses_full_sample_downside_deviation():
+    """A22: the denominator is the all-observation zero-target downside
+    deviation, not the dispersion of the losses alone.  Audit reproduction:
+    [0.03, -0.01, 0.03, -0.01] must give 22.449944 (the old loss-only std
+    returned NaN because equal losses have zero dispersion)."""
+    r = pd.Series([0.03, -0.01, 0.03, -0.01])
+    mean = r.mean()
+    dd = float(np.sqrt(np.mean(np.minimum(r.to_numpy(), 0.0) ** 2)))
+    assert sortino_ratio(r) == pytest.approx(mean / dd * np.sqrt(252))
+    assert sortino_ratio(r) == pytest.approx(22.449944, rel=1e-6)
+
+
+def test_sortino_edge_cases():
+    # repeated equal losses: defined (old code returned NaN)
+    assert sortino_ratio(pd.Series([0.01, -0.01, 0.01, -0.01])) == pytest.approx(0.0)
+    # a single loss: computed from the full-sample downside deviation
+    r1 = pd.Series([0.02, -0.01])
+    dd1 = float(np.sqrt(0.01 ** 2 / 2))
+    assert sortino_ratio(r1) == pytest.approx(0.005 / dd1 * np.sqrt(252))
+    # no losses -> undefined, not faked
+    assert np.isnan(sortino_ratio(pd.Series([0.01] * 50)))
+    # all losses -> defined and negative
+    assert sortino_ratio(pd.Series([-0.01, -0.01])) == pytest.approx(-np.sqrt(252))
+
+
 def test_hit_rate_excludes_flat():
     r = pd.Series([0.01, -0.01, 0.0, 0.02])
     assert hit_rate(r) == pytest.approx(2 / 3)

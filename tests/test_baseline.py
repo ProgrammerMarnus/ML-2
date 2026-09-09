@@ -82,6 +82,43 @@ def test_summary_shape(universe, small_config):
     assert s["n_folds"] == len(res.folds)
 
 
+def _summary_stub(sharpes):
+    """Minimal ExperimentResult stand-in for concentration-metric tests."""
+    from types import SimpleNamespace
+
+    f = pd.DataFrame({"oos_sharpe": sharpes, "oos_auc": 0.5, "oos_brier": 0.25,
+                      "oos_max_dd": -0.1, "oos_trades": 5})
+    return SimpleNamespace(folds=f, oos_returns=pd.Series([0.0, 0.001]),
+                           oos_gross_returns=None, fee_costs=0.0,
+                           slippage_costs=0.0)
+
+
+def test_single_fold_share_is_largest_positive_contribution():
+    """A06: concentration = the LARGEST fold's share of the positive Sharpe
+    pool.  The old ratio (sum positive / sum |all|) was not a concentration:
+    balanced positives [1,1,1,1] scored 1.0 (always failing the gate) while
+    [10, 0.01, 0.01, -9] scored 0.53 (passing) despite one fold supplying
+    99.8% of the positive Sharpe."""
+    # balanced positives: each fold contributes 1/4
+    s = summarize_experiment(_summary_stub([1.0, 1.0, 1.0, 1.0]))
+    assert s["single_fold_share"] == pytest.approx(0.25)
+    # single winner: ~all of the positive pool comes from one fold
+    s = summarize_experiment(_summary_stub([10.0, 0.01, 0.01, -9.0]))
+    assert s["single_fold_share"] == pytest.approx(10.0 / 10.02)
+    # mixed signs: losses leave the pool, largest positive still dominates
+    s = summarize_experiment(_summary_stub([3.0, 2.0, -1.0]))
+    assert s["single_fold_share"] == pytest.approx(0.6)
+
+
+def test_single_fold_share_no_positive_edge_is_nan():
+    """Flat (NaN-Sharpe) and all-negative folds leave no positive edge to
+    concentrate: the share is NaN and the promotion gate fails."""
+    s = summarize_experiment(_summary_stub([float("nan"), float("nan")]))
+    assert np.isnan(s["single_fold_share"])
+    s = summarize_experiment(_summary_stub([-1.0, -2.0]))
+    assert np.isnan(s["single_fold_share"])
+
+
 def test_oos_predictions_cover_test_windows_only(universe, small_config):
     feats, y, fwd, _ = universe
     res = run_walk_forward(feats, y, fwd, small_config)

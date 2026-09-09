@@ -31,12 +31,24 @@ def sharpe_ratio(returns: pd.Series) -> float:
     return float(r.mean() / r.std(ddof=1) * np.sqrt(TRADING_DAYS))
 
 
-def sortino_ratio(returns: pd.Series) -> float:
+def sortino_ratio(returns: pd.Series, target_return: float = 0.0) -> float:
+    """Sortino ratio with the STANDARD downside-deviation denominator.
+
+    Downside deviation uses ALL observations of the return sample, not only
+    the losing ones:  DD = sqrt(mean(min(r - target, 0)^2)).  The previous
+    implementation took the standard deviation of the losses alone, which is
+    not downside deviation: repeated equal losses produced a zero denominator
+    (NaN) and sparse losses inflated the ratio.  Undefined (NaN) when there is
+    no downside at all -- never faked.
+    """
     r = _clean(returns)
-    downside = r[r < 0]
-    if len(r) < 2 or downside.std(ddof=1) == 0 or len(downside) == 0:
+    if len(r) < 2:
         return float("nan")
-    return float(r.mean() / downside.std(ddof=1) * np.sqrt(TRADING_DAYS))
+    shortfall = np.minimum(r.to_numpy() - target_return, 0.0)
+    dd = float(np.sqrt(np.mean(shortfall ** 2)))
+    if dd == 0.0:
+        return float("nan")
+    return float(r.mean() - target_return) / dd * np.sqrt(TRADING_DAYS)
 
 
 def max_drawdown(returns: pd.Series) -> float:

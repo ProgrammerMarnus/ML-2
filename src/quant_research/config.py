@@ -121,6 +121,20 @@ class PromotionConfig:
     min_placebo_percentile: float = 0.95
     max_single_fold_share: float = 0.60
     max_annual_turnover: float = 60.0
+    # A12: predeclared null-evidence requirements.  The placebo gate accepts
+    # only an adequately sampled empirical null (min valid repetitions) and a
+    # conservative Monte-Carlo-adjusted p-value (with 20 runs, percentile
+    # 0.95 gives adjusted p = 2/21 ~= 0.095 <= 0.10; a single-run null gives
+    # p = 0.5 and must always fail).
+    min_placebo_runs: int = 20
+    max_placebo_adjusted_p: float = 0.10
+
+    def __post_init__(self) -> None:
+        if self.min_placebo_runs < 1:
+            raise ConfigError("promotion.min_placebo_runs must be >= 1")
+        if not 0 < self.max_placebo_adjusted_p < 1:
+            raise ConfigError(
+                "promotion.max_placebo_adjusted_p must be in (0, 1)")
 
 
 @dataclass(frozen=True)

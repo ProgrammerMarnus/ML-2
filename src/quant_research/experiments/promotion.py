@@ -14,6 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 
 from ..config import PromotionConfig
@@ -116,17 +117,32 @@ def evaluate_gates(
         f"bootstrap P(SR>0)={bprob} >= {cfg.min_bootstrap_positive_prob}",
     ))
     pct = placebo.get("percentile", float("nan"))
+    adj_p = placebo.get("adjusted_p", float("nan"))
+    n_runs = placebo.get("n_runs", 0)
+    # A12: the gate consumes the SAME placebo_statistics evidence object the
+    # record saves, and enforces the predeclared significance rule: the
+    # percentile must clear the configured bar AND the Monte-Carlo-adjusted
+    # p-value must be significant.  A one-run null can only produce
+    # adjusted p = 0.5 and always fails, whatever its percentile.
+    separates = bool(
+        np.isfinite(pct) and np.isfinite(adj_p)
+        and pct >= cfg.min_placebo_percentile
+        and adj_p <= cfg.max_placebo_adjusted_p)
     checks.append(GateCheck(
-        "placebo_separates",
-        pct >= cfg.min_placebo_percentile,
-        f"placebo percentile {pct} >= {cfg.min_placebo_percentile} "
-        "(real strategy must beat the empirical null)",
-    ))
+        "placebo_separates", separates,
+        f"placebo percentile {pct} >= {cfg.min_placebo_percentile} and "
+        f"adjusted p {adj_p} <= {cfg.max_placebo_adjusted_p}"))
+    adequate = bool(n_runs == n_runs and n_runs >= cfg.min_placebo_runs)
+    checks.append(GateCheck(
+        "placebo_sample_adequate", adequate,
+        f"{n_runs} valid null runs >= {cfg.min_placebo_runs} "
+        "(predeclared Monte Carlo sample-size requirement)"))
     share = summary.get("single_fold_share", float("nan"))
     checks.append(GateCheck(
         "not_single_fold",
         share <= cfg.max_single_fold_share,
-        f"single-fold contribution {share} <= {cfg.max_single_fold_share}",
+        f"largest fold share of the positive Sharpe pool {share} <= "
+        f"{cfg.max_single_fold_share} (A06 concentration definition)",
     ))
     turnover = summary.get("annual_turnover", float("nan"))
     checks.append(GateCheck(

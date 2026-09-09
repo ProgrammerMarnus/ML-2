@@ -142,9 +142,15 @@ def test_block_permute_assigns_values_to_original_chronology(setup):
 def test_placebo_statistics_full_report():
     null = pd.DataFrame({"mean_oos_sharpe": np.linspace(-1, 1, 21)})
     s = placebo_statistics(0.0, null)
-    for k in ("percentile", "adjusted_p", "null_mean", "null_median",
-              "null_std", "null_p95", "n_runs", "observed"):
+    for k in ("percentile", "adjusted_p", "percentile_mc_se", "null_mean",
+              "null_median", "null_std", "null_p95", "n_runs", "observed"):
         assert k in s
     assert s["null_median"] == pytest.approx(0.0)
     assert s["null_mean"] == pytest.approx(0.0)
     assert s["n_runs"] == 21
+    # Monte Carlo uncertainty of the empirical percentile (binomial SE, A12);
+    # percentile here is 10/21 (nulls strictly below 0.0)
+    p_emp = 10.0 / 21.0
+    assert s["percentile"] == pytest.approx(p_emp)
+    assert s["percentile_mc_se"] == pytest.approx(
+        float(np.sqrt(p_emp * (1 - p_emp) / 21)))

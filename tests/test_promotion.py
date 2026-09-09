@@ -71,7 +71,7 @@ def base_summary(**kw):
 
 def base_stats(**kw):
     boot = {"positive_prob": 0.8}
-    placebo = {"percentile": 0.99}
+    placebo = {"percentile": 0.99, "adjusted_p": 0.01, "n_runs": 20}
     boot.update({k: v for k, v in kw.items() if k in boot})
     placebo.update({k: v for k, v in kw.items() if k in placebo})
     return boot, placebo
@@ -157,3 +157,40 @@ def test_gates_use_full_path_drawdown_not_per_fold():
         rob, boot, placebo, True, True, 3, PromotionConfig())
     decision = promotion_decision(checks)
     assert "worst_dd_within_limit" in decision["failed_gates"]
+
+
+def test_gates_reject_one_run_null_even_with_high_percentile():
+    """A12: a one-run null can only produce adjusted p = 0.5; the placebo
+    evidence must fail BOTH the significance rule and the predeclared
+    sample-size requirement, whatever the raw percentile says."""
+    rob = _robustness(cost_sharpe=0.3, delay_sharpe=0.2)
+    boot, placebo = base_stats(n_runs=1, adjusted_p=0.5)
+    checks = evaluate_gates(base_summary(), rob, boot, placebo,
+                            True, True, 3, PromotionConfig())
+    decision = promotion_decision(checks)
+    assert "placebo_sample_adequate" in decision["failed_gates"]
+    assert "placebo_separates" in decision["failed_gates"]
+
+
+def test_gates_reject_weak_percentile_with_adequate_sample():
+    """A12: an adequately sampled null (20 runs) whose percentile misses the
+    bar fails the significance rule but NOT the sample-size requirement."""
+    rob = _robustness(cost_sharpe=0.3, delay_sharpe=0.2)
+    boot, placebo = base_stats(percentile=0.45, adjusted_p=0.571)
+    checks = evaluate_gates(base_summary(), rob, boot, placebo,
+                            True, True, 3, PromotionConfig())
+    decision = promotion_decision(checks)
+    assert "placebo_separates" in decision["failed_gates"]
+    assert "placebo_sample_adequate" not in decision["failed_gates"]
+
+
+def test_promotion_config_validates_placebo_requirements():
+    """A12: the null-evidence requirements are predeclared and validated."""
+    from quant_research.config import ConfigError, PromotionConfig
+
+    with pytest.raises(ConfigError):
+        PromotionConfig(min_placebo_runs=0)
+    with pytest.raises(ConfigError):
+        PromotionConfig(max_placebo_adjusted_p=1.5)
+    with pytest.raises(ConfigError):
+        PromotionConfig(max_placebo_adjusted_p=0.0)

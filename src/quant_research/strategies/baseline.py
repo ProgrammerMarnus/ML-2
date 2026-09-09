@@ -329,8 +329,17 @@ def run_walk_forward(
 
 def summarize_experiment(result: ExperimentResult) -> dict:
     f = result.folds
-    pos = f.loc[f["oos_sharpe"] > 0, "oos_sharpe"].sum()
-    total = f["oos_sharpe"].abs().sum()
+    # A06: fold concentration is the LARGEST fold's share of the total
+    # positive Sharpe pool.  The old ratio (sum of positive Sharpes / sum of
+    # |all| Sharpes) measured no concentration at all: [1, 1, 1, 1] scored
+    # 1.0 (failing the gate) while [10, 0.01, 0.01, -9] scored 0.53 (passing)
+    # despite one fold supplying 99.8% of the positive Sharpe.  Flat/NaN folds
+    # (zero-trading) contribute zero; a pool with no positive edge is NaN
+    # (the gate then fails conservatively).
+    sharpe = pd.to_numeric(f["oos_sharpe"], errors="coerce")
+    positive = sharpe.clip(lower=0.0).fillna(0.0)
+    pool = float(positive.sum())
+    single_fold_share = float(positive.max() / pool) if pool > 0 else float("nan")
     net = result.oos_returns
     gross = result.oos_gross_returns if result.oos_gross_returns is not None else net
     net_tot = float((1.0 + net.fillna(0)).prod() - 1.0) if len(net) else float("nan")
@@ -348,7 +357,7 @@ def summarize_experiment(result: ExperimentResult) -> dict:
         "total_oos_trades": int(f["oos_trades"].sum()),
         "positive_folds": int((f["oos_sharpe"] > 0).sum()),
         "n_folds": int(len(f)),
-        "single_fold_share": float(pos / total) if total > 0 else float("nan"),
+        "single_fold_share": single_fold_share,
         "full_oos_sharpe": float(sharpe_ratio(net)),
         "full_oos_net_sharpe": float(sharpe_ratio(net)),
         "full_oos_gross_sharpe": float(sharpe_ratio(gross)),
