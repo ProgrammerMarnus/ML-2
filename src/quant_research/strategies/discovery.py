@@ -206,14 +206,21 @@ def discover_and_evaluate_oos(
             "validation_sharpe": vsharpe, "validation_max_dd": vdd,
         }
 
+    # D04: derive the immutable fold clock from declared observations BEFORE
+    # inspecting labels/outcomes, so missing returns cannot change fold
+    # membership. Verify the lock before searching.
+    if locked_test is not None:
+        # Verify against the complete feature index (before any dropna)
+        all_idx = features.dropna(how="all").index
+        folds_pre = walk_forward_splits(all_idx, cfg.evaluation)
+        locked_test.verify(folds_pre)
+    
     common = features.dropna(how="all").index.intersection(y.dropna().index).intersection(
         fwd.dropna().index)
     X = features.loc[common]
     yy = y.loc[common].astype(int)
     ff = fwd.loc[common]
     folds = walk_forward_splits(X.index, cfg.evaluation)
-    if locked_test is not None:
-        locked_test.verify(folds)
 
     # C14: record the discovery search attempt on the shared research-family
     # ledger (output-location-independent).  Record START before the fold loop
@@ -246,23 +253,24 @@ def discover_and_evaluate_oos(
         if len(tr) < cfg.evaluation.train_window // 2 or len(va) == 0 or len(te_all) == 0:
             continue
         te = te_all[ff.loc[te_all].notna()]
-        # C12: reject interior missing/non-finite forward returns on the test
-        # window rather than silently dropping rows and carrying position state
-        # across the gap (identical rationale to run_walk_forward).  A terminal
-        # NaN at the very last evaluated bar is acceptable (last bar of the series,
-        # no next close exists).
-        te_fwd = ff.loc[te_all]
-        bad_mask = ~np.isfinite(te_fwd.to_numpy())
+        # D03/D04/C12: reject ANY missing/non-finite forward returns on the test
+        # window, including at internal fold boundaries. Only a genuine missing
+        # next-return at the dataset's final timestamp is acceptable (and never
+        # infinity). Validate the full scored return path before filtering.
+        bad_mask = ~np.isfinite(ff.loc[te].fillna(np.nan))
         n_bad = int(bad_mask.sum())
         if n_bad > 0:
-            bad_pos = np.flatnonzero(bad_mask)
-            if not (len(bad_pos) == 1 and bad_pos[0] == len(te_all) - 1):
+            # Check if this is the single last bar of the ENTIRE dataset
+            is_final_bar = len(te) == len(te_all) and te[-1] == ff.index[-1]
+            has_only_one_bad = n_bad == 1 and bad_mask.iloc[-1]
+            # Also reject infinity even at the final bar
+            has_inf = np.isinf(ff.loc[te].fillna(np.nan)).any()
+            if not (is_final_bar and has_only_one_bad and not has_inf):
                 raise DataValidationError(
-                    f"forward returns on discovery test window {spec.fold_id} contain "
-                    f"{n_bad} missing/non-finite value(s) at position(s) "
-                    f"{list(bad_pos + 1)} of {len(te_all)} (not solely the terminal "
-                    f"bar); interior gaps are not supported by the continuous-position "
-                    f"execution model")
+                    f"forward returns on test window {spec.fold_id} contain "
+                    f"{n_bad} missing/non-finite value(s); interior gaps and "
+                    f"infinity are not supported — validate or impute realized "
+                    f"returns before walk-forward evaluation")
         if len(te) == 0:
             continue
 

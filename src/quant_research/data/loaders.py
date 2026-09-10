@@ -296,7 +296,7 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
                 missing_leading = expected_sessions(start_ts, first_date, exchange="US")
                 # Exclude the first observed bar itself from the missing count
                 n_missing = len(missing_leading) - 1 if len(missing_leading) > 0 else 0
-                if n_missing > 1:
+                if n_missing > 0:  # D08 fix: reject ANY missing boundary session
                     raise DataValidationError(
                         f"asset {symbol}: data starts {first_date.date()} but requested "
                         f"start is {start_ts.date()}; expected first session "
@@ -307,7 +307,7 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
             if last_date != expected_last:
                 n_missing = len(expected_sessions(last_date, end_ts, exchange="US")) - 1 \
                     if last_date < end_ts else 0
-                if n_missing > 1:
+                if n_missing > 0:  # D08 fix: reject ANY missing boundary session
                     raise DataValidationError(
                         f"asset {symbol}: data ends {last_date.date()} but requested end "
                         f"is {end_ts.date()}; expected last session {expected_last.date()}; "

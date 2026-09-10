@@ -153,11 +153,19 @@ class LockedTestProtocol:
                 self._frozen_spec = data
                 self._frozen_hash = data.get("hash")
             else:
-                self._frozen_spec = None
-                self._frozen_hash = None
-        except Exception:
-            self._frozen_hash = None
+                # Corrupt or unrecognized format: reject by raising
+                raise LockedTestViolation(
+                    f"lock file {self._lock_path} has unrecognized format; "
+                    "cannot verify test membership integrity")
+        except json.JSONDecodeError as e:
+            # Corrupt JSON: reject explicitly by clearing frozen state
             self._frozen_spec = None
+            self._frozen_hash = None
+            return
+        except Exception as e:
+            # Other read errors: reject explicitly by clearing frozen state
+            self._frozen_spec = None
+            self._frozen_hash = None
             return
         if self._frozen_spec is None:
             return
@@ -166,13 +174,16 @@ class LockedTestProtocol:
         if self._dataset_id is not None and stored_did is not None \
                 and stored_did != self._dataset_id:
             # Lock was persisted under a different dataset; reject it.
-            self._frozen_hash = None
+            # Clear the frozen state so frozen=False and caller can handle rejection
             self._frozen_spec = None
+            self._frozen_hash = None
+            return
         if self._config_fingerprint is not None and stored_cfp is not None \
                 and stored_cfp != self._config_fingerprint:
             # Lock was persisted under a different evaluation policy; reject it.
-            self._frozen_hash = None
+            # Clear the frozen state so frozen=False and caller can handle rejection
             self._frozen_spec = None
+            self._frozen_hash = None
 
     def _save_lock(self) -> None:
         """Persist the current lock to disk."""

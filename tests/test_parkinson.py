@@ -324,7 +324,8 @@ def test_empty_input_rejected():
     "bad_input", [None, [], {"high": [1.0]}, np.arange(6.0), "not a frame"]
 )
 def test_non_dataframe_input_rejected(bad_input):
-    with pytest.raises(TypeError):
+    # D09 fix: non-DataFrame inputs raise DataValidationError per updated contract
+    with pytest.raises(DataValidationError):
         lagged_parkinson_volatility(bad_input)
 
 

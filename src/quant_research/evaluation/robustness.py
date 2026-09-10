@@ -340,17 +340,22 @@ def delay_stress(
     cfg: AppConfig,
     baseline: ExperimentResult,
     locked_test,
-    delays=DELAY_GRID,
+    delays=None,  # None means compute dynamic grid including anchor + additional stress
 ) -> pd.DataFrame:
-    """Stress ONLY signal delay; changes timing, never model selection.
-
-    B08 FIX: Delay stress now correctly handles absolute vs. relative delays.
-    The baseline's configured delay is the anchor; stress values are absolute
-    delay values for the replay. The zero-delay case only equals the baseline
-    when the baseline itself has zero delay. For nonzero configured delays,
-    the stress tests absolute delays including zero (earlier execution) and
-    additional delay.
+    """Stress signal delay with proper anchor handling (D07 fix).
+    
+    The baseline's configured delay is always included as the anchor.
+    Additional stress tests both faster (including zero) and slower executions.
+    This ensures we always test the baseline anchor and measure additional latency.
     """
+    if delays is None:
+        # Dynamic grid: include 0, the configured anchor, and values beyond it
+        configured_delay = cfg.execution.signal_delay_bars
+        delays_set = {0, configured_delay, configured_delay + 1, configured_delay + 2}
+        # Also include default grid values for compatibility
+        delays_set.update(DELAY_GRID)
+        delays = sorted(delays_set)
+    
     rows = []
     configured_delay = cfg.execution.signal_delay_bars
     for d in delays:
@@ -389,19 +394,43 @@ def parameter_perturbation(
     ``factor``; for gradient-boosting models the ``learning_rate`` is scaled.
     A factor of 1.0 reproduces the baseline.  C is not perturbed for gradient
     boosting because that estimator ignores it (C09).
+    
+    Uses the baseline's persisted model_cfg when available to preserve explicit
+    hyperparameter fields (logreg_C, gb_learning_rate, gb_n_estimators); falls
+    back to cfg.model for legacy results without persisted config.
     """
     rows = []
-    base = cfg.model
+    # Use baseline's persisted model config if available (D06 fix)
+    base = baseline.model_cfg if baseline.model_cfg is not None else cfg.model
     for f in factors:
-        params = dict(base.parameters)
+        # Start from explicit fields, then apply perturbation
         if base.type == "logistic":
-            params["C"] = float(params.get("C", 1.0)) * f
+            logreg_C = float(base.logreg_C) if base.logreg_C is not None else float(base.parameters.get("C", 1.0))
+            perturbed_C = logreg_C * f
+            model_cfg = ModelConfig(
+                type=base.type,
+                random_seed=base.random_seed,
+                parameters=dict(base.parameters),
+                logreg_C=perturbed_C,
+                gb_learning_rate=base.gb_learning_rate,
+                gb_n_estimators=base.gb_n_estimators,
+                hold_bars=base.hold_bars,
+            )
         elif base.type == "gradient_boosting":
-            params["learning_rate"] = float(params.get("learning_rate", 0.05)) * f
+            lr = float(base.gb_learning_rate) if base.gb_learning_rate is not None else float(base.parameters.get("learning_rate", 0.05))
+            n_est = int(base.gb_n_estimators) if base.gb_n_estimators is not None else int(base.parameters.get("n_estimators", 100))
+            perturbed_lr = lr * f
+            model_cfg = ModelConfig(
+                type=base.type,
+                random_seed=base.random_seed,
+                parameters=dict(base.parameters),
+                logreg_C=base.logreg_C,
+                gb_learning_rate=perturbed_lr,
+                gb_n_estimators=n_est,  # Keep n_estimators at baseline
+                hold_bars=base.hold_bars,
+            )
         else:
             raise ValueError(f"unknown model type {base.type!r}")
-        model_cfg = ModelConfig(type=base.type, random_seed=base.random_seed,
-                                parameters=params)
         res = replay_oos(features, y, fwd, cfg, baseline, locked_test,
                          model_cfg=model_cfg, reuse_models=False)
         rows.append(_summarize_result(res, factor=float(f),

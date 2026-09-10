@@ -361,6 +361,7 @@ def run_walk_forward(
         # signal shift/hold restart within the fold's own window; boundary
         # transitions are charged exactly once on the merged ledger below.
         pos_frames = []
+        turnover_frames = []
         for idx_s, (spec, te) in enumerate(zip(accepted_specs, test_axes)):
             if len(te) == 0:
                 continue
@@ -368,7 +369,9 @@ def run_walk_forward(
             bt_local = backtest(dir_frames[idx_s], ff.loc[te], exec_cfg,
                                 threshold=None, hold_bars=hold, risk_returns=risk_obs)
             pos_frames.append(bt_local.positions)
+            turnover_frames.append(bt_local.turnover)
         pos_full = pd.concat(pos_frames).sort_index()
+        turnover_full = pd.concat(turnover_frames).sort_index()
         if not pos_full.index.is_unique:
             raise DataValidationError(
                 "overlapping OOS test windows produce duplicate timestamps; "
@@ -376,9 +379,6 @@ def run_walk_forward(
                 "policy is defined (use step_bars >= test_window)")
         oos_idx = pos_full.index
         gross_full = pos_full * ff.loc[oos_idx].fillna(0.0)
-        turnover_full = pos_full.diff().abs()
-        if len(turnover_full):
-            turnover_full.iloc[0] = abs(pos_full.iloc[0])
         net_full = gross_full - (turnover_full * (exec_cfg.fee_bps + exec_cfg.slippage_bps) / 10000.0)
         fee_total = float(turnover_full.sum()) * exec_cfg.fee_bps / 10000.0
         slip_total = float(turnover_full.sum()) * exec_cfg.slippage_bps / 10000.0
@@ -421,7 +421,7 @@ def run_walk_forward(
             pos_f = pos_full.loc[te]
             gross_f = pos_f * ff.loc[te].fillna(0.0)
             net_f = net_full.loc[te]
-            turn_f = turnover.loc[te]
+            turn_f = turnover_full.loc[te]
             if te[0] == oos_idx[0]:
                 turn_f.iloc[0] = abs(pos_f.iloc[0])
         m = compute_metrics(net_f, gross_returns=gross_f, positions=pos_f)
