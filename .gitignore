@@ -27,4 +27,14 @@ venv/
 # Build artifacts
 build/
 dist/
+
+# Generated pipeline artifacts
+artifacts/
+artifacts_real/
+artifacts_real_v2/
+artifacts_real_v3/
+artifacts_real_v4/
+artifacts_v2/
+data/
+repomix-output.xml
 ```
