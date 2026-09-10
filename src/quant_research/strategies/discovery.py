@@ -37,6 +37,56 @@ class Candidate:
     params: dict
 
 
+def _reject_nonfinite_outcomes(
+    yy: pd.Series,
+    ff: pd.Series,
+    idx: pd.Index,
+    *,
+    where: str,
+    fold_id,
+    anchor_last,
+) -> None:
+    """Reject interior missing/non-finite labels or forward returns.
+
+    Mirrors the baseline D03 contract: the only acceptable non-finite
+    outcome is a single NaN (never infinity) at the dataset's final
+    timestamp.  Anything else raises ``DataValidationError`` instead of
+    surfacing as a raw sklearn ``ValueError`` or silently shifting folds.
+    """
+    if len(idx) == 0:
+        return
+    yv = pd.to_numeric(yy.loc[idx], errors="coerce").to_numpy(dtype=float)
+    fv = pd.to_numeric(ff.loc[idx], errors="coerce").to_numpy(dtype=float)
+    bad = ~np.isfinite(yv) | ~np.isfinite(fv)
+    n_bad = int(bad.sum())
+    if n_bad == 0:
+        return
+    bad_pos = np.flatnonzero(bad)
+    ok = (
+        len(bad_pos) == 1
+        and bad_pos[0] == len(idx) - 1
+        and idx[-1] == anchor_last
+        and not bool(np.isinf(yv[bad_pos[0]]))
+        and not bool(np.isinf(fv[bad_pos[0]]))
+    )
+    if not ok:
+        raise DataValidationError(
+            f"missing/non-finite labels or forward returns on discovery "
+            f"{where} window {fold_id}: {n_bad} bad value(s) at position(s) "
+            f"{list(bad_pos + 1)} of {len(idx)} (only a NaN at the "
+            f"dataset's final timestamp {anchor_last} is acceptable); "
+            f"interior gaps and any infinity are rejected"
+        )
+
+
+def _finite_mask(yy: pd.Series, ff: pd.Series, idx: pd.Index) -> pd.Index:
+    """Rows of ``idx`` with finite label AND finite forward return."""
+    yv = pd.to_numeric(yy.loc[idx], errors="coerce").to_numpy(dtype=float)
+    fv = pd.to_numeric(ff.loc[idx], errors="coerce").to_numpy(dtype=float)
+    good = np.isfinite(yv) & np.isfinite(fv)
+    return idx[np.flatnonzero(good)]
+
+
 def _validation_sharpe(
     features: pd.DataFrame,
     y: pd.Series,
@@ -60,11 +110,13 @@ def _validation_sharpe(
     that fold's own train+validation window, never the global aggregate.
     """
     model_cfg = ModelConfig(type=model_type, random_seed=seed)
-    common = features.dropna(how="all").index.intersection(y.dropna().index).intersection(
-        fwd.dropna().index
-    )
+    # D04: Do NOT drop missing y/fwd outcomes before forming folds — that
+    # changes the scored timeline.  Only drop rows where ALL features are
+    # missing (no usable input).  The walk-forward engine handles missing
+    # labels/returns per-fold (rejects interior gaps, permits terminal NaN).
+    common = features.dropna(how="all").index
     X = features.loc[common]
-    yy = y.loc[common].astype(int)
+    yy = y.loc[common]
     ff = fwd.loc[common]
     folds = walk_forward_splits(X.index, cfg.evaluation)
     val_sharpes = []
@@ -73,19 +125,33 @@ def _validation_sharpe(
     per_fold_scores = {}
     per_fold_dds = {}
     risk_obs = ff.shift(1)  # observable close-to-close, causal vol input
+    anchor_last = X.index[-1]
     for spec in folds:
         tr = spec.train_idx.intersection(X.index)
         va = spec.val_idx.intersection(X.index)
         if len(tr) < cfg.evaluation.train_window // 2 or len(va) == 0:
             continue
+        # D04/C12: reject interior missing/non-finite labels or forward
+        # returns on the fold's train+val slice with DataValidationError
+        # (baseline D03 contract); only a single terminal NaN at the
+        # dataset end is acceptable.
+        _reject_nonfinite_outcomes(yy, ff, tr, where="train",
+                                   fold_id=spec.fold_id, anchor_last=anchor_last)
+        _reject_nonfinite_outcomes(yy, ff, va, where="validation",
+                                   fold_id=spec.fold_id, anchor_last=anchor_last)
+        # Tolerate the single terminal-NaN edge: fit/score on finite rows.
+        tr_fit = _finite_mask(yy, ff, tr)
+        va_fit = _finite_mask(yy, ff, va)
+        if len(tr_fit) < cfg.evaluation.train_window // 2 or len(va_fit) == 0:
+            continue
         model = build_model(model_cfg)
-        model.fit(X.loc[tr, feature_cols], yy.loc[tr])
-        val_probs = pd.Series(model.predict_proba(X.loc[va, feature_cols])[:, 1], index=va)
-        thr, _ = select_threshold(val_probs, ff.loc[va], threshold_candidates, cfg.execution,
+        model.fit(X.loc[tr_fit, feature_cols], yy.loc[tr_fit].astype(int))
+        val_probs = pd.Series(model.predict_proba(X.loc[va_fit, feature_cols])[:, 1], index=va_fit)
+        thr, _ = select_threshold(val_probs, ff.loc[va_fit], threshold_candidates, cfg.execution,
                                   hold_bars=hold_bars, risk_returns=risk_obs)
         from ..evaluation.backtest import BacktestResult
 
-        bt = backtest(val_probs, ff.loc[va], cfg.execution, threshold=thr,
+        bt = backtest(val_probs, ff.loc[va_fit], cfg.execution, threshold=thr,
                       hold_bars=hold_bars, risk_returns=risk_obs)
         val_sharpes.append(bt.metrics["sharpe"])
         val_dds.append(bt.metrics["max_dd"])
@@ -206,19 +272,13 @@ def discover_and_evaluate_oos(
             "validation_sharpe": vsharpe, "validation_max_dd": vdd,
         }
 
-    # D04: derive the immutable fold clock from declared observations BEFORE
-    # inspecting labels/outcomes, so missing returns cannot change fold
-    # membership. Verify the lock before searching.
-    if locked_test is not None:
-        # Verify against the complete feature index (before any dropna)
-        all_idx = features.dropna(how="all").index
-        folds_pre = walk_forward_splits(all_idx, cfg.evaluation)
-        locked_test.verify(folds_pre)
-    
-    common = features.dropna(how="all").index.intersection(y.dropna().index).intersection(
-        fwd.dropna().index)
+    # D04: anchor the fold clock on declared observations (feature rows with
+    # any usable input) BEFORE inspecting labels/outcomes, identically to
+    # _validation_sharpe.  Missing labels/returns never move fold membership;
+    # they are rejected per-fold below.
+    common = features.dropna(how="all").index
     X = features.loc[common]
-    yy = y.loc[common].astype(int)
+    yy = y.loc[common]
     ff = fwd.loc[common]
     folds = walk_forward_splits(X.index, cfg.evaluation)
 
@@ -236,6 +296,7 @@ def discover_and_evaluate_oos(
                   "n_model_types": 2})
 
     risk_obs = ff.shift(1)  # observable close-to-close, causal vol input
+    anchor_last = X.index[-1]
 
     fold_rows = []
     pred_frames = []
@@ -252,25 +313,26 @@ def discover_and_evaluate_oos(
         te_all = spec.test_idx.intersection(X.index)
         if len(tr) < cfg.evaluation.train_window // 2 or len(va) == 0 or len(te_all) == 0:
             continue
+        # D04/C12: the y side feeds model.fit too — reject interior
+        # missing/non-finite labels on train/val/test, mirroring the
+        # baseline D03 contract (only a single terminal NaN at the
+        # dataset end is tolerable).
+        _reject_nonfinite_outcomes(yy, ff, tr, where="train",
+                                   fold_id=spec.fold_id, anchor_last=anchor_last)
+        _reject_nonfinite_outcomes(yy, ff, va, where="validation",
+                                   fold_id=spec.fold_id, anchor_last=anchor_last)
+        # Fit only on finite rows (tolerates the single terminal-NaN edge).
+        tr_fit = _finite_mask(yy, ff, tr)
+        if len(tr_fit) < cfg.evaluation.train_window // 2:
+            continue
         te = te_all[ff.loc[te_all].notna()]
-        # D03/D04/C12: reject ANY missing/non-finite forward returns on the test
-        # window, including at internal fold boundaries. Only a genuine missing
-        # next-return at the dataset's final timestamp is acceptable (and never
-        # infinity). Validate the full scored return path before filtering.
-        bad_mask = ~np.isfinite(ff.loc[te].fillna(np.nan))
-        n_bad = int(bad_mask.sum())
-        if n_bad > 0:
-            # Check if this is the single last bar of the ENTIRE dataset
-            is_final_bar = len(te) == len(te_all) and te[-1] == ff.index[-1]
-            has_only_one_bad = n_bad == 1 and bad_mask.iloc[-1]
-            # Also reject infinity even at the final bar
-            has_inf = np.isinf(ff.loc[te].fillna(np.nan)).any()
-            if not (is_final_bar and has_only_one_bad and not has_inf):
-                raise DataValidationError(
-                    f"forward returns on test window {spec.fold_id} contain "
-                    f"{n_bad} missing/non-finite value(s); interior gaps and "
-                    f"infinity are not supported — validate or impute realized "
-                    f"returns before walk-forward evaluation")
+        # C12/D04: reject interior missing/non-finite labels AND forward
+        # returns on the test window (labels feed AUC/Brier and y-side
+        # infinities reach model paths), mirroring the baseline D03
+        # contract: only a single NaN at the dataset's final timestamp is
+        # tolerable — never infinity, never an interior fold-boundary bar.
+        _reject_nonfinite_outcomes(yy, ff, te_all, where="test",
+                                   fold_id=spec.fold_id, anchor_last=anchor_last)
         if len(te) == 0:
             continue
 
@@ -290,7 +352,7 @@ def discover_and_evaluate_oos(
 
         model_cfg = ModelConfig(type=c["model_type"], random_seed=seed)
         model = build_model(model_cfg)
-        model.fit(X.loc[tr, c["cols"]], yy.loc[tr])
+        model.fit(X.loc[tr_fit, c["cols"]], yy.loc[tr_fit].astype(int))
         test_probs = pd.Series(model.predict_proba(X.loc[te, c["cols"]])[:, 1],
                                index=te)
         dir_series = pd.Series(

@@ -136,10 +136,13 @@ class LockedTestProtocol:
     def _load_lock(self) -> None:
         """Load a previously persisted lock.
 
-        C06: After loading, verify that the stored dataset_id and
+        C06/D06: After loading, verify that the stored dataset_id and
         config_fingerprint are compatible with the constructor values.  A lock
-        persisted under a different dataset or evaluation policy must not be
-        silently reused.
+        persisted under a different dataset or evaluation policy must be
+        REJECTED (not silently replaced).
+
+        D01: Corrupt or malformed lock files are also rejected rather than
+        treated as a fresh empty lock.
         """
         try:
             data = json.loads(self._lock_path.read_text(encoding="utf-8"))
@@ -153,35 +156,33 @@ class LockedTestProtocol:
                 self._frozen_spec = data
                 self._frozen_hash = data.get("hash")
             else:
-                # Corrupt or unrecognized format: reject by raising
-                raise LockedTestViolation(
-                    f"lock file {self._lock_path} has unrecognized format; "
-                    "cannot verify test membership integrity")
-        except json.JSONDecodeError as e:
-            # Corrupt JSON: reject explicitly by clearing frozen state
-            self._frozen_spec = None
-            self._frozen_hash = None
-            return
-        except Exception as e:
-            # Other read errors: reject explicitly by clearing frozen state
-            self._frozen_spec = None
-            self._frozen_hash = None
-            return
+                self._frozen_spec = None
+                self._frozen_hash = None
+        except Exception as exc:
+            # D01: Corrupt lock file must be rejected, not silently replaced.
+            raise LockedTestViolation(
+                f"persisted lock file {self._lock_path} is corrupt or "
+                f"malformed ({type(exc).__name__}: {exc}); refusing to "
+                f"proceed with an unverifiable test lock") from exc
         if self._frozen_spec is None:
             return
         stored_did = self._frozen_spec.get("dataset_id")
         stored_cfp = self._frozen_spec.get("config_fingerprint")
         if self._dataset_id is not None and stored_did is not None \
                 and stored_did != self._dataset_id:
-            # Lock was persisted under a different dataset; reject it.
-            # Clear the frozen state so frozen=False and caller can handle rejection
-            self._frozen_spec = None
-            self._frozen_hash = None
-            return
+            # D01: Lock was persisted under a different dataset; REJECT it.
+            raise LockedTestViolation(
+                f"persisted lock was created for dataset {stored_did!r}, "
+                f"but current dataset is {self._dataset_id!r}; "
+                f"refusing to reuse incompatible test lock")
         if self._config_fingerprint is not None and stored_cfp is not None \
                 and stored_cfp != self._config_fingerprint:
-            # Lock was persisted under a different evaluation policy; reject it.
-            # Clear the frozen state so frozen=False and caller can handle rejection
+            # D01: Lock was persisted under a different evaluation policy; REJECT it.
+            raise LockedTestViolation(
+                f"persisted lock was created for config fingerprint "
+                f"{stored_cfp!r}, but current fingerprint is "
+                f"{self._config_fingerprint!r}; refusing to reuse "
+                f"incompatible test lock")
             self._frozen_spec = None
             self._frozen_hash = None
 

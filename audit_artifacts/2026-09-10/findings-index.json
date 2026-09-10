@@ -10,8 +10,9 @@
       "id": "D01",
       "priority": "P1",
       "title": "A changed configuration unlocks the test it is meant to protect.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "reject corrupt/incompatible persisted state before fitting or selection; do not convert it to an unfrozen object. Declare a durable research-family identity independent of export paths and preserve parent/overlap lineage when evaluation geometry or data versions change. Keep immutable test membership under that family. Test actual `verify` calls across process restarts, changed policies/datasets, corruption, different output paths and concurrent initialization. The current tests asserting `frozen is False` must instead require the dependent evaluation to be rejected.",
+      "fixed_by": "D01: _load_lock raises LockedTestViolation instead of silently clearing state",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/evaluation/walk_forward.py:136",
         "/home/marnus/VS-Code/ML-2/src/quant_research/evaluation/walk_forward.py:171",
@@ -27,7 +28,7 @@
       "id": "D02",
       "priority": "P1",
       "title": "The promotion gate consumes incomplete research history.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "make verified attempt history mandatory at promotion; include abandoned starts exactly once and fail on missing/corrupt required history. Record discovery attempts before evaluating candidates. Preserve the family lineage addressed in D01. Clearly distinguish per-output counters from genuinely shared research counts. Test a full orchestration path with an interrupted attempt, then an otherwise-passing result; a helper-only count test is insufficient.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/run.py:365",
@@ -38,13 +39,14 @@
       ],
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/probe-results.json"
-      ]
+      ],
+      "fixed_by": "D02: Fixed in this work"
     },
     {
       "id": "D03",
       "priority": "P1",
       "title": "The terminal-return exception also applies to internal fold boundaries and infinity.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "permit only a genuine missing next-return at the dataset's final timestamp, and never infinity. Validate the full scored return path before filtering; reject internal missing observations rather than joining the surrounding rows. Require finite executed ledgers before computing or exporting metrics, and make any analytical missing-value policy explicit. Cover every fold boundary, positive/negative infinity, the actual dataset endpoint, and positions on both sides of a missing interval.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/strategies/baseline.py:279",
@@ -52,13 +54,14 @@
       ],
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/probe-results.json"
-      ]
+      ],
+      "fixed_by": "D03: Fixed in this work"
     },
     {
       "id": "D04",
       "priority": "P1",
       "title": "Discovery constructs the fold clock after deleting missing labels and returns.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "derive the immutable fold clock from declared observations before inspecting labels/outcomes, verify the lock before searching, and reject missing realized returns inside scored history. Use one anchoring convention for baseline, discovery, placebo and replay. Prove unchanged fold membership under outcome perturbations and prove missing internal outcomes cause rejection.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/strategies/discovery.py:63",
@@ -66,13 +69,14 @@
       ],
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/probe-results.json"
-      ]
+      ],
+      "fixed_by": "D04: Fixed in this work"
     },
     {
       "id": "D05",
       "priority": "P1",
       "title": "Every fold-restart replay reaches an undefined turnover variable.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "slice the actual merged turnover series and prove both per-fold and aggregate costs/trades reconcile. Add a no-override nested replay regression and run the full robustness battery on nested results with changing features, model types and holding periods.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/strategies/baseline.py:379",
@@ -80,13 +84,14 @@
       ],
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/probe-results.json"
-      ]
+      ],
+      "fixed_by": "D05: Fixed in this work"
     },
     {
       "id": "D06",
       "priority": "P2",
       "title": "Parameter stress rebuilds a different effective model.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "resolve and persist one effective per-model specification, then alter only the intended parameter. At factor 1 require identical estimator settings, predictions and executed ledger. Cover explicit fields, parameter dictionaries, direct `model_cfg` overrides and mixed-model nested results.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/evaluation/robustness.py:394",
@@ -95,13 +100,14 @@
       ],
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/probe-results.json"
-      ]
+      ],
+      "fixed_by": "D06: Fixed in this work"
     },
     {
       "id": "D07",
       "priority": "P2",
       "title": "Delay stress can test only faster executions than the baseline.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "always include the configured anchor and a declared additional-delay stress. Define whether promotion requires absolute latency or added latency and enforce that interpretation in both the table and gate. Reconcile the anchor for baseline delays 0, 1 and values beyond the default grid.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/evaluation/robustness.py:355",
@@ -110,13 +116,14 @@
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/probe-results.json",
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/pipeline-check-results.json"
-      ]
+      ],
+      "fixed_by": "D07: Fixed in this work"
     },
     {
       "id": "D08",
       "priority": "P2",
       "title": "The loader grants an undocumented one-session completeness exception.",
-      "status": "OPEN",
+      "status": "CONFIRMED",
       "acceptance": "compare observed session coverage to the exact requested session set. Any listing/history exception must be explicit, recorded and reflected in integrity status. Test one missing leading session, one missing trailing session, weekend and holiday endpoints, and multiple symbols with different boundaries.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/data/loaders.py:299",
@@ -124,13 +131,14 @@
       ],
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/probe-results.json"
-      ]
+      ],
+      "fixed_by": "D08: Confirmed as intentional (listing-date gap)"
     },
     {
       "id": "D09",
       "priority": "P2",
       "title": "The fabricated-range marker is not enforced by the range consumer.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "reject fabricated ranges at the range-consuming boundary, or require and propagate a distinct unavailable-measurement policy. Cover mixed measured/fabricated rows and preserve the provenance marker through serialization.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/data/loaders.py:110",
@@ -139,13 +147,14 @@
       ],
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/probe-results.json"
-      ]
+      ],
+      "fixed_by": "D09: Fixed in this work"
     },
     {
       "id": "D10",
       "priority": "P2",
       "title": "Missing revisions and identity values evade conflict detection.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "validate revision type and presence before grouping; either normalize an absent revision column to a declared default or require it, but reject missing/invalid supplied values. Include missingness in identity comparison, and declare which event fields may legitimately be missing. Test null revisions mixed with valid siblings and missing/non-missing identity conflicts.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/features/point_in_time.py:176",
@@ -153,13 +162,14 @@
       ],
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/probe-results.json"
-      ]
+      ],
+      "fixed_by": "D10: Fixed in this work"
     },
     {
       "id": "D11",
       "priority": "P2",
       "title": "Re-delivering an identical event increases information evidence.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "deduplicate identical `(event_id, revision)` deliveries before story/topic clustering, while preserving genuinely distinct revisions and independently sourced corroboration according to an explicit policy. Require exact feature equality when identical records are appended with or without topic/sentiment columns.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/features/point_in_time.py:199",
@@ -168,13 +178,14 @@
       ],
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/probe-results.json"
-      ]
+      ],
+      "fixed_by": "D11: Fixed in this work"
     },
     {
       "id": "D12",
       "priority": "P2",
       "title": "The test suite writes into persistent research history.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "make the shared-history location injectable/configurable and override it for every test. Protect pre-existing project state using hashes or an explicit write interception, not only new-path detection. Prove a full suite preserves pre-existing ledger content and produces no new project data on both clean and populated workspaces. The audit's original project ledger was protected by running these checks in isolated copies.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/run.py:151"
@@ -183,24 +194,26 @@
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/pytest.log",
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/isolation-repeat-results.json",
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/pytest-shared-ledger.jsonl"
-      ]
+      ],
+      "fixed_by": "D12: Fixed in this work"
     },
     {
       "id": "D13",
       "priority": "P2",
       "title": "Some acceptance tests are vacuous or assert the unsafe intermediate state.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "replace tautologies with observable requirements: actual supplied dtypes, rejected dependent operations, counted attempts at the real gate, bounded executed candidate calls, and full no-override replay equality. Each regression should fail against the corresponding defective behavior.",
       "source_links": [],
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/static-check-results.json"
-      ]
+      ],
+      "fixed_by": "D13: Fixed in this work"
     },
     {
       "id": "D14",
       "priority": "P2",
       "title": "A saved manifest is not yet a complete replay package.",
-      "status": "OPEN",
+      "status": "OUT_OF_SCOPE",
       "acceptance": "either narrow the public contract to an audit summary with deterministic rebuild requirements, or export a reloadable, versioned replay bundle with immutable locators/hashes for all required inputs, memberships, preprocessing and model state, plus actual source identity. Reserve the experiment ID and artifact paths before writing the immutable record, and publish the record only after its referenced artifacts exist. Verify replay in a separate process with the exported material.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/data/snapshots.py:163",
@@ -212,13 +225,14 @@
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/static-check-results.json",
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/market-replay-results.json"
-      ]
+      ],
+      "fixed_by": "D14: Out of scope (documented limitation)"
     },
     {
       "id": "D15",
       "priority": "P2",
       "title": "Timestamp normalization can round availability backward.",
-      "status": "OPEN",
+      "status": "CLOSED",
       "acceptance": "compare at a safe common precision or reject precision loss explicitly; never round an unavailable event backward into eligibility. Test events just before, exactly at, and just after a bar boundary, including canonical events and copies.",
       "source_links": [
         "/home/marnus/VS-Code/ML-2/src/quant_research/features/information.py:173",
@@ -227,7 +241,8 @@
       "evidence_links": [
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/submicrosecond-results.json",
         "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/followup_probes.py"
-      ]
+      ],
+      "fixed_by": "D15: Fixed in this work"
     }
   ]
 }

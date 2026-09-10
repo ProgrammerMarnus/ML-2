@@ -149,15 +149,15 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
     # same OOS family is visible across artifact directories.  The ledger lives in
     # a shared project location (not under ``out``) so separate output directories
     # still share the same family history.
-    # B18/D12: Make shared-ledger location injectable for test isolation.
-    # Default remains repo-root/data/research_ledgers for production runs.
-    ledger_dir_env = os.environ.get("ML2_LEDGER_DIR")
-    if ledger_dir_env:
-        shared_ledger_dir = Path(ledger_dir_env)
+# D12: The shared ledger path is configurable via environment variable so tests
+    # can override it to an isolated location.  This prevents tests from mutating
+    # shared project research history.
+    _env_ledger_dir = os.environ.get("QUANT_RESEARCH_LEDGER_DIR")
+    if _env_ledger_dir:
+        shared_ledger_dir = Path(_env_ledger_dir)
     else:
-        # Derive repo root from this module's location
-        _module_root = Path(__file__).parent.parent
-        shared_ledger_dir = _module_root / "data" / "research_ledgers"
+        _repo_root = Path(__file__).resolve().parents[2]
+        shared_ledger_dir = _repo_root / "data" / "research_ledgers"
     shared_ledger_dir.mkdir(parents=True, exist_ok=True)
     ledger = SearchLedger(shared_ledger_dir / "search_ledger.jsonl")
     eval_fp = cfg.evaluation.fingerprint() if hasattr(cfg.evaluation, "fingerprint") else str(cfg.evaluation)
@@ -370,6 +370,8 @@ def _register_and_decide(cfg, out, report, baseline, summary, robustness, boot,
         {**summary, "annual_turnover": annual_turnover},
         robustness, boot, placebo, integrity_ok,
         report["feature_leakage_check"]["passed"], counter.count, cfg.promotion,
+        # D02: Use family_attempt_count (includes abandoned/unresolved starts)
+        # rather than family_search_count (only completed/aborted outcomes).
         n_family_searches=(ledger.family_attempt_count(family_id) if ledger else 0),
     )
     decision = promotion_decision(checks)

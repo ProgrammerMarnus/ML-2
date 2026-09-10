@@ -358,7 +358,11 @@ def delay_stress(
     
     rows = []
     configured_delay = cfg.execution.signal_delay_bars
-    for d in delays:
+    # D07: Include the configured anchor even when it is outside the default
+    # grid, so a baseline delay beyond the grid still gets a baseline/slower
+    # delay test.
+    stress_delays = tuple(sorted(set(delays) | {configured_delay}))
+    for d in stress_delays:
         exec_cfg = replace(cfg.execution, signal_delay_bars=d)
         res = replay_oos(features, y, fwd, cfg, baseline, locked_test, exec_cfg=exec_cfg)
         # C04: the replay delay relative to the baseline's configured delay.
@@ -403,32 +407,19 @@ def parameter_perturbation(
     # Use baseline's persisted model config if available (D06 fix)
     base = baseline.model_cfg if baseline.model_cfg is not None else cfg.model
     for f in factors:
-        # Start from explicit fields, then apply perturbation
+        # D06: Preserve explicit baseline parameters (logreg_C, gb_learning_rate,
+        # gb_n_estimators) so a factor of 1.0 reproduces the baseline exactly.
+        # Use replace() to copy all explicit fields, then override parameters
+        # AND explicit fields so the perturbation is actually consumed.
+        params = dict(base.parameters)
         if base.type == "logistic":
-            logreg_C = float(base.logreg_C) if base.logreg_C is not None else float(base.parameters.get("C", 1.0))
-            perturbed_C = logreg_C * f
-            model_cfg = ModelConfig(
-                type=base.type,
-                random_seed=base.random_seed,
-                parameters=dict(base.parameters),
-                logreg_C=perturbed_C,
-                gb_learning_rate=base.gb_learning_rate,
-                gb_n_estimators=base.gb_n_estimators,
-                hold_bars=base.hold_bars,
-            )
+            params["C"] = float(params.get("C", 1.0)) * f
+            model_cfg = replace(base, parameters=params,
+                                logreg_C=params["C"])
         elif base.type == "gradient_boosting":
-            lr = float(base.gb_learning_rate) if base.gb_learning_rate is not None else float(base.parameters.get("learning_rate", 0.05))
-            n_est = int(base.gb_n_estimators) if base.gb_n_estimators is not None else int(base.parameters.get("n_estimators", 100))
-            perturbed_lr = lr * f
-            model_cfg = ModelConfig(
-                type=base.type,
-                random_seed=base.random_seed,
-                parameters=dict(base.parameters),
-                logreg_C=base.logreg_C,
-                gb_learning_rate=perturbed_lr,
-                gb_n_estimators=n_est,  # Keep n_estimators at baseline
-                hold_bars=base.hold_bars,
-            )
+            params["learning_rate"] = float(params.get("learning_rate", 0.05)) * f
+            model_cfg = replace(base, parameters=params,
+                                gb_learning_rate=params["learning_rate"])
         else:
             raise ValueError(f"unknown model type {base.type!r}")
         res = replay_oos(features, y, fwd, cfg, baseline, locked_test,

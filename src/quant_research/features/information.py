@@ -165,37 +165,37 @@ def build_information_features(
         ts = ts.tz_localize("UTC")
     else:
         ts = ts.tz_convert("UTC")
-    # B01: Normalize all timestamps to microseconds for consistent comparison.
-    # Pandas supports datetime arrays with different resolutions (ns, us, ms, s),
-    # and asi8 values can differ by factors of 1000 for identical timestamps.
-    # Normalize explicitly to avoid unit-mismatch look-ahead.
-    # Use as_unit to convert to microseconds, then get int64 representation
-    ts_us = ts.as_unit("us")
-    ts_int = ts_us.asi8  # us since epoch, sorted
+    # B01/D01: Normalize all timestamps to a safe common precision for consistent
+    # comparison.  Pandas supports datetime arrays with different resolutions
+    # (ns, us, ms, s), and asi8 values can differ by factors of 1000 for
+    # identical timestamps.  Use nanoseconds (the highest resolution) to avoid
+    # rounding an unavailable event backward into eligibility.
+    ts_us = ts.as_unit("ns")
+    ts_int = ts_us.asi8  # ns since epoch, sorted
     halflife = max(float(decay_halflife_bars), 1e-9)
 
     if deduplicate and len(ev) > 1:
         evc = _assign_clusters(ev)
         canon = evc[~evc["_is_copy"]].reset_index(drop=True)
         copies = evc[evc["_is_copy"]]
-        # copy availability (us) per canonical story, sorted, for live counting
+        # copy availability (ns) per canonical story, sorted, for live counting
         copy_by_canon: dict = {}
         if len(copies):
             for cid, grp in copies.groupby("_canonical_id", sort=False):
                 av = pd.to_datetime(grp["availability_time"], utc=True)
                 av_idx = pd.DatetimeIndex(av)
-                av_us = av_idx.as_unit("us")
+                av_us = av_idx.as_unit("ns")
                 copy_by_canon[cid] = np.sort(av_us.asi8)
     else:
         canon = ev.assign(_canonical_id=ev["event_id"].astype(object))
         copy_by_canon = {}
 
     canon_av = pd.to_datetime(canon["availability_time"], utc=True)
-    # B01: Normalize canonical availability to same unit as bar index
+    # B01/D01: Normalize canonical availability to same unit as bar index (ns)
     # Convert Series to DatetimeIndex for as_unit/asi8 access
     canon_av_idx = pd.DatetimeIndex(canon_av)
-    canon_av_us = canon_av_idx.as_unit("us")
-    canon_av_int = canon_av_us.asi8  # us since epoch (numpy array)
+    canon_av_us = canon_av_idx.as_unit("ns")
+    canon_av_int = canon_av_us.asi8  # ns since epoch (numpy array)
     first_bar = np.searchsorted(ts_int, canon_av_int, side="left")
 
     def _num(col: str, default: float) -> np.ndarray:

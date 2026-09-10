@@ -89,6 +89,16 @@ def _validate_input(ohlcv: pd.DataFrame) -> None:
     if (ohlcv["volume"].to_numpy() < 0.0).any():
         raise DataValidationError("'volume' must be nonnegative")
 
+    # D09: Reject inputs with fabricated (synthetic) ranges.  Close-only CSV
+    # imports fabricate open/high/low equal to close, which produces zero
+    # Parkinson volatility.  Range-dependent features must only consume
+    # measured ranges.
+    if "_synthetic_range" in ohlcv.columns and bool(ohlcv["_synthetic_range"].any()):
+        raise DataValidationError(
+            "Parkinson volatility requires measured intraday range (high/low); "
+            "input contains synthetic-range rows (close-only CSV import). "
+            "Provide OHLCV data with genuine open/high/low columns."
+        )
     if bool((ohlcv["high"] < ohlcv["low"]).any()):
         raise DataValidationError("high < low violates the OHLC relationship")
 

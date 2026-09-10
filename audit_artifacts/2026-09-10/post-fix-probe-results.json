@@ -1,0 +1,117 @@
+{
+  "d01_lock_rejects_changed_dataset": {
+    "status": "passed",
+    "evidence": {
+      "rejected": true,
+      "message": "persisted lock was created for dataset 'A', but current dataset is 'B'; refusing to reuse incompatib"
+    }
+  },
+  "d01_lock_rejects_changed_config": {
+    "status": "passed",
+    "evidence": {
+      "rejected": true,
+      "message": "persisted lock was created for config fingerprint 'fp1', but current fingerprint is 'fp2'; refusing "
+    }
+  },
+  "d01_lock_rejects_corrupt_json": {
+    "status": "passed",
+    "evidence": {
+      "rejected": true,
+      "message": "persisted lock file /tmp/ml2-postfix-probes-cjuly8lq/d01-corrupt.lock is corrupt or malformed (JSOND"
+    }
+  },
+  "d02_attempt_count_includes_abandoned": {
+    "status": "passed",
+    "evidence": {
+      "completed_count": 1,
+      "attempt_count": 2,
+      "includes_abandoned": true
+    }
+  },
+  "d03_terminal_nan_only_at_dataset_end": {
+    "status": "passed",
+    "evidence": {
+      "rejected": true,
+      "cases": {
+        "nan": {
+          "rejected": true,
+          "message": "forward returns on test window 1 contain 1 missing/non-finite value(s) at position(s) [np.int64(21)] of 40 (only a NaN a"
+        },
+        "inf": {
+          "rejected": true,
+          "message": "forward returns on test window 1 contain 1 missing/non-finite value(s) at position(s) [np.int64(21)] of 40 (only a NaN a"
+        },
+        "control_n_oos": 320
+      }
+    }
+  },
+  "d04_discovery_preserves_timeline": {
+    "status": "passed",
+    "evidence": {
+      "rejected": true,
+      "cases": {
+        "nan": {
+          "rejected": true,
+          "message": "missing/non-finite labels or forward returns on discovery validation window 2: 1 bad value(s) at position(s) [np.int64(2"
+        },
+        "inf": {
+          "rejected": true,
+          "message": "missing/non-finite labels or forward returns on discovery validation window 2: 1 bad value(s) at position(s) [np.int64(2"
+        },
+        "control": {
+          "n_folds": 8,
+          "n_oos": 320
+        }
+      }
+    }
+  },
+  "d05_nested_replay_completes": {
+    "status": "passed",
+    "evidence": {
+      "completed": true,
+      "n_oos": 320
+    }
+  },
+  "d06_factor_one_preserves_params": {
+    "status": "passed",
+    "evidence": {
+      "baseline_sharpe": 0.44248873093164204,
+      "factor_one_sharpe": 0.44248873093164204,
+      "reproduces_exactly": true
+    }
+  },
+  "d07_delay_includes_configured_anchor": {
+    "status": "passed",
+    "evidence": {
+      "delays_tested": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "includes_configured_anchor": true
+    }
+  },
+  "d09_parkinson_rejects_synthetic": {
+    "status": "passed",
+    "evidence": {
+      "rejected": true,
+      "message": "Parkinson volatility requires measured intraday range (high/low); input contains synthetic-range row"
+    }
+  },
+  "d10_null_revision_conflict_rejected": {
+    "status": "passed",
+    "evidence": {
+      "rejected": true,
+      "message": "event_id reused with conflicting identity fields (revisions must be versioned): [('e', 'sentiment', "
+    }
+  },
+  "d15_nanosecond_precision": {
+    "status": "passed",
+    "evidence": {
+      "all_correct": true,
+      "combinations_tested": 16
+    }
+  }
+}

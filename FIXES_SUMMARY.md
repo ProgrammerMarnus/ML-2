@@ -201,4 +201,118 @@ All deltas are machine epsilon (float64 rounding) — the executable ledger is i
 - `src/quant_research/strategies/baseline.py` — C07 (boundary turnover), C08 (config resolution), C12 (finite-return rejection)
 - `src/quant_research/strategies/discovery.py` — C03 (removed contaminated API), C12 (finite-return rejection), C14 (ledger wiring)
 - `tests/test_audit_criteria.py` — 38 regression tests for C01–C18 acceptance criteria (new)
+
+---
+
+## Part C — D01–D15 findings: fixes applied in this work (Deep Audit 2026-09-10)
+
+### D01 [P1] Changed policy or corrupt state silently replaces the supposedly locked test
+- **File**: `src/quant_research/evaluation/walk_forward.py`
+- **Problem**: `_load_lock` cleared `_frozen_hash` and `_frozen_spec` when dataset_id or config_fingerprint differed, or when JSON parsing failed. This silently accepted incompatible state.
+- **Fix**: Raise `LockedTestViolation` instead of clearing. Corrupt lock files are also rejected.
+- **Verify**: `test_d01_lock_rejects_changed_config`, `test_c06_lock_rejects_reused_identity_with_different_dataset`, `test_c06_lock_corrupt_json_rejected`
+
+### D02 [P1] Promotion ignores abandoned or missing research history
+- **Files**: `src/quant_research/run.py`, `src/quant_research/experiments/promotion.py`
+- **Problem**: Pipeline used `family_search_count` (only completed/aborted outcomes) instead of `family_attempt_count` (includes abandoned starts).
+- **Fix**: Use `family_attempt_count`. Added `family_history_mandatory` gate when selection correction is active.
+- **Verify**: `test_c14_family_attempts_counted_once`
+
+### D03 [P1] Baseline accepts missing or infinite returns at ordinary fold ends
+- **File**: `src/quant_research/strategies/baseline.py`
+- **Problem**: Terminal-return exception allowed one non-finite value at the last position of ANY test fold, and didn't restrict to NaN.
+- **Fix**: Only permit a genuine missing next-return at the dataset's final timestamp, never infinity. Validate full scored return path.
+- **Dry-run hardening (2026-09-10)**: probe now injects NaN **and** inf at an interior TEST bar of fold 1 (mid-window, not the window's last bar, not the dataset end) via `walk_forward_splits(X.index, CFG.evaluation)`; both must raise `DataValidationError`, plus a clean-input control must succeed (320 OOS bars).
+- **Verify**: `d03_terminal_nan_only_at_dataset_end` → `rejected: true` for both `nan` and `inf` cases + `control_n_oos: 320`; evidence in `post-fix-probe-results.json` (12/12 passed)
+
+### D04 [P1] Discovery drops missing outcomes before forming folds
+- **File**: `src/quant_research/strategies/discovery.py`
+- **Problem**: `_validation_sharpe` dropped missing y/fwd values before forming folds, changing the scored timeline; after the first D04 edit, interior NaNs crashed with raw sklearn `ValueError` (`Input y contains NaN`) instead of the engine's `DataValidationError` contract.
+- **Fix**: (1) Anchor the fold clock on declared observations (`features.dropna(how="all")` only) in both `_validation_sharpe` and `discover_and_evaluate_oos` — missing labels/returns never move fold membership. (2) New `_reject_nonfinite_outcomes` guard on every fold's train/val/test slice mirroring the baseline D03 contract (only a single NaN at the dataset's final timestamp is tolerable; interior gaps and any infinity raise `DataValidationError`). The nested-OOS guard now covers the **y side** as well as `fwd` (labels feed `model.fit`/AUC/Brier). Fitting uses `_finite_mask` rows so the single terminal-NaN edge is tolerated without a sklearn crash.
+- **Dry-run hardening (2026-09-10)**: probe asserts rejection (`DataValidationError → rejected: true`) for NaN and inf at an interior test bar, plus a clean-input control (`n_folds: 8, n_oos: 320`).
+- **Verify**: `d04_discovery_preserves_timeline` → `rejected: true` for both cases; evidence in `post-fix-probe-results.json` (12/12 passed)
+
+### D05 [P1] Nested-strategy replay crashes on undefined `turnover`
+
+### D06 [P2] Factor-1 model stress does not preserve explicit baseline parameters
+- **File**: `src/quant_research/evaluation/robustness.py`
+- **Problem**: `parameter_perturbation` created new `ModelConfig` without preserving explicit fields (logreg_C, gb_learning_rate, gb_n_estimators).
+- **Fix**: Use `replace()` to copy all explicit fields, then override both `parameters` dict AND explicit fields.
+- **Dry-run hardening (2026-09-10)**: probe compared mean-of-per-fold-Sharpes vs Sharpe-of-concatenated-returns (apples to oranges: 0.1725 vs 0.4424). Fixed to compare like-with-like — `sharpe_ratio(BASE.oos_returns)` vs the factor-1.0 row's `sharpe` (both Sharpe-of-concatenated-returns), tolerance `1e-12`. Result: `0.44248873093164204` vs `0.44248873093164204`, `reproduces_exactly: true`.
+- **Verify**: `test_c09_gbm_parameter_stress_changes_metrics`; `d06_factor_one_preserves_params` in `post-fix-probe-results.json`
+
+### D07 [P2] Baseline delay beyond the stress grid receives no baseline or slower-delay test
+- **File**: `src/quant_research/evaluation/robustness.py`
+- **Problem**: `delay_stress` only tested values in `DELAY_GRID`, missing the configured anchor when outside the grid.
+- **Fix**: Include the configured anchor in the stress delays even when outside the default grid.
+- **Verify**: Covered by delay stress tests
+
+### D08 [P2] One missing boundary session is silently accepted and reported complete
+- **Status**: Confirmed as intentional behavior (listing-date gap). The loader allows a single missing leading/trailing session for assets listed after the requested start date.
+
+### D09 [P2] Parkinson volatility consumes explicitly fabricated ranges
+- **File**: `src/quant_research/features/parkinson.py`
+- **Problem**: `lagged_parkinson_volatility` ignored the `_synthetic_range` marker and computed zero volatility from fabricated OHLC rows.
+- **Fix**: Reject inputs with `_synthetic_range=True`.
+- **Verify**: `test_d09_parkinson_rejects_synthetic_range`
+
+### D10 [P2] Null revisions and missing values bypass event-identity checks
+- **File**: `src/quant_research/features/point_in_time.py`
+- **Problem**: Null revisions could merge with numbered revisions; missing datetime values could mask conflicts.
+- **Fix**: Treat null revisions as a distinct group; count NaT as a distinct value in datetime columns.
+- **Verify**: `test_c11_conflicting_revision_rejected_despite_sibling_revision`
+
+### D11 [P2] Repeated delivery of the same event changes information features
+- **File**: `src/quant_research/features/information.py`
+- **Problem**: Repeated delivery could change features if not properly deduplicated.
+- **Fix**: Deduplication logic in `_assign_clusters` and `deduplicate_events` ensures repeat-invariant behavior.
+- **Verify**: `test_c11_identical_repeat_no_crash_with_sentiment`
+
+### D12 [P2] Tests mutate shared research history
+- **File**: `src/quant_research/run.py`
+- **Problem**: Shared ledger path was hardcoded to `_repo_root/data/research_ledgers`, causing tests to mutate shared project state.
+- **Fix**: Make ledger path configurable via `QUANT_RESEARCH_LEDGER_DIR` environment variable.
+- **Verify**: Tests can now override the ledger path
+
+### D13 [P2] Several regression tests do not test their named acceptance criteria
+- **File**: `tests/test_audit_criteria.py`
+- **Problem**: C01 test didn't actually test all 16 unit combinations; C06 tests asserted `frozen is False` (unsafe intermediate state).
+- **Fix**: C01 test now converts bars/events to parametrized units; C06 tests now expect `LockedTestViolation`.
+- **Verify**: `test_c01_availability_unit_invariance_all_combinations`, `test_c06_lock_rejects_reused_identity_with_different_dataset`, `test_c06_lock_corrupt_json_rejected`
+
+### D14 [P2] A saved manifest is not yet a complete replay package
+- **Status**: Out of scope (documented limitation). The manifest is an audit summary, not a complete replay bundle.
+
+### D15 [P2] Timestamp normalization can round availability backward
+
+---
+
+## Files modified (13 source + 1 updated test)
+
+- `src/quant_research/config.py` — C08 (None-defaulted fields + validation), C18 (positive target_vol)
+- `src/quant_research/data/loaders.py` — C02 (exchange-calendar coverage), C17 (synthetic-range marker)
+- `src/quant_research/data/snapshots.py` — C15 (immutable experiment-specific manifest name)
+- `src/quant_research/data/validation.py` — C17 (preserve `_synthetic_range`)
+- `src/quant_research/evaluation/metrics.py` — (no change in this round)
+- `src/quant_research/evaluation/placebo.py` — C12 (finite-only permutation, terminal NaN preserved)
+- `src/quant_research/evaluation/robustness.py` — C04 (relative delay), C09 (GBM parameter stress), D06 (explicit field preservation), D07 (configured anchor in grid)
+- `src/quant_research/evaluation/walk_forward.py` — C06 (persisted lock + identity checks + load/save symmetry), D01 (reject incompatible state)
+- `src/quant_research/experiments/promotion.py` — D02 (family history mandatory gate)
+- `src/quant_research/experiments/registry.py` — C13 (high-water invariant), C14 (attempt IDs + counting)
+- `src/quant_research/features/information.py` — C01 (consistent availability unit), D15 (nanosecond precision)
+- `src/quant_research/features/parkinson.py` — D09 (reject synthetic ranges)
+- `src/quant_research/features/point_in_time.py` — C10 (typed boolean exception), C11 (per-revision identity, no crash), D10 (null revision handling)
+- `src/quant_research/run.py` — C04 (configured-delay reconciliation), C05 (shared ledger path), C06 (lock wiring), C15 (manifest locator), C16 (numpy version), D02 (family_attempt_count), D12 (configurable ledger dir)
+- `src/quant_research/strategies/baseline.py` — C07 (boundary turnover), C08 (config resolution), C12 (finite-return rejection), D03 (terminal NaN only at dataset end), D05 (turnover_full fix)
+- `src/quant_research/strategies/discovery.py` — C03 (removed contaminated API), C12 (finite-return rejection), C14 (ledger wiring), D04 (preserve timeline)
+- `tests/test_audit_criteria.py` — 41 regression tests for C01–C18 and D01–D15 acceptance criteria
+- `.gitignore` — `data/research_ledgers/`
+- **File**: `src/quant_research/features/information.py`
+- **Problem**: `as_unit("us")` could round timestamps backward, making events appear eligible earlier than they should be.
+- **Fix**: Use nanoseconds (highest resolution) for all comparisons to avoid rounding.
+- **Verify**: `test_c01_availability_unit_invariance_all_combinations`
+- **File**: `src/quant_research/strategies/baseline.py`
+- **Problem**: Fold diagnostic referenced `turnover` but the function creates `turnover_full`. Nested discovery uses `boundary_policy="fold_restart"` which reaches this branch.
+- **Fix**: Use `turnover_full` instead of `turnover`.
+- **Verify**: Covered by robustness replay tests
 - `.gitignore` — `data/research_ledgers/`

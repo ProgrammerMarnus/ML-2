@@ -170,27 +170,33 @@ def validate_events(events: pd.DataFrame) -> pd.DataFrame:
         has_revision = "revision" in out.columns
         conflicting = []
         for eid, grp in dup.groupby("event_id", sort=False):
-            # Split each event_id's records into (event_id, revision) sub-groups
-            # so a versioned sibling never exempts a conflicting revision.
+            # D10: Null revisions are treated as a distinct revision group,
+            # not merged with non-null revisions.  This prevents a null
+            # revision from masking conflicts with a numbered revision.
             if has_revision:
-                rev_groups = grp.groupby("revision", sort=False)
+                # Fill NaN revisions with a sentinel so they form their own
+                # group and don't merge with numbered revisions.
+                rev_col = grp["revision"].fillna("__null_revision__")
+                rev_groups = grp.groupby(rev_col, sort=False)
             else:
                 rev_groups = [(None, grp)]
             for rev, rev_grp in rev_groups:
                 for col in identity_cols:
                     vals = rev_grp[col]
                     if pd.api.types.is_datetime64_any_dtype(vals):
-                        nunique = len(vals.unique())
+                        # D10: For datetime columns, count NaT as a distinct
+                        # value so missing timestamps don't mask conflicts.
+                        nunique = len(vals.dropna().unique()) + int(vals.isna().any())
                     else:
                         nunique = vals.nunique()
                     if nunique > 1:
                         conflicting.append(
-                            (str(eid), col, int(rev) if rev is not None else None))
+                            (str(eid), col, int(rev) if rev is not None and rev != "__null_revision__" else None))
                         break
                 # Optional sentiment conflict (only when the column is present).
                 if "sentiment" in rev_grp.columns and rev_grp["sentiment"].nunique() > 1:
                     conflicting.append(
-                        (str(eid), "sentiment", int(rev) if rev is not None else None))
+                        (str(eid), "sentiment", int(rev) if rev is not None and rev != "__null_revision__" else None))
         if conflicting:
             raise DataValidationError(
                 f"event_id reused with conflicting identity fields "

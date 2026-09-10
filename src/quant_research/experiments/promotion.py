@@ -164,7 +164,17 @@ def evaluate_gates(
     # research on the same OOS family inflates the chance of a spurious pass.
     # A family may not exceed its predeclared search cap; Bonferroni correction
     # additionally divides the placebo alpha by the number of family searches.
-    if n_family_searches > cfg.max_family_searches:
+    # D02: When selection correction is active, a ledger is expected and
+    # verified attempt history must be recorded.  A family with zero recorded
+    # attempts when correction is active is treated as incomplete evidence.
+    if cfg.selection_correction != "none" and n_family_searches == 0:
+        checks.append(GateCheck(
+            "family_history_mandatory",
+            False,
+            "no research-family attempt history recorded; promotion with "
+            "selection correction requires verified attempt history (D02)",
+        ))
+    elif n_family_searches > cfg.max_family_searches:
         checks.append(GateCheck(
             "family_search_within_cap",
             False,

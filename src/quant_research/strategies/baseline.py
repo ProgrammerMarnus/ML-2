@@ -266,24 +266,31 @@ def run_walk_forward(
         te_fwd = ff.loc[te_all]
         bad_mask = ~np.isfinite(te_fwd.to_numpy())
         n_bad = int(bad_mask.sum())
+        # D03: Only permit a genuine missing next-return at the dataset's FINAL
+        # timestamp, and never infinity.  The last bar of the entire anchor_index
+        # has no next close (close[N+1] does not exist), so its forward return
+        # is NaN; this is the one and only acceptable non-finite value.  Any
+        # interior missing observation, or any infinity at any position, is
+        # rejected — the continuous-position execution model cannot reconcile
+        # a gap or an infinite return without an explicit missing-value policy.
+        anchor_last = anchor[-1] if len(anchor) else None
+        is_terminal_nan = False
         if n_bad > 0:
             bad_pos = np.flatnonzero(bad_mask)
-            # Terminal NaN at the very last evaluated bar is acceptable: it is
-            # the last bar of the whole series (no next close exists) and the
-            # fold geometry guarantees test_start + test_window <= n only when
-            # the full test window has a next-close for every bar -- so a NaN at
-            # the last te_all position means the anchor contained one extra trailing
-            # bar beyond the guaranteed test window (e.g. the last bar was kept in
-            # the anchor because some feature column had a value).  Treat that as
-            # acceptable, but reject any interior missing/non-finite returns.
-            if not (len(bad_pos) == 1 and bad_pos[0] == len(te_all) - 1):
+            is_terminal_nan = (
+                len(bad_pos) == 1
+                and bad_pos[0] == len(te_all) - 1
+                and te_all[-1] == anchor_last
+                and not np.isinf(ff.loc[te_all[-1]])  # must be NaN, not inf
+            )
+            if not is_terminal_nan:
                 raise DataValidationError(
                     f"forward returns on test window {spec.fold_id} contain "
                     f"{n_bad} missing/non-finite value(s) at position(s) "
-                    f"{list(bad_pos + 1)} of {len(te_all)} (not solely the terminal "
-                    f"bar); interior gaps are not supported by the continuous-position "
-                    f"execution model — validate or impute realized returns before "
-                    f"walk-forward evaluation")
+                    f"{list(bad_pos + 1)} of {len(te_all)} (only a NaN at the "
+                    f"dataset's final timestamp {anchor_last} is acceptable); "
+                    f"interior gaps and any infinity are rejected — validate "
+                    f"or impute realized returns before walk-forward evaluation")
         if len(tr) == 0 or len(va) == 0 or len(te) == 0:
             continue
 
