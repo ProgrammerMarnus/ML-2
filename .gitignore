@@ -17,6 +17,9 @@ env/
 # Generated market-data snapshots (regenerable synthetic/provider data; large)
 data/raw_snapshots/
 
+# Shared research-family search ledger (runtime state; regenerable)
+data/research_ledgers/
+
 # Experiment output directories (regenerable run artifacts)
 artifacts/
 artifacts_real/

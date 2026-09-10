@@ -1,0 +1,75 @@
+{
+  "legacy_reset_ledger_matches_saved_economics": true,
+  "legacy_reconstructed_summary": {
+    "full_oos_net_sharpe": -0.07121333914997058,
+    "full_oos_gross_sharpe": 0.15724308552979,
+    "full_oos_net_return": -0.054764727620513654,
+    "full_oos_gross_return": 0.06427190538675664,
+    "fee_cost": 0.09880195091674282,
+    "slippage_cost": 0.01976039018334856
+  },
+  "changed_bars": [
+    {
+      "timestamp": "2019-01-23 00:00:00+00:00",
+      "old": {
+        "net": 0.0,
+        "gross": 0.0,
+        "position": 0.0,
+        "turnover": 0.0
+      },
+      "current": {
+        "net": 0.0001862183143396978,
+        "gross": 0.00018798299609374362,
+        "position": 0.35363849445097795,
+        "turnover": 0.0029411362567430266
+      }
+    },
+    {
+      "timestamp": "2019-01-24 00:00:00+00:00",
+      "old": {
+        "net": 0.0,
+        "gross": 0.0,
+        "position": 0.0,
+        "turnover": 0.0
+      },
+      "current": {
+        "net": -0.00021218309667058675,
+        "gross": 0.0,
+        "position": 0.0,
+        "turnover": 0.35363849445097795
+      }
+    },
+    {
+      "timestamp": "2022-01-21 00:00:00+00:00",
+      "old": {
+        "net": 0.0,
+        "gross": 0.0,
+        "position": 0.0,
+        "turnover": 0.0
+      },
+      "current": {
+        "net": 0.0029421934472307985,
+        "gross": 0.002972913427074491,
+        "position": 0.7000483535360177,
+        "turnover": 0.051199966406154096
+      }
+    },
+    {
+      "timestamp": "2022-01-24 00:00:00+00:00",
+      "old": {
+        "net": -0.008590779883330346,
+        "gross": -0.008188364861863943,
+        "position": 0.6706917024440053,
+        "turnover": 0.6706917024440053
+      },
+      "current": {
+        "net": -0.00820597885251915,
+        "gross": -0.008188364861863943,
+        "position": 0.6706917024440053,
+        "turnover": 0.029356651092012354
+      }
+    }
+  ],
+  "all_changes_at_fold_start_or_following_bar": true,
+  "classification": "EXPECTED: same predictions/thresholds; continuous signal and position state replaces fold restarts. No unexplained baseline economic differences."
+}

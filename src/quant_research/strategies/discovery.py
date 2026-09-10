@@ -20,7 +20,7 @@ from ..config import AppConfig, ModelConfig
 from ..data.schemas import DataValidationError
 from .baseline import build_model, select_threshold, ExperimentResult
 from ..evaluation.backtest import EXECUTION_CONTRACT, backtest
-from ..evaluation.metrics import compute_metrics
+from ..evaluation.metrics import compute_metrics, sharpe_ratio
 from ..evaluation.walk_forward import walk_forward_splits
 from sklearn.metrics import brier_score_loss, roc_auc_score
 
@@ -111,37 +111,24 @@ def discover_strategies(
     cfg: AppConfig,
     seed: int = 42,
 ) -> pd.DataFrame:
-    """Run the bounded discovery search.
+    """DISCONTINUED: Contaminated legacy discovery API (C03).
 
-    features: full feature panel.  feature_sets: mapping name -> list of
-    feature columns.  Grid = feature_set x model_type x hold_bars, bounded by
-    research.max_trials (deterministic truncation).  Threshold is selected on
-    validation per fold (not a grid dimension, keeping trials bounded).
-    Returns candidates ranked by robustness-adjusted validation score.
+    discover_strategies ranks candidates using validation windows across the
+    complete history, then evaluate_candidate_oos evaluates the global winner on
+    ALL earlier test folds while describing them as untouched OOS. This creates
+    historical-information contamination: later validation outcomes affect earlier
+    OOS decisions.
+
+    USE discover_and_evaluate_oos INSTEAD, which nests selection within each outer
+    fold using only information available before that fold's test.
+
+    Removed: this function now raises DataValidationError.  The old behavior
+    (warning + contaminated result) is no longer available.
     """
-    model_types = ["logistic", "gradient_boosting"]
-    grid = list(itertools.product(feature_sets.keys(), model_types,
-                                  cfg.research.hold_candidates))
-    max_trials = cfg.research.max_trials
-    if len(grid) > max_trials:
-        grid = grid[:max_trials]
-
-    rows = []
-    for i, (fs_name, mt, hold) in enumerate(grid):
-        cols = feature_sets[fs_name]
-        vsharpe, vdd, thr, perfold = _validation_sharpe(
-            features, y, fwd, cfg, cols, mt, hold,
-            cfg.research.threshold_candidates, seed,
-        )
-        # robustness-adjusted score: penalize deep validation drawdown
-        score = vsharpe + 0.5 * min(vdd, 0.0)
-        rows.append({"candidate_id": i, "feature_set": fs_name, "model_type": mt,
-                     "hold_bars": hold, "threshold": thr,
-                     "per_fold_thresholds": perfold,
-                     "validation_sharpe": vsharpe, "validation_max_dd": vdd,
-                     "robust_adjusted_score": score, "params": f"{mt}|hold={hold}"})
-    df = pd.DataFrame(rows).sort_values("robust_adjusted_score", ascending=False)
-    return df.reset_index(drop=True)
+    raise DataValidationError(
+        "discover_strategies is removed (contaminated legacy API, C03). "
+        "Use discover_and_evaluate_oos for contamination-free discovery."
+    )
 
 
 def evaluate_candidate_oos(
@@ -156,20 +143,13 @@ def evaluate_candidate_oos(
 ):
     """Evaluate ONE selected candidate on the untouched OOS test (once).
 
-    The candidate's full specification is pinned as the immutable OOS replay:
-    feature set, model config, hold_bars, and the per-fold thresholds selected
-    at discovery time.  `fixed_thresholds` prevents any re-selection on OOS.
+    DISCONTINUED (C03): this legacy path retrospectively applies a globally
+    selected winner to earlier test folds and is therefore contaminated.  Use
+    discover_and_evaluate_oos for contamination-free nested selection + evaluation.
     """
-    from .baseline import run_walk_forward
-
-    model_cfg = ModelConfig(type=str(row["model_type"]), random_seed=cfg.model.random_seed)
-    cols = feature_sets[str(row["feature_set"])]
-    hold = int(row["hold_bars"]) if "hold_bars" in row.index else 1
-    fixed = dict(row["per_fold_thresholds"]) if "per_fold_thresholds" in row.index else None
-    return run_walk_forward(
-        features, y, fwd, cfg, locked_test=locked_test, model_cfg=model_cfg,
-        feature_subset=cols, trial_counter=trial_counter,
-        fixed_thresholds=fixed, hold_bars=hold,
+    raise DataValidationError(
+        "evaluate_candidate_oos is removed (contaminated legacy API, C03). "
+        "Use discover_and_evaluate_oos for contamination-free discovery."
     )
 
 
@@ -182,6 +162,8 @@ def discover_and_evaluate_oos(
     seed: int = 42,
     locked_test=None,
     trial_counter=None,
+    ledger: "SearchLedger | None" = None,
+    family_id: str | None = None,
 ) -> ExperimentResult:
     """Contamination-free discovery evaluation (A02).
 
@@ -232,6 +214,20 @@ def discover_and_evaluate_oos(
     folds = walk_forward_splits(X.index, cfg.evaluation)
     if locked_test is not None:
         locked_test.verify(folds)
+
+    # C14: record the discovery search attempt on the shared research-family
+    # ledger (output-location-independent).  Record START before the fold loop
+    # so interrupted/abandoned searches remain visible; record OUTCOME when the
+    # evaluation completes (or abort if it raises).
+    _ledger_start_entry = None
+    if ledger is not None and family_id is not None:
+        n_grid = len(grid)
+        _ledger_start_entry = ledger.record_start(
+            family_id, "nested_discovery_evaluation", n_grid,
+            meta={"stage": "discover_and_evaluate_oos",
+                  "n_feature_sets": len(feature_sets),
+                  "n_model_types": 2})
+
     risk_obs = ff.shift(1)  # observable close-to-close, causal vol input
 
     fold_rows = []
@@ -241,6 +237,8 @@ def discover_and_evaluate_oos(
     accepted_specs = []
     fitted = {}
     chosen_thresholds = {}
+    per_fold_hold = {}
+    per_fold_features = {}
     for spec in folds:
         tr = spec.train_idx.intersection(X.index)
         va = spec.val_idx.intersection(X.index)
@@ -248,6 +246,23 @@ def discover_and_evaluate_oos(
         if len(tr) < cfg.evaluation.train_window // 2 or len(va) == 0 or len(te_all) == 0:
             continue
         te = te_all[ff.loc[te_all].notna()]
+        # C12: reject interior missing/non-finite forward returns on the test
+        # window rather than silently dropping rows and carrying position state
+        # across the gap (identical rationale to run_walk_forward).  A terminal
+        # NaN at the very last evaluated bar is acceptable (last bar of the series,
+        # no next close exists).
+        te_fwd = ff.loc[te_all]
+        bad_mask = ~np.isfinite(te_fwd.to_numpy())
+        n_bad = int(bad_mask.sum())
+        if n_bad > 0:
+            bad_pos = np.flatnonzero(bad_mask)
+            if not (len(bad_pos) == 1 and bad_pos[0] == len(te_all) - 1):
+                raise DataValidationError(
+                    f"forward returns on discovery test window {spec.fold_id} contain "
+                    f"{n_bad} missing/non-finite value(s) at position(s) "
+                    f"{list(bad_pos + 1)} of {len(te_all)} (not solely the terminal "
+                    f"bar); interior gaps are not supported by the continuous-position "
+                    f"execution model")
         if len(te) == 0:
             continue
 
@@ -282,6 +297,8 @@ def discover_and_evaluate_oos(
 
         fitted[spec.fold_id] = model
         chosen_thresholds[spec.fold_id] = threshold
+        per_fold_hold[spec.fold_id] = int(c["hold_bars"])
+        per_fold_features[spec.fold_id] = list(c["cols"])
         yy_te = yy.loc[te].astype(int)
         auc = (float(roc_auc_score(yy_te, test_probs))
                if yy_te.nunique() > 1 else float("nan"))
@@ -354,10 +371,33 @@ def discover_and_evaluate_oos(
     preds = pd.concat(pred_frames).sort_index()
     fee_total = float((turnover * cfg.execution.fee_bps / 10000.0).sum())
     slip_total = float((turnover * cfg.execution.slippage_bps / 10000.0).sum())
+    # B06 FIX: Persist the full executable spec so a no-override replay
+    # reproduces the identical ledger: per-fold holds, per-fold feature subsets,
+    # the fold_restart boundary policy, the risk input, and the frozen anchor.
+    hold_values = [int(row["hold_bars"]) for row in fold_rows]
+    from collections import Counter
+    hold_mode = Counter(hold_values).most_common(1)[0][0]
+
+    # C14: record OUTCOME on the shared research-family ledger when the
+    # discovery evaluation completes successfully.
+    if ledger is not None and family_id is not None and _ledger_start_entry is not None:
+        attempt_id = _ledger_start_entry.get("attempt_id", "")
+        ledger.record_outcome(
+            family_id, "nested_discovery_evaluation", len(grid),
+            "completed",
+            {"n_folds": len(folds_df),
+             "full_oos_net_sharpe": float(sharpe_ratio(net)) if len(net) else float("nan")},
+            attempt_id=attempt_id)
+
     return ExperimentResult(
         folds=folds_df, predictions=preds, oos_returns=net,
         oos_gross_returns=gross, oos_positions=pos_full,
         fold_specs=accepted_specs, fitted_models=fitted,
         thresholds=chosen_thresholds, fee_costs=fee_total,
-        slippage_costs=slip_total, hold_bars=1,
-        execution_contract=EXECUTION_CONTRACT)
+        slippage_costs=slip_total, hold_bars=hold_mode,
+        execution_contract=EXECUTION_CONTRACT,
+        feature_subset=list(X.columns), risk_returns=risk_obs,
+        model_cfg=cfg.model, boundary_policy="fold_restart",
+        per_fold_hold_bars=per_fold_hold,
+        per_fold_feature_subsets=per_fold_features,
+        anchor_index=X.index)

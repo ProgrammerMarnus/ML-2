@@ -1,0 +1,10 @@
+{
+  "snapshot_id": "20260909T181242Z_synthetic_ohlcv_dcb4ac583ce8822f",
+  "path": "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-09-post-fix/synthetic_snapshots/first/20260909T181242Z_synthetic_ohlcv_dcb4ac583ce8822f.parquet",
+  "dataset_hash": "dcb4ac583ce8822f",
+  "n_rows": 505,
+  "symbols": [
+    "SPY"
+  ],
+  "created_utc": "20260909T181242Z"
+}

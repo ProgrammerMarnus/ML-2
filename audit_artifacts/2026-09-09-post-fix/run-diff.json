@@ -1,0 +1,27 @@
+{
+  "compared_with": "audit_artifacts/2026-09-09-rerun/market-executed-ledger.csv",
+  "same_timestamps": true,
+  "n_rows": 1764,
+  "max_abs_ledger_delta": 0.0,
+  "summary_deltas": {
+    "mean_oos_sharpe": 0.0,
+    "median_oos_sharpe": 0.0,
+    "mean_oos_auc": 0.0,
+    "mean_oos_brier": 0.0,
+    "worst_oos_dd": 0.0,
+    "full_oos_max_dd": 0.0,
+    "total_oos_trades": 0,
+    "positive_folds": 0,
+    "n_folds": 0,
+    "single_fold_share": 0.0,
+    "full_oos_sharpe": 0.0,
+    "full_oos_net_sharpe": 0.0,
+    "full_oos_gross_sharpe": 0.0,
+    "full_oos_net_return": 0.0,
+    "full_oos_gross_return": 0.0,
+    "fee_cost": 0.0,
+    "slippage_cost": 0.0,
+    "cost_drag": 0.0
+  },
+  "classification": "UNCHANGED: same snapshot and executable baseline. Configuration adds metadata fields but baseline behavior is unchanged."
+}

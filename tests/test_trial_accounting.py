@@ -29,8 +29,9 @@ def setup():
     cfg = AppConfig(
         data=DataConfig(mode="synthetic", assets=["SPY"], target="SPY",
                         start="2016-01-01", end="2020-01-01"),
+        # B09: Use step_bars <= test_window to avoid gapped windows
         evaluation=EvaluationConfig(train_window=200, validation_window=50,
-                                    test_window=50, step_bars=100,
+                                    test_window=100, step_bars=100,
                                     purge_bars=2, embargo_bars=2, expanding=True),
     )
     ohlcv = generate_synthetic_ohlcv(["SPY"], cfg.data.start, cfg.data.end, seed=42)
@@ -53,9 +54,12 @@ def test_validation_candidates_increment_correct_counter(setup, tmp_path):
 def test_rerun_same_experiment_new_id_without_resetting_highwater(tmp_path):
     from quant_research.run import run_research_pipeline
 
+    snap_dir = tmp_path / "snapshots"
+    snap_dir.mkdir(exist_ok=True)
     cfg = AppConfig(
         data=DataConfig(mode="synthetic", assets=["SPY"], target="SPY",
-                        start="2020-01-01", end="2022-01-01"),
+                        start="2020-01-01", end="2022-01-01",
+                        raw_snapshot_dir=str(snap_dir)),
         evaluation=EvaluationConfig(train_window=120, validation_window=40,
                                     test_window=40, step_bars=40,
                                     purge_bars=2, embargo_bars=2, expanding=True),

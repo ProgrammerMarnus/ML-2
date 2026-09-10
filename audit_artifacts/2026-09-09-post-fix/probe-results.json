@@ -1,0 +1,123 @@
+{
+  "event_units": {
+    "status": "FAIL",
+    "detail": "{\"s\": [0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453], \"ms\": [0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453], \"us\": [0.0, 0.0, 0.0, 0.0, 0.0, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453, 0.6931471805599453], \"ns\": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}"
+  },
+  "arrival_inversion": {
+    "status": "PASS",
+    "detail": "historical features unchanged, available event contributes"
+  },
+  "exception_types": {
+    "status": "FAIL",
+    "detail": "{\"'unexpected'\": {\"accepted\": true, \"result\": 1}, \"2\": {\"accepted\": true, \"result\": 1}, \"nan\": {\"accepted\": true, \"result\": 1}, \"'False'\": {\"accepted\": false, \"error\": \"DataValidationError: provider_rule_exception contains string values that would be misinterpreted as boolean: ['False']. Use explicit boolean True/False values.\"}, \"True\": {\"accepted\": true, \"result\": 1}, \"False\": {\"accepted\": false, \"error\": \"DataValidationError: 1 events have availability_time earlier than event_time without an explicit provider rule exception\"}}"
+  },
+  "identical_event_ids": {
+    "status": "FAIL",
+    "detail": "{\"with_sentiment\": {\"accepted\": false, \"error\": \"AttributeError: 'Series' object has no attribute 'view'\"}, \"without_sentiment\": {\"accepted\": false, \"error\": \"KeyError: 'sentiment'\"}}"
+  },
+  "revision_conflict": {
+    "status": "FAIL",
+    "detail": "{\"accepted\": true, \"result\": 3}"
+  },
+  "stale_counter": {
+    "status": "PASS",
+    "detail": 101
+  },
+  "live_counter_reset": {
+    "status": "FAIL",
+    "detail": "{\"increment\": {\"accepted\": true, \"result\": 1}, \"count\": 1, \"highwater\": 100}"
+  },
+  "full_membership_lock": {
+    "status": "PASS",
+    "detail": {
+      "accepted": false,
+      "error": "LockedTestViolation: requested test windows differ from the frozen locked test; evaluation on a re-cut test set is forbidden"
+    }
+  },
+  "lock_roundtrip": {
+    "status": "FAIL",
+    "detail": "{\"dataset_replacement\": {\"accepted\": true, \"result\": \"0a6070174af7e55e99ef3bd594ab2aecfee638f8f0b543f5f11822f44cce7a0c\"}, \"corrupted_lock\": {\"accepted\": true, \"result\": null}}"
+  },
+  "search_ledger_scope": {
+    "status": "FAIL",
+    "detail": "{\"started_count\": 0, \"completed_count\": 1, \"same_family_other_output_count\": 0}"
+  },
+  "calendar_boundaries": {
+    "status": "FAIL",
+    "detail": "[{\"start\": \"2012-01-01\", \"end\": \"2012-02-01\", \"first\": \"2012-01-03 00:00:00+00:00\", \"last\": \"2012-01-31 00:00:00+00:00\", \"accepted\": false, \"error\": \"DataValidationError: asset SPY: data starts 2012-01-03 but requested start is 2012-01-01; leading truncation detected\"}, {\"start\": \"2024-01-02\", \"end\": \"2024-01-07\", \"first\": \"2024-01-02 00:00:00+00:00\", \"last\": \"2024-01-05 00:00:00+00:00\", \"accepted\": false, \"error\": \"DataValidationError: asset SPY: data ends 2024-01-05 but requested end is 2024-01-07; trailing truncation detected\"}, {\"start\": \"2024-01-02\", \"end\": \"2024-02-01\", \"first\": \"2024-01-02 00:00:00+00:00\", \"last\": \"2024-01-31 00:00:00+00:00\", \"accepted\": true, \"result\": 21}]"
+  },
+  "wide_csv_range": {
+    "status": "FAIL",
+    "detail": "{\"accepted\": true, \"result\": {\"rows\": 21, \"all_ranges_zero\": true}}"
+  },
+  "ohlcv_controls": {
+    "status": "PASS",
+    "detail": {
+      "range": {
+        "accepted": false,
+        "error": "DataValidationError: open price outside [low, high] range in 1 rows:\n                  timestamp symbol  ...      close        volume\n0 2024-01-02 00:00:00+00:00    SPY  ...  99.412989  1.340995e+06\n\n[1 rows x 7 columns]"
+      },
+      "infinite_volume": {
+        "accepted": false,
+        "error": "DataValidationError: non-finite volume in 1 rows:\n                  timestamp symbol       open  ...        low      close  volume\n0 2024-01-02 00:00:00+00:00    SPY  99.412989  ...  99.280668  99.412989     inf\n\n[1 rows x 7 columns]"
+      },
+      "duplicate_session": {
+        "accepted": false,
+        "error": "DataValidationError: duplicate (symbol, session) observations \u2014 one bar per symbol/session is required:\n                  timestamp symbol\n0 2024-01-02 00:00:00+00:00    SPY\n1 2024-01-02 12:00:00+00:00    SPY"
+      }
+    }
+  },
+  "configured_delay": {
+    "status": "FAIL",
+    "detail": "{\"accepted\": false, \"error\": \"AssertionError: delayed positions are not the baseline positions shifted by 1 bars over the continuous OOS path\"}"
+  },
+  "nested_replay": {
+    "status": "FAIL",
+    "detail": "{\"positions_equal\": true, \"net_equal\": true, \"original_fold_turnover\": 9.0, \"replay_fold_turnover\": 5.0, \"cost_stress\": {\"accepted\": false, \"error\": \"AssertionError: \\nNot equal to tolerance rtol=0, atol=1e-12\\ndelay=0 replay turnover differs\\nMismatched elements: 1 / 1 (100%)\\nMax absolute difference among violations: 4.\\nMax relative difference among violations: 0.8\\n ACTUAL: array(9.)\\n DESIRED: array(5.)\"}}"
+  },
+  "configured_model_parameters": {
+    "status": "FAIL",
+    "detail": "{\"requested\": {\"C\": 0.001, \"learning_rate\": 0.7, \"n_estimators\": 7, \"hold\": 5}, \"actual\": {\"C\": 1.0, \"learning_rate\": 0.05, \"n_estimators\": 100, \"hold\": 1}}"
+  },
+  "gradient_parameter_stress": {
+    "status": "FAIL",
+    "detail": "[{\"sharpe\": -1.266597909322882, \"gross_sharpe\": -1.0215431216097515, \"net_return\": -0.14037806613979453, \"gross_return\": -0.11631803309168853, \"max_dd\": -0.17109396096802387, \"annual_turnover\": 57.96, \"fee_cost\": 0.023, \"slippage_cost\": 0.0046, \"cost_drag\": 0.024060033048106, \"c_factor\": 0.5, \"model_type\": \"gradient_boosting\"}, {\"sharpe\": -1.266597909322882, \"gross_sharpe\": -1.0215431216097515, \"net_return\": -0.14037806613979453, \"gross_return\": -0.11631803309168853, \"max_dd\": -0.17109396096802387, \"annual_turnover\": 57.96, \"fee_cost\": 0.023, \"slippage_cost\": 0.0046, \"cost_drag\": 0.024060033048106, \"c_factor\": 2.0, \"model_type\": \"gradient_boosting\"}]"
+  },
+  "missing_returns": {
+    "status": "FAIL",
+    "detail": "{\"missing_bar\": \"2020-07-23 00:00:00+00:00\", \"baseline_rows\": 200, \"after_rows\": 199, \"before_position\": 1.0, \"after_position\": 1.0}"
+  },
+  "negative_target_vol": {
+    "status": "FAIL",
+    "detail": "{\"accepted\": true, \"result\": -0.1}"
+  },
+  "manifest_overwrite": {
+    "status": "FAIL",
+    "detail": "{\"same_path\": true, \"first_path_now_contains\": {\"experiment\": {\"experiment_id\": \"B\"}}}"
+  },
+  "missing_feature_control": {
+    "status": "PASS",
+    "detail": [
+      {
+        "sharpe": -2.1083308928903204,
+        "gross_sharpe": -1.7084823221759091,
+        "net_return": -0.17929725940917174,
+        "gross_return": -0.1486665260235931,
+        "max_dd": -0.18910567619699525,
+        "annual_turnover": 76.86,
+        "fee_cost": 0.0305,
+        "slippage_cost": 0.0061,
+        "cost_drag": 0.030630733385578646,
+        "missing_frac": 0.1,
+        "seed": 42
+      }
+    ]
+  },
+  "single_trial_dsr": {
+    "status": "PASS",
+    "detail": {
+      "actual": 0.0,
+      "expected": 0.0
+    }
+  }
+}

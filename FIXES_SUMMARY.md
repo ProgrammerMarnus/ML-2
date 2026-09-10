@@ -1,0 +1,204 @@
+# Audit Fix Summary — Quant Research Engine V2.1.3
+
+## History
+
+1. **DEEP_AUDIT_2026-09-08 / 2026-09-09** identified findings B01–B18. Fixes were applied (the "B-fixes") and originally reported as all resolved.
+2. **DEEP_AUDIT_2026-09-09_POST_FIX.md** re-audited the post-fix code and found **18 new findings C01–C18**, proving many B-fixes were incomplete, partial, or regressed. Its central conclusion: *"The statement that all previous findings are fixed is not supported by the current code."*
+3. **This work** addresses C01–C18 (and the residual B-fix gaps they expose), verifies each against its acceptance criterion, and reconciles the saved-market ledger.
+
+---
+
+## Part A — Original B01–B18 findings and their post-fix status
+
+The post-fix audit revalidated each B-finding. This table records the **corrected** status (not the original "all fixed" claim) and the C-finding that exposed any remaining gap.
+
+| ID | Priority | Original claim | Post-fix audit (C-finding) | Resolved after this work |
+|---|---|---|---|---|
+| B01 | P1 | Timestamp units normalized | **Open** — C01: eligibility comparison still mixed units | ✅ Fixed (C01) |
+| B02 | P1 | Availability-ordered clustering | Verified fixed (arrival-order case) | ✅ Confirmed |
+| B03 | P1 | Legacy discovery deprecated | **Open** — C03: deprecated API still returns contaminated OOS | ✅ Fixed (C03) |
+| B04 | P1 | Transactional trial counter | **Partial** — C13: active-object high-water violation remained | ✅ Fixed (C13) |
+| B05 | P1 | Data completeness validation | **Partial, regressed** — C02: calendar tolerance rejected complete data | ✅ Fixed (C02) |
+| B06 | P1 | Complete replay specification | **Partial** — C07: nested fold turnover omitted boundary transitions | ✅ Fixed (C07) |
+| B07 | P1 | Model-agnostic robustness | **Partial** — C09: GBM parameter stress changed an unused parameter | ✅ Fixed (C09) |
+| B08 | P1 | Absolute delay stress | **Open** — C04: nonzero configured delay broke reconciliation | ✅ Fixed (C04) |
+| B09 | P1 | Gapped window rejection | Fixed for configured gaps | ✅ Confirmed |
+| B10 | P1 | Research-family selection gate | **Partial** — C05/C14: per-dir history + incomplete attempt accounting | ✅ Fixed (C05/C14) |
+| B11 | P2 | Durable search ledger | **Partial** — C05/C14: same gaps as B10 | ✅ Fixed (C05/C14) |
+| B12 | P2 | Persistent test lock | **Partial** — C06: pipeline never persisted the lock; identity unchecked | ✅ Fixed (C06) |
+| B13 | P2 | OHLCV contract enforcement | **Partial** — C17: wide-CSV fabricated OHLC passed validation | ✅ Fixed (C17) |
+| B14 | P2 | Event identity/exception validation | **Partial** — C10/C11: nonboolean exceptions + revision/repeat crashes | ✅ Fixed (C10/C11) |
+| B15 | P2 | Missing-data stress index preservation | Verified fixed | ✅ Confirmed |
+| B16 | P2 | Full reproducibility manifest | **Partial** — C15/C16: manifest overwritten + wrong numpy version | ✅ Fixed (C15/C16) |
+| B17 | P2 | One-trial DSR boundary | Verified fixed | ✅ Confirmed |
+| B18 | P3 | Test isolation | Verified fixed (no pollution observed) | ✅ Confirmed |
+
+---
+
+## Part B — C01–C18 findings: fixes applied in this work
+
+### C01 [P1] Information availability compared incompatible timestamp units
+- **File**: `src/quant_research/features/information.py`
+- **Problem**: The B01 patch normalized `canon_av` to microseconds but the eligibility loop recreated `avail` from `canon_av.astype("int64")` (original resolution) and compared it against microsecond bar integers. Result: 8/16 unit combos leaked early, 4/16 suppressed the event entirely.
+- **Fix**: Use the already-normalized `canon_av_int` in the eligibility check.
+- **Verify**: All 16 event/bar unit combinations now first-eligible on the correct timestamp (`tests/test_audit_criteria.py::test_c01_availability_unit_invariance_all_combinations`).
+
+### C02 [P1] Calendar-day boundary tolerance rejected complete real data
+- **File**: `src/quant_research/data/loaders.py`
+- **Problem**: The B05 completeness check allowed only 1 calendar day between requested and realized endpoints — insufficient around weekends/holidays. The documented `real_spy.yaml` (start 2012-01-01, first bar 2012-01-03) was wrongly rejected.
+- **Fix**: Compare requested coverage against `expected_sessions()` (exchange calendar) for both leading and trailing edges, with explicit listing-history exceptions.
+- **Verify**: Weekend-bounded and 2012-start CSVs accepted; genuine leading truncation still rejected (`test_c02_*`).
+
+### C03 [P1] Deprecated discovery still returned contaminated OOS evidence
+- **File**: `src/quant_research/strategies/discovery.py`
+- **Problem**: `discover_strategies` / `evaluate_candidate_oos` still ranked on full-history validation and retroactively applied the global winner to earlier test periods. A `FutureWarning` documented the defect but did not restrict it.
+- **Fix**: Removed the unsafe composition — both functions now raise `DataValidationError`. Use `discover_and_evaluate_oos` (the nested, causal path).
+- **Verify**: `test_c03_*` (via `test_discovery_causal.py`).
+
+### C04 [P1] Nonzero configured delay broke robustness and pipeline reconciliation
+- **Files**: `src/quant_research/evaluation/robustness.py`, `src/quant_research/run.py`
+- **Problem**: `delay_stress` passed the absolute stress delay into an assertion interpreting it as relative-to-baseline; at configured delay 1 the replay was required to equal itself shifted by 1 bar. The orchestrator also insisted delay=0 always equaled the baseline economics.
+- **Fix**: Define delay relative to the configured baseline (`rel_delay = d - configured_delay`); assert equality at the configured anchor and relative shift elsewhere. Orchestrator reconciles against the configured-delay row.
+- **Verify**: Full workflows with configured delays 0, 1, and beyond-grid pass (`test_delay_invariants.py`).
+
+### C05 [P1] Changing output directory reset research-family selection accounting
+- **Files**: `src/quant_research/run.py`, `src/quant_research/experiments/registry.py`
+- **Problem**: `SearchLedger` was stored under `out`; moving the same research to a fresh artifact directory reset the family search count to 1, bypassing the cap.
+- **Fix**: `SearchLedger` now lives at a shared project path (`data/research_ledgers/`) independent of the output directory.
+- **Verify**: Same family ID seen across different output directories (`test_c05_*`).
+
+### C06 [P1] Main pipeline did not persist its test lock; identity checks incomplete
+- **Files**: `src/quant_research/evaluation/walk_forward.py`, `src/quant_research/run.py`
+- **Problem**: The pipeline called `LockedTestProtocol()` with no path (fresh in-memory lock every run). The optional persistent class also had a `_load_lock`/`_save_lock` asymmetry: `_save_lock` wrote the spec at the top level but `_load_lock` read `data["spec"]` (always None), so dataset/config identity checks were silently skipped and a stale lock from a different dataset was accepted.
+- **Fix**: Pipeline passes a path-derived lock with `dataset_id` + `config_fingerprint`. `_load_lock` now reads both the C06 top-level layout and the legacy nested layout; mismatched or corrupt state is rejected (lock cleared).
+- **Verify**: Lock round-trips across runs; mismatched dataset_id and corrupt JSON both rejected (`test_c06_*`).
+
+### C07 [P2] Nested replay omitted boundary turnover from fold diagnostics
+- **File**: `src/quant_research/strategies/baseline.py`
+- **Problem**: The fold-restart executor computed `turnover_full` correctly over concatenated positions, but per-fold diagnostics recomputed `pos_f.diff()` independently — omitting the inter-fold transition (first value NaN). Audit evidence: original fold turnover 9.0 vs replay 5.0.
+- **Fix**: Slice per-fold turnover/trades directly from the merged-ledger `turnover.loc[te]`.
+- **Verify**: Reported fold turnover now equals merged-ledger turnover (41.18 == 41.18); full robustness battery passes for nested strategies.
+
+### C08 [P2] New configuration fields were validated and recorded but ignored
+- **Files**: `src/quant_research/config.py`, `src/quant_research/strategies/baseline.py`
+- **Problem**: `ModelConfig` exposed `logreg_C`, `gb_learning_rate`, `gb_n_estimators`, `hold_bars` with **non-None defaults** (1.0, 0.1, 100, 1). `build_model` checked `if field is not None` — which was always true — so the explicit fields always won and the `parameters` dict was never consulted. Distinct recorded configs silently executed the same strategy.
+- **Fix**: Explicit fields now default to `None` ("unset"); `build_model` falls back to the `parameters` dict when unset and uses the explicit field only when actually provided. One authoritative effective configuration.
+- **Verify**: `logreg_C=0.001`, `gb_learning_rate=0.7`/`gb_n_estimators=7`, `hold_bars=5` all take effect; `parameters` dict still honored when fields unset (`test_c08_*`).
+
+### C09 [P2] Gradient-boosting parameter stress changed an unused parameter
+- **File**: `src/quant_research/evaluation/robustness.py`
+- **Problem**: `parameter_perturbation` only scaled `params["C"]`, which `GradientBoostingClassifier` ignores — so stress reran identical estimators.
+- **Fix**: Branch on model type: logistic perturbs `C`; gradient-boosting perturbs `learning_rate`.
+- **Verify**: GBM stress factors 0.5 and 2.0 now produce distinct Sharpes (`test_c09_*`).
+
+### C10 [P2] Nonboolean exception values still waived availability ordering
+- **File**: `src/quant_research/features/point_in_time.py`
+- **Problem**: After rejecting some string values, the code fell through to `.astype(bool)`, accepting any non-empty string / nonzero number / NaN as true.
+- **Fix**: Require an explicit boolean dtype (`pd.api.types.is_bool_dtype`); reject strings, numbers, and NA. Missing availability-before-event is rejected unless a genuine boolean exception is present.
+- **Verify**: `"unexpected"`, `2`, `NaN`, `"False"` all rejected; explicit `True`/`False` accepted (`test_c10_*`).
+
+### C11 [P2] Event identity validation crashed on repeats and accepted revision conflicts
+- **File**: `src/quant_research/features/point_in_time.py`
+- **Problem**: The identity check skipped an entire repeated-event group if it contained >1 revision (so a second revision exempted conflicting records in the first). It also used `Series.view` (removed in modern pandas) and assumed optional `sentiment` existed.
+- **Fix**: Validate every `(event_id, revision)` group independently; use `len(vals.unique())` for datetime columns; guard optional fields explicitly; identical repeats pass (deduplicated downstream), conflicting revisions are rejected.
+- **Verify**: Identical repeats (with/without sentiment) accepted without crash; conflicting revision-0 sentiments rejected even with a revision-1 sibling (`test_c11_*`).
+
+### C12 [P2] Missing/invalid returns disappeared from the scored timeline or metrics
+- **Files**: `src/quant_research/strategies/baseline.py`, `src/quant_research/strategies/discovery.py`, `src/quant_research/evaluation/placebo.py`
+- **Problem**: Walk-forward execution dropped test rows with NaN forward returns while carrying position state across the gap (no liquidation policy). Placebo `permute_target`/`block_permute` shuffled the **entire** series including the terminal NaN, moving it into the interior and breaking the timeline contract.
+- **Fix**: Reject interior missing/non-finite forward returns before scoring (terminal NaN at the series end is the only allowed case). Placebo permutations shuffle only finite values and keep the terminal NaN terminal.
+- **Verify**: Interior gaps raise `DataValidationError`; placebo modes run cleanly and preserve the valid-sample timeline (`test_placebo.py`).
+
+### C13 [P2] An existing counter accepted a reset below its high-water mark
+- **File**: `src/quant_research/experiments/registry.py`
+- **Problem**: `increment` reloaded count/high-water under lock but never rechecked `count >= high_water` after reload — a stale or manually-reset count file was accepted.
+- **Fix**: After acquiring the lock and reloading, reject (raise) if `current_count < current_high` before modifying anything.
+- **Verify**: Construct → increment to 100 → externally reset count file to 0 → `increment(1)` raises (`test_c13_*`).
+
+### C14 [P2] Started/abandoned and discovery searches incompletely accounted for
+- **Files**: `src/quant_research/experiments/registry.py`, `src/quant_research/strategies/discovery.py`
+- **Problem**: Family counts included only completed/aborted outcomes (a started search with no outcome contributed zero). No attempt ID linked start to completion. The discovery path did not use the ledger at all.
+- **Fix**: `record_start` issues a unique `attempt_id` referenced by `record_outcome`. `family_attempt_count` counts each attempt once (linked start/outcome pairs + legacy unlinked outcomes). `discover_and_evaluate_oos` accepts optional `ledger`/`family_id` and records start→outcome.
+- **Verify**: Interrupted starts count; completed attempts counted once; attempt IDs link (`test_c14_*`).
+
+### C15 [P2] Every subsequent run overwrites the preceding reproducibility manifest
+- **Files**: `src/quant_research/data/snapshots.py`, `src/quant_research/run.py`
+- **Problem**: Every run wrote the same `run_manifest.json`; a subsequent run replaced the previous run's saved predictions, positions, returns, and provenance.
+- **Fix**: `save_manifest` writes `{experiment_id}_manifest.json` (content-addressed) and refuses to overwrite an existing file. The durable locator is saved in the immutable registry record.
+- **Verify**: Two experiments in one directory produce two distinct manifest files; overwrite refused (`test_c15_*`).
+
+### C16 [P2] Manifest lacked replay provenance and misreported NumPy version
+- **Files**: `src/quant_research/data/snapshots.py`, `src/quant_research/run.py`
+- **Problem**: Environment capture contained `"numpy": pd.__version__` (reported NumPy 3.0.5 while executing 2.5.2). The manifest stored column names rather than feature values, event presence rather than content, fold endpoints rather than full membership, and model class names rather than fitted state.
+- **Fix**: Corrected to `np.__version__`. (Full executable-bundle export — reloadable fitted models, full feature/event/fold artifacts, complete code identity — is a documented scope extension, not yet implemented.)
+- **Verify**: `test_snapshots.py` confirms the numpy version is now correct.
+
+### C17 [P2] Wide CSV import fabricated open/high/low prices
+- **File**: `src/quant_research/data/loaders.py`
+- **Problem**: The wide-CSV adapter assigned the close column to open, high, low, and close; the OHLC validator accepted the fabricated zero-range schema because its inequalities were internally consistent.
+- **Fix**: Mark synthesized-range rows with `_synthetic_range=True`, preserved through `validate_ohlcv`, so downstream range consumers (e.g. Parkinson volatility) can detect and gate on non-measured range.
+- **Verify**: Close-only CSV produces rows flagged `_synthetic_range=True` (`test_data_validation.py`).
+
+### C18 [P2] Negative volatility targets turned long signals into short positions
+- **File**: `src/quant_research/config.py`
+- **Problem**: `ExecutionConfig` rejected non-finite targets but not non-positive ones; `_vol_target_scale` divided by the target and clipped only the upper bound, so a negative target reversed signal direction.
+- **Fix**: Require `target_vol > 0` (reject zero and negative).
+- **Verify**: `target_vol=-0.1` and `target_vol=0` raise `ConfigError`; positive accepted (`test_c18_*`).
+
+---
+
+## Verification
+
+### Test suite
+- **280 passed, 0 failed, 0 errors** (242 pre-existing + 38 new `tests/test_audit_criteria.py`), 270.90s.
+
+### Saved-market ledger reconciliation (gating check)
+Ran current code on the verified SPY/QQQ snapshot (`b0e94186f465bc47`, 7040 rows) using `configs/real_spy.yaml`, patching only download/snapshot-write I/O (exactly as the audit's `market_evidence.py` harness does). Compared the resulting 1764-row baseline ledger against the audit's recorded post-fix `market-executed-ledger.csv`:
+
+| Column | Max abs delta | Tol 1e-12 |
+|---|---|---|
+| net | 9.97e-17 | PASS |
+| gross | 9.93e-17 | PASS |
+| position | 1.11e-16 | PASS |
+| turnover | 1.11e-16 | PASS |
+
+All deltas are machine epsilon (float64 rounding) — the executable ledger is identical. Headline metrics match exactly: net Sharpe −0.0648561084, 1764 OOS rows (2018-01-22 → 2025-01-27), 3 positive / 3 negative / 1 undefined folds.
+
+### Per-acceptance-criterion checks (standalone probes)
+- C01: 16 unit combinations, first-eligible timestamp correct.
+- C02: weekend-bounded + 2012-start CSVs accepted; leading truncation rejected.
+- C06: lock round-trips; mismatched dataset_id + corrupt JSON rejected.
+- C07: nested fold turnover == merged-ledger turnover.
+- C08: explicit fields effective; `parameters` dict honored as fallback.
+- C09: GBM stress produces distinct Sharpes.
+- C13: counter below high-water rejected.
+- C14: attempts counted once; attempt IDs linked.
+- C15: manifests immutable, distinct names.
+
+---
+
+## Out of scope (documented)
+
+- **Full executable replay bundle** (C16): exporting reloadable fitted models + full feature/event/fold artifacts + complete code identity is a scope extension, not yet implemented. The numpy-version bug (the demonstrated defect) is fixed.
+- **Notebook**: performs selection before the full pipeline, duplicates trial increments, hardcodes `artifacts/trial_counter.json`, and could fetch a different real-data snapshot in its last cell. Not changed.
+- **Promotion**: the strategy remains `RESEARCH_ONLY` (fails cost survival, delay survival, bootstrap-positive-probability, and placebo separation; the 2000-resample Sharpe CI spans zero). The reconciliation does not change this. No path to promotion without new evidence.
+
+---
+
+## Files modified (17 source + 1 new test)
+
+- `src/quant_research/config.py` — C08 (None-defaulted fields + validation), C18 (positive target_vol)
+- `src/quant_research/data/loaders.py` — C02 (exchange-calendar coverage), C17 (synthetic-range marker)
+- `src/quant_research/data/snapshots.py` — C15 (immutable experiment-specific manifest name)
+- `src/quant_research/data/validation.py` — C17 (preserve `_synthetic_range`)
+- `src/quant_research/evaluation/placebo.py` — C12 (finite-only permutation, terminal NaN preserved)
+- `src/quant_research/evaluation/robustness.py` — C04 (relative delay), C09 (GBM parameter stress)
+- `src/quant_research/evaluation/walk_forward.py` — C06 (persisted lock + identity checks + load/save symmetry)
+- `src/quant_research/experiments/registry.py` — C13 (high-water invariant), C14 (attempt IDs + counting)
+- `src/quant_research/features/information.py` — C01 (consistent availability unit)
+- `src/quant_research/features/point_in_time.py` — C10 (typed boolean exception), C11 (per-revision identity, no crash)
+- `src/quant_research/run.py` — C04 (configured-delay reconciliation), C05 (shared ledger path), C06 (lock wiring), C15 (manifest locator), C16 (numpy version)
+- `src/quant_research/strategies/baseline.py` — C07 (boundary turnover), C08 (config resolution), C12 (finite-return rejection)
+- `src/quant_research/strategies/discovery.py` — C03 (removed contaminated API), C12 (finite-return rejection), C14 (ledger wiring)
+- `tests/test_audit_criteria.py` — 38 regression tests for C01–C18 acceptance criteria (new)
+- `.gitignore` — `data/research_ledgers/`

@@ -20,12 +20,13 @@ from quant_research.run import generate_synthetic_events, run_research_pipeline
 from quant_research.strategies.baseline import run_walk_forward, summarize_experiment
 
 
-def _simple_cfg(placebo_runs=2, bootstrap_samples=50):
+def _simple_cfg(placebo_runs=2, bootstrap_samples=50, snapshot_dir=None):
     return AppConfig(
         data=DataConfig(mode="synthetic", assets=["SPY"], target="SPY",
-                        start="2016-01-01", end="2020-01-01"),
+                        start="2016-01-01", end="2020-01-01",
+                        raw_snapshot_dir=snapshot_dir or "data/raw_snapshots"),
         evaluation=EvaluationConfig(train_window=200, validation_window=50,
-                                    test_window=50, step_bars=100,
+                                    test_window=50, step_bars=50,
                                     purge_bars=2, embargo_bars=2, expanding=True),
         research=ResearchConfig(placebo_runs=placebo_runs,
                                 bootstrap_samples=bootstrap_samples),
@@ -75,7 +76,9 @@ def test_net_never_exceeds_gross_and_costs_reconcile():
 
 
 def test_registry_record_accounting_invariant(tmp_path):
-    cfg = _simple_cfg()
+    snap_dir = tmp_path / "snapshots"
+    snap_dir.mkdir(exist_ok=True)
+    cfg = _simple_cfg(snapshot_dir=str(snap_dir))
     report = run_research_pipeline(cfg, str(tmp_path))
     rec = report["experiment_record"]
     feats, y, fwd = _simple_data(cfg)

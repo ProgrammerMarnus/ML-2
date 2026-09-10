@@ -81,11 +81,13 @@ def _noisy_perfect_classifier_stream(n=900, seed=11):
 
 
 def _walk_cfg(idx, *, train, step):
+    # B09: Ensure non-gapped configuration (step_bars <= test_window)
+    test_window = max(step, 50)  # Use step as test_window if step > 50
     return AppConfig(
         data=DataConfig(mode="synthetic", assets=["SPY"], target="SPY",
                         start=str(idx[0].date()), end=str(idx[-1].date())),
         evaluation=EvaluationConfig(train_window=train, validation_window=50,
-                                    test_window=50, step_bars=step,
+                                    test_window=test_window, step_bars=step,
                                     purge_bars=2, embargo_bars=2, expanding=True),
         research=ResearchConfig(threshold_candidates=[0.5], hold_candidates=[1],
                                 placebo_runs=1, bootstrap_samples=20),

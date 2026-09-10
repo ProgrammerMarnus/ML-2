@@ -61,6 +61,17 @@ class EvaluationConfig:
             raise ConfigError("step_bars must be positive")
         if self.purge_bars < 0 or self.embargo_bars < 0:
             raise ConfigError("purge/embargo bars cannot be negative")
+        # B09: Reject gapped OOS windows (step_bars > test_window) until explicit
+        # gap policy is implemented. Gapped windows cause position state to carry
+        # across unscored returns, silently omitting returns or requiring explicit
+        # liquidation/re-entry costs that are not currently modeled.
+        if self.step_bars > self.test_window:
+            raise ConfigError(
+                f"step_bars ({self.step_bars}) > test_window ({self.test_window}) "
+                f"creates gapped OOS windows; gap policy is not implemented. "
+                f"Use step_bars <= test_window for continuous coverage or "
+                f"step_bars == test_window for non-overlapping windows."
+            )
 
 
 @dataclass(frozen=True)
@@ -72,10 +83,34 @@ class ExecutionConfig:
     max_position: float = 1.0
 
     def __post_init__(self) -> None:
+        import math
+        # Phase 4: strict finite-value + integer-type validation. Fail fast
+        # before expensive research on NaN/inf costs, non-integral delays,
+        # or degenerate volatility targets.
+        for _name in ("fee_bps", "slippage_bps", "target_vol", "max_position"):
+            _v = getattr(self, _name)
+            if isinstance(_v, bool) or not isinstance(_v, (int, float)):
+                raise ConfigError(f"execution.{_name} must be a real number, got {_v!r}")
+            if not math.isfinite(float(_v)):
+                raise ConfigError(f"execution.{_name} must be finite, got {_v!r}")
+        if isinstance(self.signal_delay_bars, bool) or not isinstance(
+            self.signal_delay_bars, int
+        ):
+            raise ConfigError(
+                "execution.signal_delay_bars must be an integer, "
+                f"got {self.signal_delay_bars!r}"
+            )
         if self.fee_bps < 0 or self.slippage_bps < 0:
             raise ConfigError("fees/slippage cannot be negative")
         if self.signal_delay_bars < 0:
             raise ConfigError("signal_delay_bars cannot be negative")
+        if not self.target_vol > 0:
+            raise ConfigError(
+                "execution.target_vol must be positive for vol targeting; 0.0 is "
+                "deprecated (implies no risk targeting / flat sizing) and negative "
+                "values invert long-signal direction; use a positive value for "
+                "long-signal sizing, or set target_vol=0.0 only when the strategy "
+                "explicitly trades cash")
         if not 0 < self.max_position <= 1:
             raise ConfigError("max_position must be in (0, 1]")
 
@@ -85,8 +120,44 @@ class ModelConfig:
     type: str = "logistic"
     random_seed: int = 42
     parameters: Dict[str, Any] = field(default_factory=lambda: {"C": 1.0, "max_iter": 1000})
+    # Optional explicit hyperparameters.  `None` means "unset": build_model falls
+    # back to the ``parameters`` bag (which keeps existing call sites and YAML
+    # configs working).  An explicitly set field (non-None) is authoritative and
+    # overrides the ``parameters`` entry with the same meaning (C08/C09).
+    logreg_C: Optional[float] = None
+    gb_learning_rate: Optional[float] = None
+    gb_n_estimators: Optional[int] = None
+    hold_bars: Optional[int] = None
 
     def __post_init__(self) -> None:
+        import math
+
+        if isinstance(self.random_seed, bool) or not isinstance(self.random_seed, int):
+            raise ConfigError(f"model.random_seed must be an integer, got {self.random_seed!r}")
+        if self.hold_bars is not None:
+            if isinstance(self.hold_bars, bool) or not isinstance(self.hold_bars, int):
+                raise ConfigError(f"model.hold_bars must be an integer, got {self.hold_bars!r}")
+            if self.hold_bars < 1:
+                raise ConfigError("model.hold_bars must be >= 1")
+        for _name in ("logreg_C", "gb_learning_rate"):
+            _v = getattr(self, _name)
+            if _v is None:
+                continue  # unset -> resolved from parameters by build_model
+            if isinstance(_v, bool) or not isinstance(_v, (int, float)):
+                raise ConfigError(f"model.{_name} must be a real number, got {_v!r}")
+            if not math.isfinite(float(_v)):
+                raise ConfigError(f"model.{_name} must be finite, got {_v!r}")
+        if self.gb_n_estimators is not None:
+            if isinstance(self.gb_n_estimators, bool) or not isinstance(self.gb_n_estimators, int):
+                raise ConfigError(
+                    f"model.gb_n_estimators must be an integer, got {self.gb_n_estimators!r}"
+                )
+            if self.gb_n_estimators < 1:
+                raise ConfigError("model.gb_n_estimators must be >= 1")
+        if self.logreg_C is not None and self.logreg_C <= 0:
+            raise ConfigError("model.logreg_C must be positive")
+        if self.gb_learning_rate is not None and not 0 < self.gb_learning_rate <= 1:
+            raise ConfigError("model.gb_learning_rate must be in (0, 1]")
         if self.type not in {"logistic", "gradient_boosting"}:
             raise ConfigError(f"model.type must be logistic|gradient_boosting, got {self.type!r}")
         if self.random_seed < 0:
@@ -128,6 +199,17 @@ class PromotionConfig:
     # p = 0.5 and must always fail).
     min_placebo_runs: int = 20
     max_placebo_adjusted_p: float = 0.10
+    # B10: predeclared research-family selection-correction policy.  Repeated
+    # candidate research on the same OOS family inflates the chance of a
+    # spuriously strong result; this declares HOW that is handled:
+    #   - "none"        : no correction (default); promotion still requires the
+    #                     placebo + Monte Carlo gate and is recommended only for
+    #                     a single predeclared evaluation per family.
+    #   - "bonferroni_family" : family-wide Bonferroni correction of the placebo
+    #                     adjusted-p by the number of searches on the family.
+    # A correction other than "none" requires the search ledger (B11).
+    selection_correction: str = "none"
+    max_family_searches: int = 1  # recommended cap; informative when correction="none"
 
     def __post_init__(self) -> None:
         if self.min_placebo_runs < 1:
@@ -135,6 +217,11 @@ class PromotionConfig:
         if not 0 < self.max_placebo_adjusted_p < 1:
             raise ConfigError(
                 "promotion.max_placebo_adjusted_p must be in (0, 1)")
+        if self.selection_correction not in ("none", "bonferroni_family"):
+            raise ConfigError(
+                "promotion.selection_correction must be 'none' | 'bonferroni_family'")
+        if self.max_family_searches < 1:
+            raise ConfigError("promotion.max_family_searches must be >= 1")
 
 
 @dataclass(frozen=True)

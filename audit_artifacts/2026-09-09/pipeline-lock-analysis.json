@@ -1,0 +1,15 @@
+{
+  "changed_test_layout_accepted_in_same_registry": true,
+  "first_experiment": "20260909T115320Z_2c9757e6f3128f31",
+  "second_experiment": "20260909T115334Z_882c242301712b2d",
+  "first_test_period": [
+    "2020-08-26",
+    "2021-12-01"
+  ],
+  "second_test_period": [
+    "2020-08-26",
+    "2021-12-15"
+  ],
+  "first_fold_length": 40,
+  "second_fold_length": 30
+}

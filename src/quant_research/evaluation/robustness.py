@@ -71,16 +71,24 @@ def replay_oos(
     """
     model_cfg = model_cfg or cfg.model
     fitted = baseline.fitted_models if reuse_models else None
+    # B06: dispatch replay through the baseline's stored executable spec so a
+    # no-override replay reproduces the identical ledger (feature subset, risk
+    # input, per-fold holds, boundary policy, frozen anchor).
     return run_walk_forward(
         features, y, fwd, cfg,
         locked_test=locked_test,
         exec_cfg=exec_cfg,
         model_cfg=model_cfg,
-        feature_subset=feature_subset or list(features.columns),
+        feature_subset=feature_subset or baseline.feature_subset or list(features.columns),
         fixed_thresholds=fixed_thresholds_from(baseline),
         fitted_models=fitted,
         trial_counter=trial_counter,
         hold_bars=int(baseline.hold_bars),
+        risk_returns=baseline.risk_returns,
+        boundary_policy=baseline.boundary_policy,
+        per_fold_hold_bars=baseline.per_fold_hold_bars,
+        per_fold_feature_subsets=baseline.per_fold_feature_subsets,
+        anchor_index=baseline.anchor_index,
     )
 
 
@@ -132,9 +140,24 @@ def _assert_selection_identical(baseline: ExperimentResult,
         if m1 is None:
             raise AssertionError(f"replay lost fitted model for fold {fid}")
         c0, c1 = m0.named_steps["model"], m1.named_steps["model"]
-        if not (np.array_equal(c0.coef_, c1.coef_)
-                and np.array_equal(c0.intercept_, c1.intercept_)):
-            raise AssertionError(f"replay refitted model parameters for fold {fid}")
+        # B07: Model-agnostic parameter comparison. Logistic regression exposes
+        # coef_/intercept_; gradient boosting exposes tree structure via
+        # feature_importances_ and n_estimators. Compare model-appropriate state.
+        if hasattr(c0, "coef_") and hasattr(c1, "coef_"):
+            # Logistic regression: compare coefficients and intercept
+            if not (np.array_equal(c0.coef_, c1.coef_)
+                    and np.array_equal(c0.intercept_, c1.intercept_)):
+                raise AssertionError(f"replay refitted model parameters for fold {fid}")
+        elif hasattr(c0, "feature_importances_") and hasattr(c1, "feature_importances_"):
+            # Gradient boosting: compare feature importances and tree structure
+            if not (np.array_equal(c0.feature_importances_, c1.feature_importances_)
+                    and c0.n_estimators == c1.n_estimators
+                    and c0.max_depth == c1.max_depth
+                    and c0.learning_rate == c1.learning_rate):
+                raise AssertionError(f"replay refitted model parameters for fold {fid}")
+        else:
+            # Fallback: compare predictions directly
+            raise AssertionError(f"replay refitted model parameters for fold {fid} (unknown model type)")
     p0 = baseline.predictions["prob"].sort_index()
     p1 = res.predictions["prob"].sort_index()
     if len(p0) != len(p1) or not np.array_equal(p0.to_numpy(), p1.to_numpy()):
@@ -319,12 +342,29 @@ def delay_stress(
     locked_test,
     delays=DELAY_GRID,
 ) -> pd.DataFrame:
-    """Stress ONLY signal delay; changes timing, never model selection."""
+    """Stress ONLY signal delay; changes timing, never model selection.
+
+    B08 FIX: Delay stress now correctly handles absolute vs. relative delays.
+    The baseline's configured delay is the anchor; stress values are absolute
+    delay values for the replay. The zero-delay case only equals the baseline
+    when the baseline itself has zero delay. For nonzero configured delays,
+    the stress tests absolute delays including zero (earlier execution) and
+    additional delay.
+    """
     rows = []
+    configured_delay = cfg.execution.signal_delay_bars
     for d in delays:
         exec_cfg = replace(cfg.execution, signal_delay_bars=d)
         res = replay_oos(features, y, fwd, cfg, baseline, locked_test, exec_cfg=exec_cfg)
-        assert_replay_matches_baseline(baseline, res, delay_bars=d)
+        # C04: the replay delay relative to the baseline's configured delay.
+        # When d == configured_delay the replay must be byte-identical to the
+        # baseline (zero relative shift); when d > configured_delay the replay is
+        # the baseline shifted later by (d - configured_delay) bars; when
+        # d < configured_delay the replay is earlier and is NOT compared here
+        # (the shift-invariant direction is defined for additional delay only).
+        rel_delay = d - configured_delay
+        if rel_delay >= 0:
+            assert_replay_matches_baseline(baseline, res, delay_bars=rel_delay)
         assert_cost_accounting(res, exec_cfg.fee_bps, exec_cfg.slippage_bps)
         rows.append(_summarize_result(
             res, fee_bps=exec_cfg.fee_bps, slippage_bps=exec_cfg.slippage_bps,
@@ -341,23 +381,30 @@ def parameter_perturbation(
     locked_test,
     factors=PARAM_FACTORS,
 ) -> pd.DataFrame:
-    """Stress model parameters (regularization factor on C).
+    """Stress model parameters.
 
     The model is refitted per fold (new params), but thresholds remain the
     baseline's validation-selected ones and the fold/feature/execution spec is
-    unchanged.  ``params["C"]`` is scaled by ``factor`` (logistic models); a
-    factor of 1.0 reproduces the baseline.
+    unchanged.  For logistic models the regularization ``C`` is scaled by
+    ``factor``; for gradient-boosting models the ``learning_rate`` is scaled.
+    A factor of 1.0 reproduces the baseline.  C is not perturbed for gradient
+    boosting because that estimator ignores it (C09).
     """
     rows = []
     base = cfg.model
     for f in factors:
         params = dict(base.parameters)
-        params["C"] = float(params.get("C", 1.0)) * f
+        if base.type == "logistic":
+            params["C"] = float(params.get("C", 1.0)) * f
+        elif base.type == "gradient_boosting":
+            params["learning_rate"] = float(params.get("learning_rate", 0.05)) * f
+        else:
+            raise ValueError(f"unknown model type {base.type!r}")
         model_cfg = ModelConfig(type=base.type, random_seed=base.random_seed,
                                 parameters=params)
         res = replay_oos(features, y, fwd, cfg, baseline, locked_test,
                          model_cfg=model_cfg, reuse_models=False)
-        rows.append(_summarize_result(res, c_factor=float(f),
+        rows.append(_summarize_result(res, factor=float(f),
                                       model_type=model_cfg.type))
     return pd.DataFrame(rows)
 
@@ -377,11 +424,25 @@ def missing_data_stress(
     The fold-local imputer re-fits and handles the masked cells exactly as it
     would for warm-up/real missing data; thresholds remain the baseline's
     validation-selected ones; execution is unchanged.
+
+    B15 FIX: Preserve the baseline time axis. Missing feature cells are masked
+    but rows are NOT dropped - the index is preserved so the test lock remains
+    valid and the timeline is unchanged. The fold-local imputer handles the
+    missing values within each fold's training window.
     """
     rng = np.random.default_rng(seed)
     X = features.copy()
+    # B15: Freeze the fold anchor BEFORE masking, so the walk-forward geometry
+    # and the locked-test specification never change under perturbation. The
+    # fold-local imputer then handles the masked cells within each fold.
+    frozen_anchor = X.dropna(how="all").index
     mask = rng.random(X.shape) < frac
     Xm = X.mask(pd.DataFrame(mask, index=X.index, columns=X.columns))
+    assert Xm.index.equals(features.index), "missing_data_stress must preserve index"
+    # Patch the baseline so replay uses the frozen anchor even though some
+    # rows in Xm are now all-NaN (would otherwise drop out of the derived
+    # anchor and re-cut the folds, raising LockedTestViolation).
+    baseline = replace(baseline, anchor_index=frozen_anchor)
     res = replay_oos(Xm, y, fwd, cfg, baseline, locked_test, reuse_models=False)
     row = _summarize_result(res, missing_frac=float(frac), seed=int(seed))
     return pd.DataFrame([row])

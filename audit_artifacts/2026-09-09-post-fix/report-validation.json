@@ -1,0 +1,14 @@
+{
+  "report_local_links_checked": 54,
+  "broken_links": [],
+  "findings": 18,
+  "p1": 6,
+  "p2": 12,
+  "primary_probe_counts": {
+    "PASS": 6,
+    "FAIL": 16,
+    "ERROR": 0
+  },
+  "existing_source_and_data_unchanged": true,
+  "report_words": 5756
+}

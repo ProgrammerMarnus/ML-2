@@ -51,14 +51,17 @@ def test_folds_do_not_overlap_and_are_chronological(idx):
 
 
 def test_expanding_window_grows(idx):
-    cfg = EvaluationConfig(train_window=100, validation_window=40, test_window=40,
+    # Use step_bars == test_window to avoid gapped windows (B09)
+    cfg = EvaluationConfig(train_window=100, validation_window=40, test_window=100,
                            step_bars=100, purge_bars=0, embargo_bars=0, expanding=True)
     folds = walk_forward_splits(idx, cfg)
     sizes = [len(f.train_idx) for f in folds]
-    assert sizes[1] > sizes[0]
+    assert len(folds) >= 2
+    assert sizes[0] < sizes[1]
 
 
 def test_insufficient_history_rejected(idx):
+    # Use non-gapped configuration (step_bars <= test_window)
     cfg = EvaluationConfig(train_window=400, validation_window=100, test_window=100,
                            step_bars=100, purge_bars=0, embargo_bars=0)
     with pytest.raises(DataValidationError, match="too short"):
@@ -66,7 +69,8 @@ def test_insufficient_history_rejected(idx):
 
 
 def test_naive_index_rejected(idx):
-    cfg = EvaluationConfig(train_window=100, validation_window=40, test_window=40)
+    # Use step_bars <= test_window to avoid gapped window rejection
+    cfg = EvaluationConfig(train_window=100, validation_window=40, test_window=100, step_bars=100)
     with pytest.raises(DataValidationError, match="timezone-aware"):
         walk_forward_splits(idx.tz_localize(None), cfg)
 
@@ -79,15 +83,17 @@ def test_locked_test_freezes_layout(idx):
     protocol.freeze(folds)
     protocol.verify(walk_forward_splits(idx, cfg))  # same layout passes
 
+    # Use different test_window with non-gapped step_bars
     tampered = EvaluationConfig(train_window=100, validation_window=40,
-                                test_window=40, step_bars=20,
+                                test_window=30, step_bars=30,
                                 purge_bars=2, embargo_bars=2)
     with pytest.raises(LockedTestViolation):
         protocol.verify(walk_forward_splits(idx, tampered))
 
 
 def test_locked_test_first_freeze_is_allowed(idx):
-    cfg = EvaluationConfig(train_window=100, validation_window=40, test_window=40)
+    # Use step_bars == test_window to avoid gapped window rejection
+    cfg = EvaluationConfig(train_window=100, validation_window=40, test_window=100, step_bars=100)
     protocol = LockedTestProtocol()
     assert not protocol.frozen
     protocol.verify(walk_forward_splits(idx, cfg))  # lazily freezes

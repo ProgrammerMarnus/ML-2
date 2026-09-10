@@ -118,8 +118,9 @@ def test_discovery_candidate_hold_bars_pinned_into_oos():
     cfg = AppConfig(
         data=DataConfig(mode="synthetic", assets=["SPY"], target="SPY",
                         start="2016-01-01", end="2020-01-01"),
+        # B09: Use step_bars <= test_window to avoid gapped windows
         evaluation=EvaluationConfig(train_window=200, validation_window=50,
-                                    test_window=50, step_bars=100,
+                                    test_window=100, step_bars=100,
                                     purge_bars=2, embargo_bars=2, expanding=True),
     )
     ohlcv = generate_synthetic_ohlcv(["SPY"], cfg.data.start, cfg.data.end, seed=3)
@@ -132,18 +133,25 @@ def test_discovery_candidate_hold_bars_pinned_into_oos():
 
     _ = _validation_sharpe(feats, y, fwd, cfg, feat_cols, "logistic", 1,
                            cfg.research.threshold_candidates, 42)
-    from quant_research.strategies.discovery import discover_strategies
-    grid = discover_strategies(
-        feats, {"full": feat_cols}, y, fwd, cfg, seed=42)
-    cand = grid.iloc[0]
-    # candidate carries per-fold thresholds
-    assert "per_fold_thresholds" in cand.index
+    # C03: legacy discover_strategies is removed; build a candidate directly
+    # from the validation output (mimicking what discover_and_evaluate_oos does
+    # internally for the grid).
+    from quant_research.config import ModelConfig
+    vsharpe, vdd, thr, perfold = _validation_sharpe(
+        feats, y, fwd, cfg, feat_cols, "logistic", 1,
+        cfg.research.threshold_candidates, 42)
+    cand_hold = 1
+    cand = {
+        "hold_bars": cand_hold,
+        "per_fold_thresholds": perfold,
+        "threshold": thr,
+    }
     # a hold_bars change must change OOS behavior while the spec stays pinned
-    res = run_walk_forward(feats, y, fwd, cfg, hold_bars=cand["hold_bars"])
-    res2 = run_walk_forward(feats, y, fwd, cfg, hold_bars=cand["hold_bars"] + 1)
+    res = run_walk_forward(feats, y, fwd, cfg, hold_bars=cand_hold)
+    res2 = run_walk_forward(feats, y, fwd, cfg, hold_bars=cand_hold + 1)
     assert not np.allclose(res.oos_positions.to_numpy(), res2.oos_positions.to_numpy())
     # replaying the SAME pinned spec is deterministic
-    rep = run_walk_forward(feats, y, fwd, cfg, hold_bars=cand["hold_bars"])
+    rep = run_walk_forward(feats, y, fwd, cfg, hold_bars=cand_hold)
     np.testing.assert_allclose(res.oos_positions.to_numpy(), rep.oos_positions.to_numpy())
 
 
@@ -163,8 +171,9 @@ def test_delay_zero_stress_equals_baseline_oos():
     cfg = AppConfig(
         data=DataConfig(mode="synthetic", assets=["SPY"], target="SPY",
                         start="2016-01-01", end="2021-01-01"),
+        # B09: Use step_bars <= test_window to avoid gapped windows
         evaluation=EvaluationConfig(train_window=200, validation_window=50,
-                                    test_window=50, step_bars=100,
+                                    test_window=100, step_bars=100,
                                     purge_bars=2, embargo_bars=2, expanding=True),
     )
     ohlcv = generate_synthetic_ohlcv(["SPY"], cfg.data.start, cfg.data.end, seed=5)

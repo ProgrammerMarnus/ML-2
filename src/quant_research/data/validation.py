@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+import numpy as np
 import pandas as pd
 
 from .schemas import FLOAT_COLUMNS, OHLCV_COLUMNS, PRICE_COLUMNS, DataValidationError
@@ -31,6 +32,12 @@ def validate_ohlcv(df: pd.DataFrame, require_volume: bool = True) -> pd.DataFram
         raise DataValidationError(f"missing required columns: {missing}")
 
     out = df.loc[:, OHLCV_COLUMNS].copy()
+    # Preserve the synthetic-range flag if present (C17: close-only CSV imports
+    # fabricate open/high/low equal to close; downstream range consumers must know
+    # the range is not measured).  This column is not part of the core schema but
+    # is retained through validation so range-dependent features can be gated.
+    if "_synthetic_range" in df.columns:
+        out["_synthetic_range"] = df["_synthetic_range"]
 
     # --- timestamps: tz-aware UTC mandatory; naive rejected so conversion
     # can never silently move information backward in time -------------------
@@ -68,6 +75,18 @@ def validate_ohlcv(df: pd.DataFrame, require_volume: bool = True) -> pd.DataFram
         examples = out.loc[dup_mask, ["timestamp", "symbol"]].head()
         raise DataValidationError(f"duplicate (timestamp, symbol) observations:\n{examples}")
 
+    # B13: one observation per symbol/session.  Daily bars are keyed by exchange
+    # session (calendar date); two bars on the same date for the same symbol —
+    # e.g. a midnight bar and a same-day 12h bar — are duplicate sessions.
+    session_key = out["symbol"].astype(str) + "|" + out["timestamp"].dt.date.astype(str)
+    sess_dup_mask = pd.Series(session_key).duplicated(keep=False)
+    if sess_dup_mask.any():
+        examples = out.loc[sess_dup_mask, ["timestamp", "symbol"]].head()
+        raise DataValidationError(
+            f"duplicate (symbol, session) observations — one bar per symbol/session "
+            f"is required:\n{examples}"
+        )
+
     # --- ordering -----------------------------------------------------------
     if not out["timestamp"].is_monotonic_increasing:
         unsorted = out["timestamp"].diff().dropna()
@@ -77,7 +96,25 @@ def validate_ohlcv(df: pd.DataFrame, require_volume: bool = True) -> pd.DataFram
             "ordering must be fixed upstream, not assumed"
         )
 
-    # --- OHLC sanity --------------------------------------------------------
+    # --- OHLC sanity -------------------------------------------------
+    # B13: Enforce complete OHLC relationships. open and close must lie within
+    # [low, high], and volume must be finite (not infinite).
+    if (out["open"] < out["low"]).any() or (out["open"] > out["high"]).any():
+        bad = out[(out["open"] < out["low"]) | (out["open"] > out["high"])]
+        raise DataValidationError(
+            f"open price outside [low, high] range in {len(bad)} rows:\n{bad.head()}"
+        )
+    if (out["close"] < out["low"]).any() or (out["close"] > out["high"]).any():
+        bad = out[(out["close"] < out["low"]) | (out["close"] > out["high"])]
+        raise DataValidationError(
+            f"close price outside [low, high] range in {len(bad)} rows:\n{bad.head()}"
+        )
+    if require_volume:
+        if not np.isfinite(out["volume"]).all():
+            bad = out[~np.isfinite(out["volume"])]
+            raise DataValidationError(
+                f"non-finite volume in {len(bad)} rows:\n{bad.head()}"
+            )
     bad_hilo = out["high"] < out["low"]
     if bad_hilo.any():
         raise DataValidationError(f"{int(bad_hilo.sum())} rows violate high >= low")

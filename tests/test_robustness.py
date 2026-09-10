@@ -36,8 +36,9 @@ def setup():
     cfg = AppConfig(
         data=DataConfig(mode="synthetic", assets=["SPY", "QQQ"], target="SPY",
                         start="2016-01-01", end="2020-01-01"),
+        # B09: Use step_bars <= test_window to avoid gapped windows
         evaluation=EvaluationConfig(train_window=200, validation_window=50,
-                                    test_window=50, step_bars=100,
+                                    test_window=100, step_bars=100,
                                     purge_bars=2, embargo_bars=2, expanding=True),
     )
     ohlcv = generate_synthetic_ohlcv(["SPY", "QQQ"], cfg.data.start, cfg.data.end, seed=42)

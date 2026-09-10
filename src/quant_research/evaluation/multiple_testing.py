@@ -58,7 +58,13 @@ def expected_max_sharpe(n_trials: int, n_obs: int,
         v = float(sharpe_variance)
     else:
         v = 1.0 / (n_obs - 1)
-    n = max(n_trials, 2)
+    # B17: Handle one-trial boundary explicitly. For n_trials=1, the expected
+    # maximum of a single zero-mean null variable is 0, not the two-trial penalty.
+    # The max(n_trials, 2) was incorrectly applying a two-trial penalty to
+    # one-trial hypotheses.
+    if n_trials == 1:
+        return 0.0  # E[max of one N(0,V)] = 0
+    n = n_trials
     z1 = stats.norm.ppf(1.0 - 1.0 / n)
     z2 = stats.norm.ppf(1.0 - 1.0 / (n * math.e))
     return float(np.sqrt(v) * ((1 - EULER_GAMMA) * z1 + EULER_GAMMA * z2))

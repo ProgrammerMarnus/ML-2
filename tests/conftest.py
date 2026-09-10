@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Generator
 
 import numpy as np
 import pandas as pd
@@ -15,6 +16,14 @@ if str(SRC) not in sys.path:
 
 from quant_research.config import AppConfig, DataConfig, EvaluationConfig, ResearchConfig  # noqa: E402
 from quant_research.data.loaders import generate_synthetic_ohlcv, to_panels  # noqa: E402
+
+
+# B18: Track project data directories to verify they're not polluted by tests
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_DATA_DIRS = [
+    PROJECT_ROOT / "data",
+    PROJECT_ROOT / "data" / "raw_snapshots",
+]
 
 
 @pytest.fixture(scope="session")
@@ -39,10 +48,13 @@ def volume_panel(close_panel) -> pd.DataFrame:
 
 
 @pytest.fixture(scope="session")
-def small_config() -> AppConfig:
+def small_config(tmp_path_factory) -> AppConfig:
+    # B18: Use temporary directory for snapshots to avoid polluting project data/
+    snapshot_dir = tmp_path_factory.mktemp("raw_snapshots")
     return AppConfig(
         data=DataConfig(mode="synthetic", assets=["SPY"], target="SPY",
-                        start="2020-01-01", end="2022-01-01"),
+                        start="2020-01-01", end="2022-01-01",
+                        raw_snapshot_dir=str(snapshot_dir)),
         evaluation=EvaluationConfig(train_window=120, validation_window=40,
                                     test_window=40, step_bars=40,
                                     purge_bars=2, embargo_bars=2, expanding=True),
@@ -71,3 +83,42 @@ def tmp_output(tmp_path):
     out = tmp_path / "artifacts"
     out.mkdir()
     return out
+
+
+# B18: Verify no project data directories are polluted by tests
+@pytest.fixture(autouse=True)
+def _assert_no_project_data_pollution(request):
+    """Assert that test runs don't write to the project's data directories.
+
+    This catches test isolation issues where tests might write snapshots
+    or other data files outside their temporary output fixtures.
+    """
+    # Skip this check for tests that explicitly need to test snapshot writing
+    if getattr(request.node, "allow_data_dir_writes", False):
+        yield
+        return
+
+    # Record state before test
+    dirs_before = {}
+    for d in PROJECT_DATA_DIRS:
+        if d.exists():
+            dirs_before[d] = set(d.rglob("*")) if d.is_dir() else set()
+
+    yield
+
+    # Check after test
+    for d in PROJECT_DATA_DIRS:
+        if not d.exists():
+            continue
+        files_after = set(d.rglob("*")) if d.is_dir() else set()
+        files_before = dirs_before.get(d, set())
+        new_files = files_after - files_before
+        if new_files:
+            # Allow temporary files that pytest creates
+            temp_files = [f for f in new_files if ".pytest" in str(f) or ".tmp" in str(f)]
+            if temp_files:
+                continue
+            pytest.fail(
+                f"Test {request.node.name} wrote files to project data directory {d}:\n"
+                + "\n".join(str(f) for f in sorted(new_files))
+            )

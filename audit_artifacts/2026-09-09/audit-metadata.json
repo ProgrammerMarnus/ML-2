@@ -1,0 +1,104 @@
+{
+  "root": "/home/marnus/VS-Code/ML-2",
+  "isolated_workdir": "/tmp/ml2-deep-audit-20260909-icadgxb4",
+  "git_head": "36d87064d8da89fea649573141d5a6521aa1ebc5",
+  "python": "3.13.5",
+  "audit_date": "2026-09-09",
+  "package_versions": {
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0",
+    "scipy": "1.18.1",
+    "PyYAML": "6.0.2",
+    "pytest": "9.1.1",
+    "nbformat": "5.11.1",
+    "nbclient": "0.11.0"
+  },
+  "notebook": {
+    "schema": "valid",
+    "code_cells_compiled": 8,
+    "fully_executed": false
+  },
+  "pytest": {
+    "passed": 240,
+    "warnings": 1850,
+    "seconds": 332.14,
+    "isolated_snapshot_files_created": 18
+  },
+  "tool_notes": [
+    "rg unavailable; used find/standard Python search.",
+    "Installed quant-notebook skills reference a previous engine and missing prompt.txt; current source/tests govern this read-only audit."
+  ],
+  "baseline_replay": {
+    "complete": true,
+    "placebo_modes": 3,
+    "runs_per_mode": 20,
+    "bootstrap_samples": 500,
+    "source": "existing SPY/QQQ snapshot; download and snapshot-write I/O replaced only",
+    "scored_bars": 1764
+  },
+  "pipeline_lock_reproduction": {
+    "completed_synthetic_runs": 2,
+    "same_registry": true,
+    "null_runs_per_mode_per_run": 1
+  },
+  "audit_probes": {
+    "initial_probes_completed": 19,
+    "followup_probes_completed": 3,
+    "probe_errors": 0
+  },
+  "product_manifest_unchanged": true,
+  "report": "/home/marnus/VS-Code/ML-2/DEEP_AUDIT_2026-09-09.md",
+  "findings": {
+    "total": 18,
+    "P1": 10,
+    "P2": 7,
+    "P3": 1
+  },
+  "final_integrity_check": "audited product files unchanged",
+  "stronger_discovery_probe": "labels track return signs; selected candidate 0 -> 3; 40 earlier predictions changed",
+  "report_sha256": "81b1135879bd118406b8ca3fe93e7ec053642ec760ffdbd49b872ad6c0fe1019",
+  "evidence_files": [
+    "audit-metadata.json",
+    "audit_probes.py",
+    "close-only.csv",
+    "counter-rnebu09d/counter.json",
+    "counter-rnebu09d/counter.json.highwater",
+    "extra-probe-results.json",
+    "extra-probes.log",
+    "extra_probes.py",
+    "ledger-delta-explanation.json",
+    "ledger-delta.log",
+    "legacy-discovery-followup.log",
+    "market-executed-ledger.csv",
+    "market-replay-analysis.json",
+    "market-replay.log",
+    "market_snapshot_run/20260909T115427Z_9b1a0aad44b0292e_folds.csv",
+    "market_snapshot_run/20260909T115427Z_9b1a0aad44b0292e_results.json",
+    "market_snapshot_run/experiment_registry.jsonl",
+    "market_snapshot_run/trial_counter.json",
+    "market_snapshot_run/trial_counter.json.highwater",
+    "partial-data.csv",
+    "pipeline-lock-analysis.json",
+    "pipeline-lock.log",
+    "pipeline_evidence.py",
+    "probe-results.json",
+    "probes.log",
+    "pytest-results.xml",
+    "pytest.log",
+    "reconcile_legacy_ledger.py",
+    "source-manifest-after.json",
+    "source-manifest-before.json",
+    "test_lock_runs/raw1/20260909T115309Z_synthetic_ohlcv_dcb4ac583ce8822f.meta.json",
+    "test_lock_runs/raw1/20260909T115309Z_synthetic_ohlcv_dcb4ac583ce8822f.parquet",
+    "test_lock_runs/raw2/20260909T115320Z_synthetic_ohlcv_dcb4ac583ce8822f.meta.json",
+    "test_lock_runs/raw2/20260909T115320Z_synthetic_ohlcv_dcb4ac583ce8822f.parquet",
+    "test_lock_runs/registry/20260909T115320Z_2c9757e6f3128f31_folds.csv",
+    "test_lock_runs/registry/20260909T115320Z_2c9757e6f3128f31_results.json",
+    "test_lock_runs/registry/20260909T115334Z_882c242301712b2d_folds.csv",
+    "test_lock_runs/registry/20260909T115334Z_882c242301712b2d_results.json",
+    "test_lock_runs/registry/experiment_registry.jsonl",
+    "test_lock_runs/registry/trial_counter.json",
+    "test_lock_runs/registry/trial_counter.json.highwater"
+  ]
+}

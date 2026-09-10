@@ -65,8 +65,10 @@ def test_locked_test_blocks_recut(universe, small_config):
     tampered = small_config
     from dataclasses import replace
 
+    # Change test_window to create different layout (must also be non-gapped)
+    # step_bars=30, test_window=30 is non-gapped but different from baseline
     tampered = replace(small_config, evaluation=replace(
-        small_config.evaluation, step_bars=80))
+        small_config.evaluation, test_window=30, step_bars=30))
     with pytest.raises(LockedTestViolation):
         run_walk_forward(feats, y, fwd, tampered, locked_test=protocol)
 

@@ -51,8 +51,9 @@ def _discovery_cfg(idx):
     return AppConfig(
         data=DataConfig(mode="synthetic", assets=["SPY"], target="SPY",
                         start=str(idx[0].date()), end=str(idx[-1].date())),
+        # B09: Use step_bars <= test_window to avoid gapped windows
         evaluation=EvaluationConfig(train_window=250, validation_window=60,
-                                    test_window=80, step_bars=100,
+                                    test_window=100, step_bars=100,
                                     purge_bars=2, embargo_bars=2,
                                     expanding=False),
         research=ResearchConfig(threshold_candidates=[0.5], hold_candidates=[1],

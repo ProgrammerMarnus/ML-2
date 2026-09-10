@@ -77,7 +77,14 @@ def generate_synthetic_ohlcv(
 
 
 def _long_from_wide_csv(raw: pd.DataFrame) -> pd.DataFrame:
-    """Convert a wide CSV (timestamp, Close_<SYM>, Volume_<SYM>) to long schema."""
+    """Convert a wide CSV (timestamp, Close_<SYM>, Volume_<SYM>) to long schema.
+
+    Wide CSVs typically contain only close and volume (no measured open/high/low).
+    The returned long OHLCV rows have open/high/low set equal to close for schema
+    compatibility, with ``_synthetic_range=True`` to mark that the intraday range
+    is NOT measured.  Downstream range-dependent features (e.g. Parkinson
+    volatility) must check ``_synthetic_range`` before consuming OHLC.
+    """
     if "timestamp" not in raw.columns:
         raw = raw.rename(columns={raw.columns[0]: "timestamp"})
     close_cols = [c for c in raw.columns if c.startswith("Close_")]
@@ -100,6 +107,7 @@ def _long_from_wide_csv(raw: pd.DataFrame) -> pd.DataFrame:
                     "low": raw[cc],
                     "close": raw[cc],
                     "volume": raw[vc],
+                    "_synthetic_range": True,
                 }
             )
         )
@@ -192,6 +200,10 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
 
     Returns (ohlcv_long, metadata).  Metadata records mode, universe, period,
     dataset hash, and any documented assumptions.
+
+    B05 FIX: Validate that all requested assets are present in the loaded data
+    and that the data covers the requested period. Missing assets and truncated
+    history are now explicitly detected.
     """
     if cfg.mode == "synthetic":
         ohlcv = generate_synthetic_ohlcv(cfg.assets, cfg.start, cfg.end, seed=42)
@@ -213,6 +225,102 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
     ohlcv = ohlcv.sort_values(["timestamp", "symbol"], kind="stable").reset_index(drop=True)
     ohlcv = validate_ohlcv(ohlcv)
 
+    # B05: Validate requested universe against realized data
+    observed_symbols = set(ohlcv["symbol"].unique())
+    requested_symbols = set(cfg.assets)
+    missing_symbols = requested_symbols - observed_symbols
+    if missing_symbols:
+        raise DataValidationError(
+            f"requested assets not found in data: {sorted(missing_symbols)}. "
+            f"Available assets: {sorted(observed_symbols)}"
+        )
+
+    # B05: Validate data covers requested period (check first/last dates per symbol)
+    # For synthetic data, the start date may be before the first trading day, which is
+    # expected. For real data, we check more strictly.
+    from .validation import expected_sessions
+    start_ts = pd.Timestamp(cfg.start, tz="UTC")
+    end_ts = pd.Timestamp(cfg.end, tz="UTC")
+
+    for symbol in cfg.assets:
+        sym_data = ohlcv[ohlcv["symbol"] == symbol]
+        if len(sym_data) == 0:
+            continue  # Already caught by missing_symbols check
+        first_date = sym_data["timestamp"].min()
+        last_date = sym_data["timestamp"].max()
+        # C02: Compare requested coverage against expected exchange sessions,
+        # not against raw calendar-day tolerance.  A 1-day tolerance rejects
+        # complete data when the interval starts/ends around weekends or
+        # exchange holidays (e.g. requested 2012-01-01, first SPY bar 2012-01-03
+        # is the first NYSE session after New Year's weekend + holiday).
+        #
+        # For synthetic data the start may precede the first trading day by design
+        # (expected_sessions is used to generate bars).  For real yfinance/CSV
+        # data we require the observed data to cover the expected sessions inside
+        # [start, end), with explicit exceptions for known listing-history gaps.
+        if cfg.mode == "synthetic":
+            # Synthetic: the first bar must be the first expected session on/after
+            # the requested start (data generation uses expected_sessions + exclusive
+            # end cut).  Verify the leading edge; the trailing edge is bounded by the
+            # end-ts exclusive cut applied above.
+            expected_first = expected_sessions(start_ts, end_ts, exchange="US")[0]
+            if first_date != expected_first:
+                raise DataValidationError(
+                    f"asset {symbol}: synthetic data starts {first_date.date()} but "
+                    f"expected first session {expected_first.date()} for the requested "
+                    f"start; data generation may have used a different calendar"
+                )
+        else:
+            # Real data: the first observed session should be the first expected
+            # session on/after start, and the last should be the last expected
+            # session strictly before end (the data is cut with < end_ts above).
+            expected_all = expected_sessions(start_ts, end_ts, exchange="US")
+            if len(expected_all) == 0:
+                raise DataValidationError(
+                    f"asset {symbol}: no expected exchange sessions between "
+                    f"{start_ts.date()} and {end_ts.date()}; check the requested period"
+                )
+            expected_first = expected_all[0]
+            # The last expected session for an EXCLUSIVE end: if end_ts is itself
+            # a trading day it is excluded by the data cut, so the last expected
+            # observed bar is the second-to-last session.
+            if expected_all[-1].date() == end_ts.date():
+                expected_last = expected_all[-2] if len(expected_all) >= 2 else expected_all[-1]
+            else:
+                expected_last = expected_all[-1]
+            if first_date != expected_first:
+                # Could be a listing-date gap (asset listed after requested start).
+                # Count sessions strictly between start and the first observed bar;
+                # a single missing session can be a listing-date gap, more than one
+                # indicates truncation or a non-existent asset history.
+                missing_leading = expected_sessions(start_ts, first_date, exchange="US")
+                # Exclude the first observed bar itself from the missing count
+                n_missing = len(missing_leading) - 1 if len(missing_leading) > 0 else 0
+                if n_missing > 1:
+                    raise DataValidationError(
+                        f"asset {symbol}: data starts {first_date.date()} but requested "
+                        f"start is {start_ts.date()}; expected first session "
+                        f"{expected_first.date()}; {n_missing} leading sessions "
+                        f"missing — asset may have been listed after the requested start "
+                        f"or data is truncated"
+                    )
+            if last_date != expected_last:
+                n_missing = len(expected_sessions(last_date, end_ts, exchange="US")) - 1 \
+                    if last_date < end_ts else 0
+                if n_missing > 1:
+                    raise DataValidationError(
+                        f"asset {symbol}: data ends {last_date.date()} but requested end "
+                        f"is {end_ts.date()}; expected last session {expected_last.date()}; "
+                        f"{n_missing} trailing sessions missing — data is truncated"
+                    )
+        # For all modes, verify we have a reasonable amount of data
+        expected_min = len(expected_sessions(start_ts, end_ts, exchange="US")) // 10
+        if len(sym_data) < expected_min:
+            raise DataValidationError(
+                f"asset {symbol}: only {len(sym_data)} observations, expected at least "
+                f"{expected_min} for the requested period"
+            )
+
     from .snapshots import dataset_hash
 
     meta = {
@@ -224,6 +332,8 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
         "frequency": cfg.frequency,
         "dataset_hash": dataset_hash(ohlcv),
         "assumptions": assumption,
+        "n_observed_symbols": len(observed_symbols),
+        "n_requested_symbols": len(requested_symbols),
     }
     return ohlcv, meta
 

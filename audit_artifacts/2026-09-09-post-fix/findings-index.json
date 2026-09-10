@@ -1,0 +1,110 @@
+[
+  {
+    "id": "C01",
+    "priority": "P1",
+    "title": "Use the normalized availability values in the actual eligibility check.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C02",
+    "priority": "P1",
+    "title": "Compare requested coverage with expected exchange sessions.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C03",
+    "priority": "P1",
+    "title": "Prevent contaminated legacy search results from being evaluated as untouched OOS.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C04",
+    "priority": "P1",
+    "title": "Reconcile delay stress against the configured baseline using relative delay.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C05",
+    "priority": "P1",
+    "title": "Make research-family history shared across output locations.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C06",
+    "priority": "P1",
+    "title": "Wire persistent test locks into the pipeline and reject invalid lock state.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C07",
+    "priority": "P2",
+    "title": "Slice nested-replay turnover from the merged ledger.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C08",
+    "priority": "P2",
+    "title": "Resolve the new configuration fields into the executed model and holding rule.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C09",
+    "priority": "P2",
+    "title": "Perturb a parameter that gradient boosting actually consumes.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C10",
+    "priority": "P2",
+    "title": "Require a typed boolean before waiving timestamp ordering.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C11",
+    "priority": "P2",
+    "title": "Validate event identity per revision and handle repeated records without runtime errors.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C12",
+    "priority": "P2",
+    "title": "Reject or explicitly model missing and non-finite realized returns.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C13",
+    "priority": "P2",
+    "title": "Check the high-water invariant after reloading under the increment lock.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C14",
+    "priority": "P2",
+    "title": "Count research attempts before evaluation and cover every selection entry point.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C15",
+    "priority": "P2",
+    "title": "Store manifests under immutable experiment-specific names.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C16",
+    "priority": "P2",
+    "title": "Preserve sufficient replay provenance and record the correct environment.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C17",
+    "priority": "P2",
+    "title": "Do not label close-only CSV values as measured open/high/low prices.",
+    "status": "OPEN"
+  },
+  {
+    "id": "C18",
+    "priority": "P2",
+    "title": "Require a positive volatility target.",
+    "status": "OPEN"
+  }
+]

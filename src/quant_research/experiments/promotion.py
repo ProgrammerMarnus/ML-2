@@ -69,6 +69,7 @@ def evaluate_gates(
     lookahead_resolved: bool,
     trials: int,
     cfg: PromotionConfig,
+    n_family_searches: int = 0,
 ) -> list:
     """Evaluate promotion criteria; returns the list of GateCheck results.
 
@@ -154,10 +155,41 @@ def evaluate_gates(
     checks.append(GateCheck("lookahead_resolved", lookahead_resolved,
                             "no unresolved look-ahead risk"))
     checks.append(GateCheck(
-        "trial_accounting_consistent",
-        trials >= 1,
-        f"trial count {trials} is recorded and consistent with evidence",
+    "trial_accounting_consistent",
+    trials >= 1,
+    f"trial count {trials} is recorded and consistent with evidence",
     ))
+
+    # B10: research-family selection-correction gate.  Repeated candidate
+    # research on the same OOS family inflates the chance of a spurious pass.
+    # A family may not exceed its predeclared search cap; Bonferroni correction
+    # additionally divides the placebo alpha by the number of family searches.
+    if n_family_searches > cfg.max_family_searches:
+        checks.append(GateCheck(
+            "family_search_within_cap",
+            False,
+            f"family search count {n_family_searches} exceeds "
+            f"max_family_searches {cfg.max_family_searches}",
+        ))
+    else:
+        adj_p = placebo.get("adjusted_p", float("nan"))
+        if cfg.selection_correction == "bonferroni_family":
+            alpha_per = cfg.max_placebo_adjusted_p / max(n_family_searches, 1)
+            corrected_ok = bool(adj_p <= alpha_per)
+            checks.append(GateCheck(
+                "family_selection_corrected",
+                corrected_ok,
+                f"family={n_family_searches} searches, Bonferroni alpha="
+                f"{alpha_per:.5f}, placebo adjusted p={adj_p}",
+            ))
+        else:
+            checks.append(GateCheck(
+                "family_search_within_cap",
+                True,
+                f"family search count {n_family_searches} <= "
+                f"max_family_searches {cfg.max_family_searches} "
+                f"(selection_correction={cfg.selection_correction})",
+            ))
     return checks
 
 

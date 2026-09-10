@@ -78,7 +78,12 @@ def _assign_clusters(ev: pd.DataFrame,
     Adds ``_canonical_id`` (event_id of the retained story) and ``_is_copy``.
     ``_is_copy == True`` events are absorbed copies that must NOT contribute
     independent sentiment/attention, but DO extend the retained story's
-    corroboration once their own availability has arrived.
+    corroboration count as they become available.
+
+    B02 FIX: Canonical state is established in availability order, not publication
+    order. An earlier-published copy that arrives later must not preempt an
+    already-available story. Cluster membership is decided using only events
+    available at each decision time.
     """
     out = ev.copy()
     if "topic" not in out.columns or out["topic"].isna().all():
@@ -86,7 +91,10 @@ def _assign_clusters(ev: pd.DataFrame,
         out["_is_copy"] = False
         return out
     window = pd.Timedelta(topic_window).to_pytimedelta()
-    out = out.sort_values(["publication_time", "event_id"]).reset_index(drop=True)
+    # B02: Sort by availability_time first, then publication_time for ties.
+    # This ensures the first-available event becomes canonical, preventing
+    # a later-arriving earlier-published copy from preempting an available story.
+    out = out.sort_values(["availability_time", "publication_time", "event_id"]).reset_index(drop=True)
     canonical = np.empty(len(out), dtype=object)
     is_copy = np.zeros(len(out), dtype=bool)
     topics = out["topic"].astype("string").fillna("")
@@ -157,26 +165,38 @@ def build_information_features(
         ts = ts.tz_localize("UTC")
     else:
         ts = ts.tz_convert("UTC")
-    ts_int = ts.asi8  # ns since epoch, sorted
+    # B01: Normalize all timestamps to microseconds for consistent comparison.
+    # Pandas supports datetime arrays with different resolutions (ns, us, ms, s),
+    # and asi8 values can differ by factors of 1000 for identical timestamps.
+    # Normalize explicitly to avoid unit-mismatch look-ahead.
+    # Use as_unit to convert to microseconds, then get int64 representation
+    ts_us = ts.as_unit("us")
+    ts_int = ts_us.asi8  # us since epoch, sorted
     halflife = max(float(decay_halflife_bars), 1e-9)
 
     if deduplicate and len(ev) > 1:
         evc = _assign_clusters(ev)
         canon = evc[~evc["_is_copy"]].reset_index(drop=True)
         copies = evc[evc["_is_copy"]]
-        # copy availability (ns) per canonical story, sorted, for live counting
+        # copy availability (us) per canonical story, sorted, for live counting
         copy_by_canon: dict = {}
         if len(copies):
             for cid, grp in copies.groupby("_canonical_id", sort=False):
-                av = pd.to_datetime(grp["availability_time"], utc=True).astype("int64")
-                copy_by_canon[cid] = np.sort(av.to_numpy())
+                av = pd.to_datetime(grp["availability_time"], utc=True)
+                av_idx = pd.DatetimeIndex(av)
+                av_us = av_idx.as_unit("us")
+                copy_by_canon[cid] = np.sort(av_us.asi8)
     else:
         canon = ev.assign(_canonical_id=ev["event_id"].astype(object))
         copy_by_canon = {}
 
     canon_av = pd.to_datetime(canon["availability_time"], utc=True)
-    first_bar = np.searchsorted(ts_int, canon_av.astype("int64").to_numpy(),
-                                side="left")
+    # B01: Normalize canonical availability to same unit as bar index
+    # Convert Series to DatetimeIndex for as_unit/asi8 access
+    canon_av_idx = pd.DatetimeIndex(canon_av)
+    canon_av_us = canon_av_idx.as_unit("us")
+    canon_av_int = canon_av_us.asi8  # us since epoch (numpy array)
+    first_bar = np.searchsorted(ts_int, canon_av_int, side="left")
 
     def _num(col: str, default: float) -> np.ndarray:
         if col in canon.columns:
@@ -187,7 +207,7 @@ def build_information_features(
     novelty = _num("novelty", 0.0)
     sources = canon["source"].astype("string").fillna("").to_numpy()
     cid_arr = canon["_canonical_id"].astype(object).to_numpy()
-    avail = canon_av.astype("int64").to_numpy()
+    avail = canon_av_int
 
     rows = np.zeros((n, len(INFO_COLUMNS)))
     for i, t in enumerate(ts_int):

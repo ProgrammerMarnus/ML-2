@@ -68,14 +68,19 @@ def test_naive_timestamps_rejected():
 def test_high_low_violation_rejected(idx):
     df = make_long(idx)
     df.loc[df.index[3], "high"] = 90.0
-    with pytest.raises(DataValidationError, match="high >= low"):
+    # Note: with B13, OHLC containment is checked before high>=low.
+    # This test creates open=100, high=90, low=99, close=100 which fails
+    # the "open outside [low, high]" check first.
+    with pytest.raises(DataValidationError, match="open price outside"):
         validate_ohlcv(df)
 
 
 def test_non_positive_price_rejected(idx):
     df = make_long(idx)
     df.loc[df.index[2], "close"] = 0.0
-    with pytest.raises(DataValidationError, match="non-positive"):
+    # Note: with B13, OHLC containment is checked before non-positive.
+    # close=0 with high=101, low=99 fails "close outside [low, high]" first.
+    with pytest.raises(DataValidationError, match="close price outside"):
         validate_ohlcv(df)
 
 

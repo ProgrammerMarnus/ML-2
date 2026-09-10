@@ -115,7 +115,35 @@ def validate_events(events: pd.DataFrame) -> pd.DataFrame:
     av_before_event = out["availability_time"] < out["event_time"]
     av_before_pub = out["availability_time"] < out["publication_time"]
     if "provider_rule_exception" in out.columns:
-        rule = out["provider_rule_exception"].fillna(False).astype(bool)
+        raw_exc = out["provider_rule_exception"]
+
+        # C10: Reject any non-boolean provider_rule_exception values.
+        # The column must be explicitly True/False; strings, numbers, NaN, or
+        # other truthy values are rejected so that authorization is never inferred
+        # from truthiness.
+        if pd.api.types.is_bool_dtype(raw_exc.dtype):
+            # Plain numpy bool ("b") or pandas nullable boolean ("boolean").
+            # Plain bool cannot hold NA; nullable boolean can — reject it.
+            if raw_exc.isna().any():
+                raise DataValidationError(
+                    "provider_rule_exception contains missing (NA) values; "
+                    "use explicit True/False — never NA — so authorization is deliberate"
+                )
+        elif raw_exc.dtype.kind in ("O", "U", "S"):
+            # String / object columns: reject (including "False", "True", "", etc.)
+            raise DataValidationError(
+                "provider_rule_exception contains string values; "
+                "use explicit boolean True/False, not strings"
+            )
+        else:
+            # Numeric or other dtype: reject (2, 0.5, np.nan, etc. all rejected)
+            raise DataValidationError(
+                "provider_rule_exception must be a boolean (True/False); "
+                f"received dtype {raw_exc.dtype}"
+            )
+
+        # Now safe: convert to plain bool and apply the exception.
+        rule = raw_exc.astype(bool)
         av_before_event = av_before_event & ~rule
         av_before_pub = av_before_pub & ~rule
     if av_before_event.any():
@@ -132,10 +160,41 @@ def validate_events(events: pd.DataFrame) -> pd.DataFrame:
         raise DataValidationError("event_id cannot be null")
     dup = out[out["event_id"].duplicated(keep=False)]
     if not dup.empty:
-        conflicting = dup.groupby("event_id")["raw_value"].nunique()
-        if (conflicting > 1).any():
+        # C11: Reuse of an event_id is only permitted for versioned revisions
+        # (distinct ``revision``).  A revision with conflicting identity fields
+        # is rejected even if another revision for the same event_id exists;
+        # identical repeats within one revision are permitted (deduplicated
+        # downstream), never a runtime crash.
+        identity_cols = ["raw_value", "processed_value", "source",
+                         "availability_time", "publication_time", "event_time"]
+        has_revision = "revision" in out.columns
+        conflicting = []
+        for eid, grp in dup.groupby("event_id", sort=False):
+            # Split each event_id's records into (event_id, revision) sub-groups
+            # so a versioned sibling never exempts a conflicting revision.
+            if has_revision:
+                rev_groups = grp.groupby("revision", sort=False)
+            else:
+                rev_groups = [(None, grp)]
+            for rev, rev_grp in rev_groups:
+                for col in identity_cols:
+                    vals = rev_grp[col]
+                    if pd.api.types.is_datetime64_any_dtype(vals):
+                        nunique = len(vals.unique())
+                    else:
+                        nunique = vals.nunique()
+                    if nunique > 1:
+                        conflicting.append(
+                            (str(eid), col, int(rev) if rev is not None else None))
+                        break
+                # Optional sentiment conflict (only when the column is present).
+                if "sentiment" in rev_grp.columns and rev_grp["sentiment"].nunique() > 1:
+                    conflicting.append(
+                        (str(eid), "sentiment", int(rev) if rev is not None else None))
+        if conflicting:
             raise DataValidationError(
-                "event_id reused with conflicting raw_value; revisions must be versioned"
+                f"event_id reused with conflicting identity fields "
+                f"(revisions must be versioned): {conflicting[:5]}"
             )
     return out.reset_index(drop=True)
 

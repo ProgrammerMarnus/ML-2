@@ -1,0 +1,20 @@
+{
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "platform": "Linux-6.18.39+rpt-rpi-v8-aarch64-with-glibc2.41",
+  "git_head": "36d87064d8da89fea649573141d5a6521aa1ebc5",
+  "git_status": " M src/quant_research/config.py\n M src/quant_research/data/loaders.py\n M src/quant_research/data/snapshots.py\n M src/quant_research/data/validation.py\n M src/quant_research/evaluation/multiple_testing.py\n M src/quant_research/evaluation/robustness.py\n M src/quant_research/evaluation/walk_forward.py\n M src/quant_research/experiments/promotion.py\n M src/quant_research/experiments/registry.py\n M src/quant_research/features/information.py\n M src/quant_research/features/point_in_time.py\n M src/quant_research/run.py\n M src/quant_research/strategies/baseline.py\n M src/quant_research/strategies/discovery.py\n M tests/conftest.py\n M tests/test_accounting.py\n M tests/test_baseline.py\n M tests/test_data_validation.py\n M tests/test_discovery_causal.py\n M tests/test_execution_ledger.py\n M tests/test_phase_a_invariants.py\n M tests/test_placebo.py\n M tests/test_robustness.py\n M tests/test_selection_isolation.py\n M tests/test_snapshots.py\n M tests/test_trial_accounting.py\n M tests/test_walk_forward.py\n?? DEEP_AUDIT_2026-09-09.md\n?? FIXES_SUMMARY.md\n?? audit_artifacts/2026-09-09-post-fix/\n?? audit_artifacts/2026-09-09-rerun/\n?? audit_artifacts/2026-09-09/\n?? tests/test_promotion.py.bak\n",
+  "source_files": 69,
+  "data_files": 716,
+  "runtime_dependencies": {
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.0",
+    "pytest": "9.1.1",
+    "nbformat": "5.11.1",
+    "nbclient": "0.11.0",
+    "yfinance": "1.7.0",
+    "pyarrow": "25.0.1",
+    "PyYAML": "6.0.2"
+  }
+}

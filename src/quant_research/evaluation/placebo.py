@@ -63,23 +63,35 @@ def run_placebo_null(
             y_r, f_r = y, fwd
         elif mode == "permute_target":
             X = features
-            idx = rng.permutation(len(y))
-            y_r = y.iloc[idx].reset_index(drop=True)
-            y_r.index = y.index
-            f_r = fwd.iloc[idx]
-            f_r.index = fwd.index
+            # C12 / valid-sample timeline: permute ONLY the finite (observed)
+            # values and keep the terminal NaN at the end.  The walk-forward
+            # execution path rejects interior missing/non-finite realized returns,
+            # so a placebo permutation that moves the endpoint NaN into the
+            # interior would fail the declared timeline contract.  y and fwd are
+            # permuted with the same positions so the (label, return) pairing
+            # (and the not-missing status at every bar) is preserved.
+            finite = (y.notna() & fwd.notna()).to_numpy()
+            pos = np.flatnonzero(finite)
+            perm = rng.permutation(len(pos))
+            y_vals = y.to_numpy().copy()
+            f_vals = fwd.to_numpy().copy()
+            y_vals[pos] = y_vals[pos][perm]
+            f_vals[pos] = f_vals[pos][perm]
+            y_r = pd.Series(y_vals, index=y.index, name=y.name)
+            f_r = pd.Series(f_vals, index=fwd.index, name=fwd.name)
         else:  # block_permute
             X = features
-            idx = _block_permute(np.arange(len(y)), block_len, rng)
-            # A03: the permuted VALUES must be assigned to the ORIGINAL
-            # chronological index.  The previous code kept each permuted
-            # value's original timestamp (y.iloc[idx] carries the source
-            # position's index), so the pipeline's chronological .loc lookup
-            # silently restored the original date-to-target pairing while the
-            # risk history (a shift over a non-chronological index) was
-            # scrambled.  Here values move; dates never do.
-            y_r = pd.Series(y.to_numpy()[idx], index=y.index, name=y.name)
-            f_r = pd.Series(fwd.to_numpy()[idx], index=fwd.index, name=fwd.name)
+            # C12: block-permute only the finite positions (see permute_target
+            # rationale); the end-of-series NaN stays terminal.
+            finite = (y.notna() & fwd.notna()).to_numpy()
+            pos = np.flatnonzero(finite)
+            perm_pos = _block_permute(np.arange(len(pos)), block_len, rng)
+            y_vals = y.to_numpy().copy()
+            f_vals = fwd.to_numpy().copy()
+            y_vals[pos] = y_vals[pos][perm_pos]
+            f_vals[pos] = f_vals[pos][perm_pos]
+            y_r = pd.Series(y_vals, index=y.index, name=y.name)
+            f_r = pd.Series(f_vals, index=fwd.index, name=fwd.name)
         if not y_r.index.is_monotonic_increasing or not f_r.index.is_monotonic_increasing:
             raise ValueError(
                 f"placebo mode {mode!r} produced a non-chronological index; "
