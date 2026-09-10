@@ -1,0 +1,185 @@
+{
+  "prior_fold_file": "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-09-post-fix/market_snapshot_run/20260909T181421Z_85fd1ea11ef0dd7d_folds.csv",
+  "folds": {
+    "n_test": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "oos_sortino": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "embargo_bars": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "n_train": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "selected_features": {
+      "equal": true
+    },
+    "oos_brier": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "oos_sharpe": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "test_start": {
+      "equal": true
+    },
+    "train_end": {
+      "equal": true
+    },
+    "val_start": {
+      "equal": true
+    },
+    "n_val": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "oos_gross_return": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "purge_bars": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "oos_trades": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "val_end": {
+      "equal": true
+    },
+    "oos_turnover": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "fold_id": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "oos_auc": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "train_start": {
+      "equal": true
+    },
+    "n_trials_this_fold": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "test_end": {
+      "equal": true
+    },
+    "threshold": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "model_type": {
+      "equal": true
+    },
+    "oos_net_return": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "oos_cagr": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    },
+    "oos_max_dd": {
+      "max_abs_delta": 0.0,
+      "nan_pattern_equal": true
+    }
+  },
+  "classification": "No material baseline fold or ledger changes; machine rounding only. Placebo target/block modes differ after finite-only permutation fix and are separately reported; promotion remains RESEARCH_ONLY.",
+  "placebo_comparison": {
+    "shuffle_features": {
+      "prior": {
+        "percentile": 0.45,
+        "adjusted_p": 0.5714285714285714,
+        "percentile_mc_se": 0.11124297730643495,
+        "null_mean": 0.1972070888584662,
+        "null_median": 0.14438986305907953,
+        "null_std": 0.2110251600393355,
+        "null_p95": 0.5109062394902064,
+        "n_runs": 20,
+        "observed": 0.1289893389494057
+      },
+      "current": {
+        "percentile": 0.45,
+        "adjusted_p": 0.5714285714285714,
+        "percentile_mc_se": 0.11124297730643495,
+        "null_mean": 0.1972070888584662,
+        "null_median": 0.14438986305907953,
+        "null_std": 0.2110251600393355,
+        "null_p95": 0.5109062394902064,
+        "n_runs": 20,
+        "observed": 0.1289893389494057
+      },
+      "classification": "UNCHANGED"
+    },
+    "permute_target": {
+      "prior": {
+        "percentile": 0.2,
+        "adjusted_p": 0.8095238095238095,
+        "percentile_mc_se": 0.0894427190999916,
+        "null_mean": 0.37397225192075084,
+        "null_median": 0.3181144993629946,
+        "null_std": 0.3057560046717347,
+        "null_p95": 0.8523092017234118,
+        "n_runs": 20,
+        "observed": 0.1289893389494057
+      },
+      "current": {
+        "percentile": 0.35,
+        "adjusted_p": 0.6666666666666666,
+        "percentile_mc_se": 0.1066536450385077,
+        "null_mean": 0.22434236837301355,
+        "null_median": 0.21821476111650617,
+        "null_std": 0.3814176438934723,
+        "null_p95": 0.724507873183032,
+        "n_runs": 20,
+        "observed": 0.1289893389494057
+      },
+      "classification": "EXPECTED: finite-only permutation retains terminal missing target/return; permutation pool changed from prior implementation."
+    },
+    "block_permute": {
+      "prior": {
+        "percentile": 0.05,
+        "adjusted_p": 0.9523809523809523,
+        "percentile_mc_se": 0.04873397172404482,
+        "null_mean": 0.48292051339526604,
+        "null_median": 0.42246334201153946,
+        "null_std": 0.3772137744780671,
+        "null_p95": 0.9774054816683254,
+        "n_runs": 20,
+        "observed": 0.1289893389494057
+      },
+      "current": {
+        "percentile": 0.15,
+        "adjusted_p": 0.8571428571428571,
+        "percentile_mc_se": 0.07984359711335656,
+        "null_mean": 0.5009905323637303,
+        "null_median": 0.457527939141404,
+        "null_std": 0.3191088912227237,
+        "null_p95": 1.027988460039459,
+        "n_runs": 20,
+        "observed": 0.1289893389494057
+      },
+      "classification": "EXPECTED: finite-only permutation retains terminal missing target/return; permutation pool changed from prior implementation."
+    }
+  },
+  "bootstrap_comparison": {
+    "prior_pipeline_samples": 500,
+    "current_pipeline_samples": 500,
+    "audit_supplemental_samples": 2000,
+    "classification": "Configured 500-sample positive probability unchanged at 0.496; separate 2000-sample audit interval is supplemental, not a replacement."
+  }
+}

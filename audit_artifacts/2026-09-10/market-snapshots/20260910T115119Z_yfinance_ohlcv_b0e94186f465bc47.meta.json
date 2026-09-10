@@ -1,0 +1,11 @@
+{
+  "snapshot_id": "20260910T115119Z_yfinance_ohlcv_b0e94186f465bc47",
+  "path": "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/market-snapshots/20260910T115119Z_yfinance_ohlcv_b0e94186f465bc47.parquet",
+  "dataset_hash": "b0e94186f465bc47",
+  "n_rows": 7040,
+  "symbols": [
+    "QQQ",
+    "SPY"
+  ],
+  "created_utc": "20260910T115119Z"
+}

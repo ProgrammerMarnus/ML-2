@@ -1,0 +1,87 @@
+...E.................................................................... [ 25%]
+........................................................................ [ 51%]
+........................................................................ [ 76%]
+.................................................................        [100%]
+==================================== ERRORS ====================================
+________ ERROR at teardown of test_registry_record_accounting_invariant ________
+
+request = <SubRequest '_assert_no_project_data_pollution' for <Function test_registry_record_accounting_invariant>>
+
+    @pytest.fixture(autouse=True)
+    def _assert_no_project_data_pollution(request):
+        """Assert that test runs don't write to the project's data directories.
+    
+        This catches test isolation issues where tests might write snapshots
+        or other data files outside their temporary output fixtures.
+        """
+        # Skip this check for tests that explicitly need to test snapshot writing
+        if getattr(request.node, "allow_data_dir_writes", False):
+            yield
+            return
+    
+        # Record state before test
+        dirs_before = {}
+        for d in PROJECT_DATA_DIRS:
+            if d.exists():
+                dirs_before[d] = set(d.rglob("*")) if d.is_dir() else set()
+    
+        yield
+    
+        # Check after test
+        for d in PROJECT_DATA_DIRS:
+            if not d.exists():
+                continue
+            files_after = set(d.rglob("*")) if d.is_dir() else set()
+            files_before = dirs_before.get(d, set())
+            new_files = files_after - files_before
+            if new_files:
+                # Allow temporary files that pytest creates
+                temp_files = [f for f in new_files if ".pytest" in str(f) or ".tmp" in str(f)]
+                if temp_files:
+                    continue
+>               pytest.fail(
+                    f"Test {request.node.name} wrote files to project data directory {d}:\n"
+                    + "\n".join(str(f) for f in sorted(new_files))
+                )
+E               Failed: Test test_registry_record_accounting_invariant wrote files to project data directory /tmp/ml2-deep-audit-20260910/data:
+E               /tmp/ml2-deep-audit-20260910/data/research_ledgers
+E               /tmp/ml2-deep-audit-20260910/data/research_ledgers/search_ledger.jsonl
+
+tests/conftest.py:121: Failed
+=============================== warnings summary ===============================
+tests/test_accounting.py: 102 warnings
+tests/test_audit_criteria.py: 28 warnings
+tests/test_baseline.py: 48 warnings
+tests/test_execution_ledger.py: 4 warnings
+tests/test_phase_a_invariants.py: 40 warnings
+tests/test_pipeline.py: 1236 warnings
+tests/test_placebo.py: 36 warnings
+tests/test_robustness.py: 75 warnings
+tests/test_selection_isolation.py: 36 warnings
+tests/test_snapshots.py: 6 warnings
+tests/test_trial_accounting.py: 295 warnings
+  /home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+    warnings.warn(
+
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+  /home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+tests/test_trial_accounting.py::test_rerun_same_experiment_new_id_without_resetting_highwater
+  /home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+    ret = ret.dtype.type(ret / rcount)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/test_accounting.py::test_registry_record_accounting_invariant - F...
+280 passed, 1918 warnings, 1 error in 323.61s (0:05:23)

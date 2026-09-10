@@ -1,0 +1,1273 @@
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['momentum_252']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/marnus/.local/lib/python3.13/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+pipeline-check-results.json {"first": {"experiment_id": "20260910T115130Z_3a32f7aa27250788", "family_id": "1be09994aa1708b9", "test_period": ["2020-08-26", "2021-12-01"], "trials_global": 16, "search_ledger": "/tmp/ml2-deep-audit-integration-20260910/data/research_ledgers/search_ledger.jsonl", "promotion": {"decision": "RESEARCH_ONLY", "state": "RESEARCH_ONLY", "failed_gates": ["placebo_separates", "placebo_sample_adequate"], "passed_gates": ["median_oos_sharpe_positive", "mean_oos_sharpe_positive", "worst_dd_within_limit", "cost_stress_survives", "delay_stress_survives", "bootstrap_positive_prob", "not_single_fold", "turnover_plausible", "data_integrity", "lookahead_resolved", "trial_accounting_consistent", "family_search_within_cap"], "detail": ["median_oos_sharpe_positive: median OOS Sharpe 2.0391188751387848 > 0.0", "mean_oos_sharpe_positive: mean OOS Sharpe 2.211232617181074 > 0.0", "worst_dd_within_limit: full OOS path drawdown -0.03440577683085666 >= -0.5 (concatenated portfolio path, per-fold drawdowns are kept as a separate security diagnostic)", "cost_stress_survives: positive Sharpe at fee>=10.0bps: True", "delay_stress_survives: positive Sharpe at delay>=1: True", "bootstrap_positive_prob: bootstrap P(SR>0)=1.0 >= 0.6", "placebo_separates: placebo percentile 1.0 >= 0.95 and adjusted p 0.5 <= 0.1", "placebo_sample_adequate: 1 valid null runs >= 20 (predeclared Monte Carlo sample-size requirement)", "not_single_fold: largest fold share of the positive Sharpe pool 0.4140386419703894 <= 0.6 (A06 concentration definition)", "turnover_plausible: annual turnover 9.560906531307731 <= 60.0", "data_integrity: data-integrity checks passed", "lookahead_resolved: no unresolved look-ahead risk", "trial_accounting_consistent: trial count 16 is recorded and consistent with evidence", "family_search_within_cap: family search count 1 <= max_family_searches 1 (selection_correction=none)"]}, "manifest_path": "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/pipeline-runs/same-output/20260910T115130Z_3a32f7aa27250788_manifest.json", "registry_record_has_manifest_locator": false, "first_fold_length": 40}, "same_family_other_output": {"experiment_id": "20260910T115141Z_9117e64886f00cfd", "family_id": "1be09994aa1708b9", "test_period": ["2020-08-26", "2021-12-01"], "trials_global": 16, "search_ledger": "/tmp/ml2-deep-audit-integration-20260910/data/research_ledgers/search_ledger.jsonl", "promotion": {"decision": "RESEARCH_ONLY", "state": "RESEARCH_ONLY", "failed_gates": ["placebo_separates", "placebo_sample_adequate", "family_search_within_cap"], "passed_gates": ["median_oos_sharpe_positive", "mean_oos_sharpe_positive", "worst_dd_within_limit", "cost_stress_survives", "delay_stress_survives", "bootstrap_positive_prob", "not_single_fold", "turnover_plausible", "data_integrity", "lookahead_resolved", "trial_accounting_consistent"], "detail": ["median_oos_sharpe_positive: median OOS Sharpe 2.0391188751387848 > 0.0", "mean_oos_sharpe_positive: mean OOS Sharpe 2.211232617181074 > 0.0", "worst_dd_within_limit: full OOS path drawdown -0.03440577683085666 >= -0.5 (concatenated portfolio path, per-fold drawdowns are kept as a separate security diagnostic)", "cost_stress_survives: positive Sharpe at fee>=10.0bps: True", "delay_stress_survives: positive Sharpe at delay>=1: True", "bootstrap_positive_prob: bootstrap P(SR>0)=1.0 >= 0.6", "placebo_separates: placebo percentile 1.0 >= 0.95 and adjusted p 0.5 <= 0.1", "placebo_sample_adequate: 1 valid null runs >= 20 (predeclared Monte Carlo sample-size requirement)", "not_single_fold: largest fold share of the positive Sharpe pool 0.4140386419703894 <= 0.6 (A06 concentration definition)", "turnover_plausible: annual turnover 9.560906531307731 <= 60.0", "data_integrity: data-integrity checks passed", "lookahead_resolved: no unresolved look-ahead risk", "trial_accounting_consistent: trial count 16 is recorded and consistent with evidence", "family_search_within_cap: family search count 2 exceeds max_family_searches 1"]}, "manifest_path": "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/pipeline-runs/other-output/20260910T115141Z_9117e64886f00cfd_manifest.json", "registry_record_has_manifest_locator": false, "first_fold_length": 40}, "recut_same_output": {"experiment_id": "20260910T115155Z_6af0f387076dfac0", "family_id": "1599699fbdacf0c3", "test_period": ["2020-08-26", "2021-12-15"], "trials_global": 38, "search_ledger": "/tmp/ml2-deep-audit-integration-20260910/data/research_ledgers/search_ledger.jsonl", "promotion": {"decision": "RESEARCH_ONLY", "state": "RESEARCH_ONLY", "failed_gates": ["placebo_separates", "placebo_sample_adequate", "not_single_fold"], "passed_gates": ["median_oos_sharpe_positive", "mean_oos_sharpe_positive", "worst_dd_within_limit", "cost_stress_survives", "delay_stress_survives", "bootstrap_positive_prob", "turnover_plausible", "data_integrity", "lookahead_resolved", "trial_accounting_consistent", "family_search_within_cap"], "detail": ["median_oos_sharpe_positive: median OOS Sharpe 0.6082573961473563 > 0.0", "mean_oos_sharpe_positive: mean OOS Sharpe 0.4661012806512305 > 0.0", "worst_dd_within_limit: full OOS path drawdown -0.060371252296444466 >= -0.5 (concatenated portfolio path, per-fold drawdowns are kept as a separate security diagnostic)", "cost_stress_survives: positive Sharpe at fee>=10.0bps: True", "delay_stress_survives: positive Sharpe at delay>=1: True", "bootstrap_positive_prob: bootstrap P(SR>0)=0.7 >= 0.6", "placebo_separates: placebo percentile 1.0 >= 0.95 and adjusted p 0.5 <= 0.1", "placebo_sample_adequate: 1 valid null runs >= 20 (predeclared Monte Carlo sample-size requirement)", "not_single_fold: largest fold share of the positive Sharpe pool 0.710999682165322 <= 0.6 (A06 concentration definition)", "turnover_plausible: annual turnover 11.865263676739753 <= 60.0", "data_integrity: data-integrity checks passed", "lookahead_resolved: no unresolved look-ahead risk", "trial_accounting_consistent: trial count 38 is recorded and consistent with evidence", "family_search_within_cap: family search count 1 <= max_family_searches 1 (selection_correction=none)"]}, "manifest_path": "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/pipeline-runs/same-output/20260910T115155Z_6af0f387076dfac0_manifest.json", "registry_record_has_manifest_locator": false, "first_fold_length": 30}, "delay_five": {"experiment_id": "20260910T115206Z_8bf1515a46f7a7d8", "family_id": "1be09994aa1708b9", "test_period": ["2020-08-26", "2021-12-01"], "trials_global": 16, "search_ledger": "/tmp/ml2-deep-audit-integration-20260910/data/research_ledgers/search_ledger.jsonl", "promotion": {"decision": "RESEARCH_ONLY", "state": "RESEARCH_ONLY", "failed_gates": ["placebo_separates", "placebo_sample_adequate", "family_search_within_cap"], "passed_gates": ["median_oos_sharpe_positive", "mean_oos_sharpe_positive", "worst_dd_within_limit", "cost_stress_survives", "delay_stress_survives", "bootstrap_positive_prob", "not_single_fold", "turnover_plausible", "data_integrity", "lookahead_resolved", "trial_accounting_consistent"], "detail": ["median_oos_sharpe_positive: median OOS Sharpe 0.6067377207885802 > 0.0", "mean_oos_sharpe_positive: mean OOS Sharpe 0.5650864802613338 > 0.0", "worst_dd_within_limit: full OOS path drawdown -0.0728467178383474 >= -0.5 (concatenated portfolio path, per-fold drawdowns are kept as a separate security diagnostic)", "cost_stress_survives: positive Sharpe at fee>=10.0bps: True", "delay_stress_survives: positive Sharpe at delay>=1: True", "bootstrap_positive_prob: bootstrap P(SR>0)=0.6 >= 0.6", "placebo_separates: placebo percentile 1.0 >= 0.95 and adjusted p 0.5 <= 0.1", "placebo_sample_adequate: 1 valid null runs >= 20 (predeclared Monte Carlo sample-size requirement)", "not_single_fold: largest fold share of the positive Sharpe pool 0.5206115112758317 <= 0.6 (A06 concentration definition)", "turnover_plausible: annual turnover 12.237301311957298 <= 60.0", "data_integrity: data-integrity checks passed", "lookahead_resolved: no unresolved look-ahead risk", "trial_accounting_consistent: trial count 16 is recorded and consistent with evidence", "family_search_within_cap: family search count 3 exceeds max_family_searches 1"]}, "manifest_path": "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/pipeline-runs/delay-output/20260910T115206Z_8bf1515a46f7a7d8_manifest.json", "registry_record_has_manifest_locator": false, "first_fold_length": 40}, "delay_five_grid": [{"sharpe": 1.5241304932352469, "gross_sharpe": 1.6688947568351646, "net_return": 0.10641982435509445, "gross_return": 0.11735999038615996, "max_dd": -0.03440577683085655, "annual_turnover": 12.921096260469621, "fee_cost": 0.008203870641568014, "slippage_cost": 0.0016407741283136026, "cost_drag": 0.010940166031065512, "fee_bps": 5.0, "slippage_bps": 1.0, "delay_bars": 0}, {"sharpe": 0.7781019322373558, "gross_sharpe": 0.9193039349069486, "net_return": 0.053939112546236956, "gross_return": 0.06432193936990771, "max_dd": -0.04543969017521576, "annual_turnover": 12.86229742886578, "fee_cost": 0.00816653805007351, "slippage_cost": 0.001633307610014702, "cost_drag": 0.010382826823670754, "fee_bps": 5.0, "slippage_bps": 1.0, "delay_bars": 1}, {"sharpe": 0.3834665405900304, "gross_sharpe": 0.5242140785971581, "net_return": 0.025349764039656275, "gross_return": 0.03538722768659586, "max_dd": -0.06800728667120515, "annual_turnover": 12.762097992279433, "fee_cost": 0.008102919360177417, "slippage_cost": 0.0016205838720354836, "cost_drag": 0.010037463646939582, "fee_bps": 5.0, "slippage_bps": 1.0, "delay_bars": 2}, {"sharpe": 1.1409140003152596, "gross_sharpe": 1.2879267228862399, "net_return": 0.07663205455326194, "gross_return": 0.08699452835744692, "max_dd": -0.039988767430542804, "annual_turnover": 12.566439669646313, "fee_cost": 0.007978691853743692, "slippage_cost": 0.0015957383707487379, "cost_drag": 0.01036247380418498, "fee_bps": 5.0, "slippage_bps": 1.0, "delay_bars": 3}], "accepted_changed_geometry": true, "recut_creates_new_family": true, "same_family_shared_across_outputs": true}

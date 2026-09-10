@@ -1,0 +1,23 @@
+{
+  "local_links_checked": 78,
+  "broken_links": [],
+  "findings": 15,
+  "priorities": {
+    "P1": 5,
+    "P2": 10
+  },
+  "pytest_xml": {
+    "name": "pytest",
+    "errors": "1",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "280",
+    "time": "323.608",
+    "timestamp": "2026-09-10T13:45:41.135231+02:00",
+    "hostname": "raspberrypi"
+  },
+  "preservation_passed": true,
+  "fresh_notebook_source_execution_passed": true,
+  "jupyter_kernel_execution_passed": false,
+  "full_market_ledger_max_delta": 1.1102230246251565e-16
+}

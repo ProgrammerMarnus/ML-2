@@ -1,0 +1,17 @@
+{
+  "head": "44c85c340699081b0b209cfc2a8326ee613cd2fc",
+  "initial_git_status": "",
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "platform": "Linux-6.18.39+rpt-rpi-v8-aarch64-with-glibc2.41",
+  "test_tree": "/tmp/ml2-deep-audit-20260910",
+  "packages": {
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0",
+    "scipy": "1.18.1",
+    "pytest": "9.1.1",
+    "nbformat": "5.11.1"
+  },
+  "initial_git_status_note": "Confirmed clean by first git status command, before creating this audit directory. Initial metadata capture occurred after directory creation.",
+  "copy_byte_equality_verified": true
+}

@@ -1,0 +1,39 @@
+{
+  "precision": {
+    "bar_time": "2024-01-10 00:00:00+00:00",
+    "availability_time": "2024-01-10 00:00:00.000000001+00:00",
+    "attention_at_bar": 0.6931471805599453,
+    "ineligible_event_included": true
+  },
+  "static": {
+    "all_source_and_test_files_compile": true,
+    "compiled_file_count": 65,
+    "source_modules": 37,
+    "test_modules": 26,
+    "unit_regression_calls": [
+      "pytest.mark.parametrize('ev_unit', ['s', 'ms', 'us', 'ns'])",
+      "pytest.mark.parametrize('bar_unit', ['s', 'ms', 'us', 'ns'])",
+      "pd.date_range('2024-01-05', periods=10, freq='D', tz='UTC')",
+      "Timestamp('2024-01-10', tz='UTC')",
+      "pd.DataFrame({'event_id': ['e1'], 'symbol': ['SPY'], 'event_time': [avail - pd.Timedelta(days=1)], 'publication_time': [avail], 'availability_time': [avail], 'source': ['s1'], 'raw_value': [1.0], 'processed_value': [1.0], 'sentiment': [0.5]})",
+      "validate_events(ev)",
+      "build_information_features(bars, ev, 'SPY')",
+      "feat.index[feat[att_col] > 0].min()",
+      "pd.Timedelta(days=1)"
+    ],
+    "unit_regression_has_as_unit_call": false,
+    "manifest_features_keys": [
+      "columns",
+      "index_start",
+      "index_end",
+      "n_rows"
+    ],
+    "manifest_events_keys": [
+      "present"
+    ],
+    "manifest_fitted_model_fields": [
+      "model_type"
+    ],
+    "registry_record_has_manifest_path": false
+  }
+}

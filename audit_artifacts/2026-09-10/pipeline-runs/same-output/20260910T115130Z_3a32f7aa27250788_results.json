@@ -1,0 +1,1262 @@
+{
+  "config_fingerprint": "371c264859c0b8d3",
+  "data_meta": {
+    "mode": "synthetic",
+    "assets": [
+      "SPY"
+    ],
+    "target": "SPY",
+    "start": "2020-01-01",
+    "end": "2022-01-01",
+    "frequency": "1d",
+    "dataset_hash": "dcb4ac583ce8822f",
+    "assumptions": "synthetic data; NOT market evidence",
+    "n_observed_symbols": 1,
+    "n_requested_symbols": 1
+  },
+  "snapshot_metadata": {
+    "snapshot_id": "20260910T115119Z_synthetic_ohlcv_dcb4ac583ce8822f",
+    "path": "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/pipeline-runs/first-snapshots/20260910T115119Z_synthetic_ohlcv_dcb4ac583ce8822f.parquet",
+    "dataset_hash": "dcb4ac583ce8822f",
+    "n_rows": 505,
+    "symbols": [
+      "SPY"
+    ],
+    "created_utc": "20260910T115119Z"
+  },
+  "ohlcv": "                    timestamp symbol  ...       close        volume\n0   2020-01-02 00:00:00+00:00    SPY  ...   99.480050  1.178302e+06\n1   2020-01-03 00:00:00+00:00    SPY  ...  101.885056  1.382215e+06\n2   2020-01-06 00:00:00+00:00    SPY  ...  102.370061  1.453746e+06\n3   2020-01-07 00:00:00+00:00    SPY  ...  101.847317  1.058568e+06\n4   2020-01-08 00:00:00+00:00    SPY  ...  102.252494  7.462807e+05\n..                        ...    ...  ...         ...           ...\n500 2021-12-27 00:00:00+00:00    SPY  ...   77.821762  1.136395e+06\n501 2021-12-28 00:00:00+00:00    SPY  ...   78.380876  1.171611e+06\n502 2021-12-29 00:00:00+00:00    SPY  ...   78.072959  9.621528e+05\n503 2021-12-30 00:00:00+00:00    SPY  ...   78.626221  1.320891e+06\n504 2021-12-31 00:00:00+00:00    SPY  ...   78.839005  1.174018e+06\n\n[505 rows x 7 columns]",
+  "pit_events_validated": true,
+  "pit_events_note": "synthetic events for offline exercise of the PIT layer; NOT market evidence",
+  "events": "        event_id symbol  ...   novelty revision\n0    synth-SPY-0    SPY  ...  0.629226        0\n1    synth-SPY-1    SPY  ...  0.192402        0\n2    synth-SPY-2    SPY  ...  0.003734        0\n3    synth-SPY-3    SPY  ...  0.880332        0\n4    synth-SPY-4    SPY  ...  0.741771        0\n5    synth-SPY-5    SPY  ...  0.871339        0\n6    synth-SPY-6    SPY  ...  0.387632        0\n7    synth-SPY-7    SPY  ...  0.379446        0\n8    synth-SPY-8    SPY  ...  0.637997        0\n9    synth-SPY-9    SPY  ...  0.239564        0\n10  synth-SPY-10    SPY  ...  0.215004        0\n11  synth-SPY-11    SPY  ...  0.662215        0\n12  synth-SPY-12    SPY  ...  0.903917        0\n13  synth-SPY-13    SPY  ...  0.927906        0\n14  synth-SPY-14    SPY  ...  0.641572        0\n15  synth-SPY-15    SPY  ...  0.239489        0\n16  synth-SPY-16    SPY  ...  0.547635        0\n17  synth-SPY-17    SPY  ...  0.372185        0\n18  synth-SPY-18    SPY  ...  0.657761        0\n19  synth-SPY-19    SPY  ...  0.344211        0\n20  synth-SPY-20    SPY  ...  0.519098        0\n21  synth-SPY-21    SPY  ...  0.933419        0\n22  synth-SPY-22    SPY  ...  0.136764        0\n23  synth-SPY-23    SPY  ...  0.628462        0\n24  synth-SPY-24    SPY  ...  0.226423        0\n\n[25 rows x 12 columns]",
+  "feature_leakage_check": {
+    "checked_rows": 252,
+    "max_abs_delta_history": 0.0,
+    "dimensions": {
+      "future_price": 0.0,
+      "future_volume": 0.0,
+      "future_cross_asset_price": 0.0,
+      "future_target_price": 0.0,
+      "future_information_event": 0.0,
+      "future_information_event_membership": 0.0
+    },
+    "information_event": {
+      "key": "information_event",
+      "split_ts": "2020-12-31T00:00:00+00:00",
+      "max_abs_delta_history": 0.0,
+      "passed": true
+    },
+    "information_event_membership": {
+      "max_abs_delta_history": 0.0,
+      "passed": true
+    },
+    "passed": true,
+    "detail": "features on unchanged history identical under future-data perturbation"
+  },
+  "baseline_summary": {
+    "mean_oos_sharpe": 2.211232617181074,
+    "median_oos_sharpe": 2.0391188751387848,
+    "mean_oos_auc": 0.5492529196865413,
+    "mean_oos_brier": 0.32858951135945386,
+    "worst_oos_dd": -0.03440577683085677,
+    "full_oos_max_dd": -0.03440577683085666,
+    "total_oos_trades": 90,
+    "positive_folds": 5,
+    "n_folds": 8,
+    "single_fold_share": 0.4140386419703894,
+    "full_oos_sharpe": 1.5933908565860553,
+    "full_oos_net_sharpe": 1.5933908565860553,
+    "full_oos_gross_sharpe": 1.7114377947398713,
+    "full_oos_net_return": 0.10342279300207124,
+    "full_oos_gross_return": 0.11149144445886638,
+    "fee_cost": 0.006070416845274749,
+    "slippage_cost": 0.0012140833690549501,
+    "cost_drag": 0.00806865145679514
+  },
+  "search_family_id": "1be09994aa1708b9",
+  "robustness": {
+    "cost_stress": [
+      {
+        "sharpe": 1.6918390228666038,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.11014278776380104,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.03422823808542064,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.0,
+        "slippage_cost": 0.0012140833690549501,
+        "cost_drag": 0.0013486566950653422,
+        "fee_bps": 0.0,
+        "slippage_bps": 1.0,
+        "delay_bars": 0
+      },
+      {
+        "sharpe": 1.6427046577523756,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.10677794475727254,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.034317010520545366,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.0030352084226373745,
+        "slippage_cost": 0.0012140833690549501,
+        "cost_drag": 0.0047134997015938485,
+        "fee_bps": 2.5,
+        "slippage_bps": 1.0,
+        "delay_bars": 0
+      },
+      {
+        "sharpe": 1.5933908565860553,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.10342279300207124,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.03440577683085666,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.006070416845274749,
+        "slippage_cost": 0.0012140833690549501,
+        "cost_drag": 0.00806865145679514,
+        "fee_bps": 5.0,
+        "slippage_bps": 1.0,
+        "delay_bars": 0
+      },
+      {
+        "sharpe": 1.4943100924854686,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.09674145743849882,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.034583291078364775,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.012140833690549498,
+        "slippage_cost": 0.0012140833690549501,
+        "cost_drag": 0.014749987020367561,
+        "fee_bps": 10.0,
+        "slippage_bps": 1.0,
+        "delay_bars": 0
+      },
+      {
+        "sharpe": 1.2949358834215028,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.08349392127005584,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.03493824609021412,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.024281667381098996,
+        "slippage_cost": 0.0012140833690549501,
+        "cost_drag": 0.027997523188810547,
+        "fee_bps": 20.0,
+        "slippage_bps": 1.0,
+        "delay_bars": 0
+      }
+    ],
+    "slippage_stress": [
+      {
+        "sharpe": 1.6131365519696186,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.10476369244953543,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.03437027104168877,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.006070416845274749,
+        "slippage_cost": 0.0,
+        "cost_drag": 0.006727752009330956,
+        "fee_bps": 5.0,
+        "slippage_bps": 0.0,
+        "delay_bars": 0
+      },
+      {
+        "sharpe": 1.5933908565860553,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.10342279300207124,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.03440577683085666,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.006070416845274749,
+        "slippage_cost": 0.0012140833690549501,
+        "cost_drag": 0.00806865145679514,
+        "fee_bps": 5.0,
+        "slippage_bps": 1.0,
+        "delay_bars": 0
+      },
+      {
+        "sharpe": 1.5736198513634967,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.10208343991903135,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.03444128164010751,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.006070416845274749,
+        "slippage_cost": 0.0024281667381099003,
+        "cost_drag": 0.009408004539835035,
+        "fee_bps": 5.0,
+        "slippage_bps": 2.0,
+        "delay_bars": 0
+      },
+      {
+        "sharpe": 1.5141686515499424,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.09807464195577609,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.03454779018857024,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.006070416845274749,
+        "slippage_cost": 0.006070416845274749,
+        "cost_drag": 0.013416802503090297,
+        "fee_bps": 5.0,
+        "slippage_bps": 5.0,
+        "delay_bars": 0
+      },
+      {
+        "sharpe": 1.414705017018629,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.09142408182788375,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.03472528483964643,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.006070416845274749,
+        "slippage_cost": 0.012140833690549498,
+        "cost_drag": 0.020067362630982633,
+        "fee_bps": 5.0,
+        "slippage_bps": 10.0,
+        "delay_bars": 0
+      }
+    ],
+    "delay_stress": [
+      {
+        "sharpe": 1.5933908565860553,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.10342279300207124,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.03440577683085666,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.006070416845274749,
+        "slippage_cost": 0.0012140833690549501,
+        "cost_drag": 0.00806865145679514,
+        "fee_bps": 5.0,
+        "slippage_bps": 1.0,
+        "delay_bars": 0
+      },
+      {
+        "sharpe": 1.480425141412146,
+        "gross_sharpe": 1.5967027400515488,
+        "net_return": 0.09644571652416745,
+        "gross_return": 0.10438699372908067,
+        "max_dd": -0.04146285030426966,
+        "annual_turnover": 9.468706641812524,
+        "fee_cost": 0.006011877232896841,
+        "slippage_cost": 0.0012023754465793682,
+        "cost_drag": 0.007941277204913222,
+        "fee_bps": 5.0,
+        "slippage_bps": 1.0,
+        "delay_bars": 1
+      },
+      {
+        "sharpe": 1.3847814730397456,
+        "gross_sharpe": 1.50044247530678,
+        "net_return": 0.08759787394126906,
+        "gross_return": 0.09542293356321063,
+        "max_dd": -0.03998876743054214,
+        "annual_turnover": 9.413224762294544,
+        "fee_cost": 0.005976650642726693,
+        "slippage_cost": 0.0011953301285453387,
+        "cost_drag": 0.007825059621941577,
+        "fee_bps": 5.0,
+        "slippage_bps": 1.0,
+        "delay_bars": 2
+      },
+      {
+        "sharpe": 1.1823295703846082,
+        "gross_sharpe": 1.297068546086555,
+        "net_return": 0.07402331959883668,
+        "gross_return": 0.08169069303394716,
+        "max_dd": -0.03998876743054247,
+        "annual_turnover": 9.340512935907675,
+        "fee_cost": 0.005930484403750905,
+        "slippage_cost": 0.0011860968807501809,
+        "cost_drag": 0.0076673734351104805,
+        "fee_bps": 5.0,
+        "slippage_bps": 1.0,
+        "delay_bars": 3
+      }
+    ],
+    "parameter_perturbation": [
+      {
+        "sharpe": 1.3356037984378477,
+        "gross_sharpe": 1.4596668788697382,
+        "net_return": 0.09166560248640976,
+        "gross_return": 0.1007690875873104,
+        "max_dd": -0.03440577683085666,
+        "annual_turnover": 10.902387995434873,
+        "fee_cost": 0.006922151108212618,
+        "slippage_cost": 0.0013844302216425236,
+        "cost_drag": 0.009103485100900643,
+        "factor": 0.5,
+        "model_type": "logistic"
+      },
+      {
+        "sharpe": 1.5933908565860553,
+        "gross_sharpe": 1.7114377947398713,
+        "net_return": 0.10342279300207124,
+        "gross_return": 0.11149144445886638,
+        "max_dd": -0.03440577683085666,
+        "annual_turnover": 9.560906531307731,
+        "fee_cost": 0.006070416845274749,
+        "slippage_cost": 0.0012140833690549501,
+        "cost_drag": 0.00806865145679514,
+        "factor": 0.8,
+        "model_type": "logistic"
+      },
+      {
+        "sharpe": 1.8698581591165633,
+        "gross_sharpe": 1.9590431137987276,
+        "net_return": 0.12004193914993677,
+        "gross_return": 0.12646730898088188,
+        "max_dd": -0.03440577683085644,
+        "annual_turnover": 7.518626932939938,
+        "fee_cost": 0.004773731385993611,
+        "slippage_cost": 0.0009547462771987222,
+        "cost_drag": 0.006425369830945105,
+        "factor": 1.25,
+        "model_type": "logistic"
+      },
+      {
+        "sharpe": 1.9378576348946244,
+        "gross_sharpe": 2.00996228484947,
+        "net_return": 0.12440631335829844,
+        "gross_return": 0.1297568110977141,
+        "max_dd": -0.03440577683085699,
+        "annual_turnover": 6.243596377959285,
+        "fee_cost": 0.003964188176482086,
+        "slippage_cost": 0.0007928376352964172,
+        "cost_drag": 0.0053504977394156494,
+        "factor": 2.0,
+        "model_type": "logistic"
+      }
+    ],
+    "missing_data": [
+      {
+        "sharpe": 2.0885847086363043,
+        "gross_sharpe": 2.256648293623514,
+        "net_return": 0.1280562035386621,
+        "gross_return": 0.13908120539947677,
+        "max_dd": -0.026017668945518047,
+        "annual_turnover": 12.768188515187276,
+        "fee_cost": 0.008106786358849065,
+        "slippage_cost": 0.0016213572717698132,
+        "cost_drag": 0.011025001860814676,
+        "missing_frac": 0.1,
+        "seed": 42
+      }
+    ],
+    "survives_cost_stress": true,
+    "survives_delay_stress": true
+  },
+  "bootstrap": {
+    "mean": 1.7510679051931253,
+    "lo": 0.06085669172359234,
+    "hi": 3.3018674532313828,
+    "positive_prob": 1.0,
+    "n_samples": 20,
+    "seed": 42,
+    "observed": 1.5933908565860553
+  },
+  "placebo_statistics": {
+    "percentile": 1.0,
+    "adjusted_p": 0.5,
+    "percentile_mc_se": 0.0,
+    "null_mean": -1.2498719940187746,
+    "null_median": -1.2498719940187746,
+    "null_std": NaN,
+    "null_p95": -1.2498719940187746,
+    "n_runs": 1,
+    "observed": 2.211232617181074
+  },
+  "placebo_mode_statistics": {
+    "shuffle_features": {
+      "percentile": 1.0,
+      "adjusted_p": 0.5,
+      "percentile_mc_se": 0.0,
+      "null_mean": -1.2498719940187746,
+      "null_median": -1.2498719940187746,
+      "null_std": NaN,
+      "null_p95": -1.2498719940187746,
+      "n_runs": 1,
+      "observed": 2.211232617181074
+    },
+    "permute_target": {
+      "percentile": 1.0,
+      "adjusted_p": 0.5,
+      "percentile_mc_se": 0.0,
+      "null_mean": -2.3615898785416443,
+      "null_median": -2.3615898785416443,
+      "null_std": NaN,
+      "null_p95": -2.3615898785416443,
+      "n_runs": 1,
+      "observed": 2.211232617181074
+    },
+    "block_permute": {
+      "percentile": 1.0,
+      "adjusted_p": 0.5,
+      "percentile_mc_se": 0.0,
+      "null_mean": -1.2435023716395623,
+      "null_median": -1.2435023716395623,
+      "null_std": NaN,
+      "null_p95": -1.2435023716395623,
+      "n_runs": 1,
+      "observed": 2.211232617181074
+    }
+  },
+  "risk": {
+    "annualized_vol": 0.04940956655128687,
+    "max_drawdown": -0.03440577683085666,
+    "var_95_daily": 0.004105360080705703,
+    "cvar_95_daily": 0.00698846648980864,
+    "tail_loss_5pct": -0.00698846648980864,
+    "worst_single_day": -0.012113638616910952,
+    "n_obs": 320,
+    "beta_to_benchmark": 0.16277939604182556,
+    "avg_gross_exposure": 0.155279075517413,
+    "max_gross_exposure": 0.8095432095115256,
+    "annual_turnover": 9.560906531307731,
+    "concentration_hhi": null,
+    "concentration_hhi_median": null,
+    "concentration_hhi_worst": null,
+    "max_60d_correlation": 0.8172401430433396
+  },
+  "experiment_record": {
+    "strategy": "walk_forward_baseline",
+    "data_mode": "synthetic",
+    "features": [
+      "cross_asset_rel_strength",
+      "info_abs_sentiment",
+      "info_attention",
+      "info_corroboration",
+      "info_disagreement",
+      "info_intensity",
+      "info_novelty",
+      "info_sentiment",
+      "info_source_breadth",
+      "log_dollar_volume_20",
+      "mean_reversion_20",
+      "momentum_252",
+      "momentum_63",
+      "realized_vol_20",
+      "regime_drawdown",
+      "regime_high_vol",
+      "trend_50",
+      "volatility_ratio_10_60",
+      "volume_zscore_20"
+    ],
+    "universe": [
+      "SPY"
+    ],
+    "target": "SPY",
+    "timeframe": "1d",
+    "train_period": [
+      "2020-01-02",
+      "2021-08-03"
+    ],
+    "validation_period": [
+      "2020-06-26",
+      "2021-10-01"
+    ],
+    "test_period": [
+      "2020-08-26",
+      "2021-12-01"
+    ],
+    "trials": 16,
+    "n_trials_global": 16,
+    "trials_this_experiment": 16,
+    "dataset_version": "dcb4ac583ce8822f",
+    "feature_version": "9304939ac943d318",
+    "strategy_version": "baseline-2.1.3",
+    "code_version": "V2.1.3",
+    "seed": 42,
+    "config_fingerprint": "371c264859c0b8d3",
+    "gross_metrics": {
+      "full_oos_sharpe": 1.7114377947398713,
+      "full_oos_return": 0.11149144445886638
+    },
+    "net_metrics": {
+      "full_oos_sharpe": 1.5933908565860553,
+      "full_oos_return": 0.10342279300207124,
+      "fee_cost": 0.006070416845274749,
+      "slippage_cost": 0.0012140833690549501,
+      "cost_drag": 0.00806865145679514
+    },
+    "costs": {
+      "fee_bps": 5.0,
+      "slippage_bps": 1.0
+    },
+    "slippage": {
+      "applied_bps": 1.0
+    },
+    "oos_metrics": {
+      "mean_oos_sharpe": 2.211232617181074,
+      "median_oos_sharpe": 2.0391188751387848,
+      "mean_oos_auc": 0.5492529196865413,
+      "mean_oos_brier": 0.32858951135945386,
+      "worst_oos_dd": -0.03440577683085677,
+      "full_oos_max_dd": -0.03440577683085666,
+      "total_oos_trades": 90,
+      "positive_folds": 5,
+      "n_folds": 8,
+      "single_fold_share": 0.4140386419703894,
+      "full_oos_sharpe": 1.5933908565860553,
+      "full_oos_net_sharpe": 1.5933908565860553,
+      "full_oos_gross_sharpe": 1.7114377947398713,
+      "full_oos_net_return": 0.10342279300207124,
+      "full_oos_gross_return": 0.11149144445886638,
+      "fee_cost": 0.006070416845274749,
+      "slippage_cost": 0.0012140833690549501,
+      "cost_drag": 0.00806865145679514
+    },
+    "bootstrap_interval": {
+      "mean": 1.7510679051931253,
+      "lo": 0.06085669172359234,
+      "hi": 3.3018674532313828,
+      "positive_prob": 1.0,
+      "n_samples": 20,
+      "seed": 42,
+      "observed": 1.5933908565860553
+    },
+    "robustness": {
+      "cost_stress": [
+        {
+          "sharpe": 1.6918390228666038,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.11014278776380104,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.03422823808542064,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.0,
+          "slippage_cost": 0.0012140833690549501,
+          "cost_drag": 0.0013486566950653422,
+          "fee_bps": 0.0,
+          "slippage_bps": 1.0,
+          "delay_bars": 0
+        },
+        {
+          "sharpe": 1.6427046577523756,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.10677794475727254,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.034317010520545366,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.0030352084226373745,
+          "slippage_cost": 0.0012140833690549501,
+          "cost_drag": 0.0047134997015938485,
+          "fee_bps": 2.5,
+          "slippage_bps": 1.0,
+          "delay_bars": 0
+        },
+        {
+          "sharpe": 1.5933908565860553,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.10342279300207124,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.03440577683085666,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.006070416845274749,
+          "slippage_cost": 0.0012140833690549501,
+          "cost_drag": 0.00806865145679514,
+          "fee_bps": 5.0,
+          "slippage_bps": 1.0,
+          "delay_bars": 0
+        },
+        {
+          "sharpe": 1.4943100924854686,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.09674145743849882,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.034583291078364775,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.012140833690549498,
+          "slippage_cost": 0.0012140833690549501,
+          "cost_drag": 0.014749987020367561,
+          "fee_bps": 10.0,
+          "slippage_bps": 1.0,
+          "delay_bars": 0
+        },
+        {
+          "sharpe": 1.2949358834215028,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.08349392127005584,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.03493824609021412,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.024281667381098996,
+          "slippage_cost": 0.0012140833690549501,
+          "cost_drag": 0.027997523188810547,
+          "fee_bps": 20.0,
+          "slippage_bps": 1.0,
+          "delay_bars": 0
+        }
+      ],
+      "slippage_stress": [
+        {
+          "sharpe": 1.6131365519696186,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.10476369244953543,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.03437027104168877,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.006070416845274749,
+          "slippage_cost": 0.0,
+          "cost_drag": 0.006727752009330956,
+          "fee_bps": 5.0,
+          "slippage_bps": 0.0,
+          "delay_bars": 0
+        },
+        {
+          "sharpe": 1.5933908565860553,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.10342279300207124,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.03440577683085666,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.006070416845274749,
+          "slippage_cost": 0.0012140833690549501,
+          "cost_drag": 0.00806865145679514,
+          "fee_bps": 5.0,
+          "slippage_bps": 1.0,
+          "delay_bars": 0
+        },
+        {
+          "sharpe": 1.5736198513634967,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.10208343991903135,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.03444128164010751,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.006070416845274749,
+          "slippage_cost": 0.0024281667381099003,
+          "cost_drag": 0.009408004539835035,
+          "fee_bps": 5.0,
+          "slippage_bps": 2.0,
+          "delay_bars": 0
+        },
+        {
+          "sharpe": 1.5141686515499424,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.09807464195577609,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.03454779018857024,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.006070416845274749,
+          "slippage_cost": 0.006070416845274749,
+          "cost_drag": 0.013416802503090297,
+          "fee_bps": 5.0,
+          "slippage_bps": 5.0,
+          "delay_bars": 0
+        },
+        {
+          "sharpe": 1.414705017018629,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.09142408182788375,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.03472528483964643,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.006070416845274749,
+          "slippage_cost": 0.012140833690549498,
+          "cost_drag": 0.020067362630982633,
+          "fee_bps": 5.0,
+          "slippage_bps": 10.0,
+          "delay_bars": 0
+        }
+      ],
+      "delay_stress": [
+        {
+          "sharpe": 1.5933908565860553,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.10342279300207124,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.03440577683085666,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.006070416845274749,
+          "slippage_cost": 0.0012140833690549501,
+          "cost_drag": 0.00806865145679514,
+          "fee_bps": 5.0,
+          "slippage_bps": 1.0,
+          "delay_bars": 0
+        },
+        {
+          "sharpe": 1.480425141412146,
+          "gross_sharpe": 1.5967027400515488,
+          "net_return": 0.09644571652416745,
+          "gross_return": 0.10438699372908067,
+          "max_dd": -0.04146285030426966,
+          "annual_turnover": 9.468706641812524,
+          "fee_cost": 0.006011877232896841,
+          "slippage_cost": 0.0012023754465793682,
+          "cost_drag": 0.007941277204913222,
+          "fee_bps": 5.0,
+          "slippage_bps": 1.0,
+          "delay_bars": 1
+        },
+        {
+          "sharpe": 1.3847814730397456,
+          "gross_sharpe": 1.50044247530678,
+          "net_return": 0.08759787394126906,
+          "gross_return": 0.09542293356321063,
+          "max_dd": -0.03998876743054214,
+          "annual_turnover": 9.413224762294544,
+          "fee_cost": 0.005976650642726693,
+          "slippage_cost": 0.0011953301285453387,
+          "cost_drag": 0.007825059621941577,
+          "fee_bps": 5.0,
+          "slippage_bps": 1.0,
+          "delay_bars": 2
+        },
+        {
+          "sharpe": 1.1823295703846082,
+          "gross_sharpe": 1.297068546086555,
+          "net_return": 0.07402331959883668,
+          "gross_return": 0.08169069303394716,
+          "max_dd": -0.03998876743054247,
+          "annual_turnover": 9.340512935907675,
+          "fee_cost": 0.005930484403750905,
+          "slippage_cost": 0.0011860968807501809,
+          "cost_drag": 0.0076673734351104805,
+          "fee_bps": 5.0,
+          "slippage_bps": 1.0,
+          "delay_bars": 3
+        }
+      ],
+      "parameter_perturbation": [
+        {
+          "sharpe": 1.3356037984378477,
+          "gross_sharpe": 1.4596668788697382,
+          "net_return": 0.09166560248640976,
+          "gross_return": 0.1007690875873104,
+          "max_dd": -0.03440577683085666,
+          "annual_turnover": 10.902387995434873,
+          "fee_cost": 0.006922151108212618,
+          "slippage_cost": 0.0013844302216425236,
+          "cost_drag": 0.009103485100900643,
+          "factor": 0.5,
+          "model_type": "logistic"
+        },
+        {
+          "sharpe": 1.5933908565860553,
+          "gross_sharpe": 1.7114377947398713,
+          "net_return": 0.10342279300207124,
+          "gross_return": 0.11149144445886638,
+          "max_dd": -0.03440577683085666,
+          "annual_turnover": 9.560906531307731,
+          "fee_cost": 0.006070416845274749,
+          "slippage_cost": 0.0012140833690549501,
+          "cost_drag": 0.00806865145679514,
+          "factor": 0.8,
+          "model_type": "logistic"
+        },
+        {
+          "sharpe": 1.8698581591165633,
+          "gross_sharpe": 1.9590431137987276,
+          "net_return": 0.12004193914993677,
+          "gross_return": 0.12646730898088188,
+          "max_dd": -0.03440577683085644,
+          "annual_turnover": 7.518626932939938,
+          "fee_cost": 0.004773731385993611,
+          "slippage_cost": 0.0009547462771987222,
+          "cost_drag": 0.006425369830945105,
+          "factor": 1.25,
+          "model_type": "logistic"
+        },
+        {
+          "sharpe": 1.9378576348946244,
+          "gross_sharpe": 2.00996228484947,
+          "net_return": 0.12440631335829844,
+          "gross_return": 0.1297568110977141,
+          "max_dd": -0.03440577683085699,
+          "annual_turnover": 6.243596377959285,
+          "fee_cost": 0.003964188176482086,
+          "slippage_cost": 0.0007928376352964172,
+          "cost_drag": 0.0053504977394156494,
+          "factor": 2.0,
+          "model_type": "logistic"
+        }
+      ],
+      "missing_data": [
+        {
+          "sharpe": 2.0885847086363043,
+          "gross_sharpe": 2.256648293623514,
+          "net_return": 0.1280562035386621,
+          "gross_return": 0.13908120539947677,
+          "max_dd": -0.026017668945518047,
+          "annual_turnover": 12.768188515187276,
+          "fee_cost": 0.008106786358849065,
+          "slippage_cost": 0.0016213572717698132,
+          "cost_drag": 0.011025001860814676,
+          "missing_frac": 0.1,
+          "seed": 42
+        }
+      ],
+      "survives_cost_stress": true,
+      "survives_delay_stress": true
+    },
+    "placebo_statistics": {
+      "percentile": 1.0,
+      "adjusted_p": 0.5,
+      "percentile_mc_se": 0.0,
+      "null_mean": -1.2498719940187746,
+      "null_median": -1.2498719940187746,
+      "null_std": NaN,
+      "null_p95": -1.2498719940187746,
+      "n_runs": 1,
+      "observed": 2.211232617181074
+    },
+    "information_sources": [
+      "price_volume",
+      "information"
+    ],
+    "promotion_state": "RESEARCH_ONLY",
+    "failed_gates": [
+      "placebo_separates",
+      "placebo_sample_adequate"
+    ],
+    "search_family_id": "1be09994aa1708b9",
+    "search_ledger": "/tmp/ml2-deep-audit-integration-20260910/data/research_ledgers/search_ledger.jsonl",
+    "search_correction_method": "none",
+    "evidence_status": "SYNTHETIC_OFFLINE",
+    "timestamp_utc": "20260910T115130Z",
+    "experiment_id": "20260910T115130Z_3a32f7aa27250788"
+  },
+  "promotion": {
+    "decision": "RESEARCH_ONLY",
+    "state": "RESEARCH_ONLY",
+    "failed_gates": [
+      "placebo_separates",
+      "placebo_sample_adequate"
+    ],
+    "passed_gates": [
+      "median_oos_sharpe_positive",
+      "mean_oos_sharpe_positive",
+      "worst_dd_within_limit",
+      "cost_stress_survives",
+      "delay_stress_survives",
+      "bootstrap_positive_prob",
+      "not_single_fold",
+      "turnover_plausible",
+      "data_integrity",
+      "lookahead_resolved",
+      "trial_accounting_consistent",
+      "family_search_within_cap"
+    ],
+    "detail": [
+      "median_oos_sharpe_positive: median OOS Sharpe 2.0391188751387848 > 0.0",
+      "mean_oos_sharpe_positive: mean OOS Sharpe 2.211232617181074 > 0.0",
+      "worst_dd_within_limit: full OOS path drawdown -0.03440577683085666 >= -0.5 (concatenated portfolio path, per-fold drawdowns are kept as a separate security diagnostic)",
+      "cost_stress_survives: positive Sharpe at fee>=10.0bps: True",
+      "delay_stress_survives: positive Sharpe at delay>=1: True",
+      "bootstrap_positive_prob: bootstrap P(SR>0)=1.0 >= 0.6",
+      "placebo_separates: placebo percentile 1.0 >= 0.95 and adjusted p 0.5 <= 0.1",
+      "placebo_sample_adequate: 1 valid null runs >= 20 (predeclared Monte Carlo sample-size requirement)",
+      "not_single_fold: largest fold share of the positive Sharpe pool 0.4140386419703894 <= 0.6 (A06 concentration definition)",
+      "turnover_plausible: annual turnover 9.560906531307731 <= 60.0",
+      "data_integrity: data-integrity checks passed",
+      "lookahead_resolved: no unresolved look-ahead risk",
+      "trial_accounting_consistent: trial count 16 is recorded and consistent with evidence",
+      "family_search_within_cap: family search count 1 <= max_family_searches 1 (selection_correction=none)"
+    ]
+  },
+  "manifest_path": "/home/marnus/VS-Code/ML-2/audit_artifacts/2026-09-10/pipeline-runs/same-output/20260910T115130Z_3a32f7aa27250788_manifest.json",
+  "cost_stress": [
+    {
+      "sharpe": 1.6918390228666038,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.11014278776380104,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.03422823808542064,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.0,
+      "slippage_cost": 0.0012140833690549501,
+      "cost_drag": 0.0013486566950653422,
+      "fee_bps": 0.0,
+      "slippage_bps": 1.0,
+      "delay_bars": 0
+    },
+    {
+      "sharpe": 1.6427046577523756,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.10677794475727254,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.034317010520545366,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.0030352084226373745,
+      "slippage_cost": 0.0012140833690549501,
+      "cost_drag": 0.0047134997015938485,
+      "fee_bps": 2.5,
+      "slippage_bps": 1.0,
+      "delay_bars": 0
+    },
+    {
+      "sharpe": 1.5933908565860553,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.10342279300207124,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.03440577683085666,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.006070416845274749,
+      "slippage_cost": 0.0012140833690549501,
+      "cost_drag": 0.00806865145679514,
+      "fee_bps": 5.0,
+      "slippage_bps": 1.0,
+      "delay_bars": 0
+    },
+    {
+      "sharpe": 1.4943100924854686,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.09674145743849882,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.034583291078364775,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.012140833690549498,
+      "slippage_cost": 0.0012140833690549501,
+      "cost_drag": 0.014749987020367561,
+      "fee_bps": 10.0,
+      "slippage_bps": 1.0,
+      "delay_bars": 0
+    },
+    {
+      "sharpe": 1.2949358834215028,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.08349392127005584,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.03493824609021412,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.024281667381098996,
+      "slippage_cost": 0.0012140833690549501,
+      "cost_drag": 0.027997523188810547,
+      "fee_bps": 20.0,
+      "slippage_bps": 1.0,
+      "delay_bars": 0
+    }
+  ],
+  "slippage_stress": [
+    {
+      "sharpe": 1.6131365519696186,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.10476369244953543,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.03437027104168877,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.006070416845274749,
+      "slippage_cost": 0.0,
+      "cost_drag": 0.006727752009330956,
+      "fee_bps": 5.0,
+      "slippage_bps": 0.0,
+      "delay_bars": 0
+    },
+    {
+      "sharpe": 1.5933908565860553,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.10342279300207124,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.03440577683085666,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.006070416845274749,
+      "slippage_cost": 0.0012140833690549501,
+      "cost_drag": 0.00806865145679514,
+      "fee_bps": 5.0,
+      "slippage_bps": 1.0,
+      "delay_bars": 0
+    },
+    {
+      "sharpe": 1.5736198513634967,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.10208343991903135,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.03444128164010751,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.006070416845274749,
+      "slippage_cost": 0.0024281667381099003,
+      "cost_drag": 0.009408004539835035,
+      "fee_bps": 5.0,
+      "slippage_bps": 2.0,
+      "delay_bars": 0
+    },
+    {
+      "sharpe": 1.5141686515499424,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.09807464195577609,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.03454779018857024,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.006070416845274749,
+      "slippage_cost": 0.006070416845274749,
+      "cost_drag": 0.013416802503090297,
+      "fee_bps": 5.0,
+      "slippage_bps": 5.0,
+      "delay_bars": 0
+    },
+    {
+      "sharpe": 1.414705017018629,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.09142408182788375,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.03472528483964643,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.006070416845274749,
+      "slippage_cost": 0.012140833690549498,
+      "cost_drag": 0.020067362630982633,
+      "fee_bps": 5.0,
+      "slippage_bps": 10.0,
+      "delay_bars": 0
+    }
+  ],
+  "delay_stress": [
+    {
+      "sharpe": 1.5933908565860553,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.10342279300207124,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.03440577683085666,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.006070416845274749,
+      "slippage_cost": 0.0012140833690549501,
+      "cost_drag": 0.00806865145679514,
+      "fee_bps": 5.0,
+      "slippage_bps": 1.0,
+      "delay_bars": 0
+    },
+    {
+      "sharpe": 1.480425141412146,
+      "gross_sharpe": 1.5967027400515488,
+      "net_return": 0.09644571652416745,
+      "gross_return": 0.10438699372908067,
+      "max_dd": -0.04146285030426966,
+      "annual_turnover": 9.468706641812524,
+      "fee_cost": 0.006011877232896841,
+      "slippage_cost": 0.0012023754465793682,
+      "cost_drag": 0.007941277204913222,
+      "fee_bps": 5.0,
+      "slippage_bps": 1.0,
+      "delay_bars": 1
+    },
+    {
+      "sharpe": 1.3847814730397456,
+      "gross_sharpe": 1.50044247530678,
+      "net_return": 0.08759787394126906,
+      "gross_return": 0.09542293356321063,
+      "max_dd": -0.03998876743054214,
+      "annual_turnover": 9.413224762294544,
+      "fee_cost": 0.005976650642726693,
+      "slippage_cost": 0.0011953301285453387,
+      "cost_drag": 0.007825059621941577,
+      "fee_bps": 5.0,
+      "slippage_bps": 1.0,
+      "delay_bars": 2
+    },
+    {
+      "sharpe": 1.1823295703846082,
+      "gross_sharpe": 1.297068546086555,
+      "net_return": 0.07402331959883668,
+      "gross_return": 0.08169069303394716,
+      "max_dd": -0.03998876743054247,
+      "annual_turnover": 9.340512935907675,
+      "fee_cost": 0.005930484403750905,
+      "slippage_cost": 0.0011860968807501809,
+      "cost_drag": 0.0076673734351104805,
+      "fee_bps": 5.0,
+      "slippage_bps": 1.0,
+      "delay_bars": 3
+    }
+  ],
+  "parameter_perturbation": [
+    {
+      "sharpe": 1.3356037984378477,
+      "gross_sharpe": 1.4596668788697382,
+      "net_return": 0.09166560248640976,
+      "gross_return": 0.1007690875873104,
+      "max_dd": -0.03440577683085666,
+      "annual_turnover": 10.902387995434873,
+      "fee_cost": 0.006922151108212618,
+      "slippage_cost": 0.0013844302216425236,
+      "cost_drag": 0.009103485100900643,
+      "factor": 0.5,
+      "model_type": "logistic"
+    },
+    {
+      "sharpe": 1.5933908565860553,
+      "gross_sharpe": 1.7114377947398713,
+      "net_return": 0.10342279300207124,
+      "gross_return": 0.11149144445886638,
+      "max_dd": -0.03440577683085666,
+      "annual_turnover": 9.560906531307731,
+      "fee_cost": 0.006070416845274749,
+      "slippage_cost": 0.0012140833690549501,
+      "cost_drag": 0.00806865145679514,
+      "factor": 0.8,
+      "model_type": "logistic"
+    },
+    {
+      "sharpe": 1.8698581591165633,
+      "gross_sharpe": 1.9590431137987276,
+      "net_return": 0.12004193914993677,
+      "gross_return": 0.12646730898088188,
+      "max_dd": -0.03440577683085644,
+      "annual_turnover": 7.518626932939938,
+      "fee_cost": 0.004773731385993611,
+      "slippage_cost": 0.0009547462771987222,
+      "cost_drag": 0.006425369830945105,
+      "factor": 1.25,
+      "model_type": "logistic"
+    },
+    {
+      "sharpe": 1.9378576348946244,
+      "gross_sharpe": 2.00996228484947,
+      "net_return": 0.12440631335829844,
+      "gross_return": 0.1297568110977141,
+      "max_dd": -0.03440577683085699,
+      "annual_turnover": 6.243596377959285,
+      "fee_cost": 0.003964188176482086,
+      "slippage_cost": 0.0007928376352964172,
+      "cost_drag": 0.0053504977394156494,
+      "factor": 2.0,
+      "model_type": "logistic"
+    }
+  ],
+  "missing_data_stress": [
+    {
+      "sharpe": 2.0885847086363043,
+      "gross_sharpe": 2.256648293623514,
+      "net_return": 0.1280562035386621,
+      "gross_return": 0.13908120539947677,
+      "max_dd": -0.026017668945518047,
+      "annual_turnover": 12.768188515187276,
+      "fee_cost": 0.008106786358849065,
+      "slippage_cost": 0.0016213572717698132,
+      "cost_drag": 0.011025001860814676,
+      "missing_frac": 0.1,
+      "seed": 42
+    }
+  ],
+  "regime": [
+    {
+      "regime": "high_vol",
+      "level": 0.0,
+      "n": 149,
+      "sharpe": 2.535841519663487,
+      "max_dd": -0.023009151646563142,
+      "total_return": 0.0979463891317176
+    },
+    {
+      "regime": "high_vol",
+      "level": 1.0,
+      "n": 171,
+      "sharpe": 0.24045148639623978,
+      "max_dd": -0.03440577683085644,
+      "total_return": 0.00498786090519765
+    },
+    {
+      "regime": "drawdown_deep",
+      "level": 0.0,
+      "n": 129,
+      "sharpe": 0.04203899631451649,
+      "max_dd": -0.034080183030537725,
+      "total_return": 0.00045597700234689675
+    },
+    {
+      "regime": "drawdown_deep",
+      "level": 1.0,
+      "n": 191,
+      "sharpe": 2.3964655023420613,
+      "max_dd": -0.021585277771851263,
+      "total_return": 0.10291988689821419
+    },
+    {
+      "regime": "all",
+      "level": NaN,
+      "n": 320,
+      "sharpe": 1.5933908565860553,
+      "max_dd": -0.03440577683085666,
+      "total_return": 0.10342279300207124
+    }
+  ],
+  "ablation": [
+    {
+      "source": "price_volume",
+      "mean_oos_sharpe": 0.1725212527744716,
+      "median_oos_sharpe": 0.20535979930777204,
+      "mean_oos_auc": 0.5285023190958545,
+      "mean_oos_brier": 0.304827929310702,
+      "delta_sharpe_vs_price_only": NaN
+    },
+    {
+      "source": "price_plus_information",
+      "mean_oos_sharpe": 2.211232617181074,
+      "median_oos_sharpe": 2.0391188751387848,
+      "mean_oos_auc": 0.5492529196865413,
+      "mean_oos_brier": 0.32858951135945386,
+      "delta_sharpe_vs_price_only": 2.0387113644066024
+    }
+  ],
+  "placebo_null": [
+    {
+      "placebo_run": 0,
+      "seed": 191664963,
+      "mode": "shuffle_features",
+      "mean_oos_sharpe": -1.2498719940187746,
+      "median_oos_sharpe": -1.399555871785884
+    }
+  ],
+  "placebo_permute_target": [
+    {
+      "placebo_run": 0,
+      "seed": 191664963,
+      "mode": "permute_target",
+      "mean_oos_sharpe": -2.3615898785416443,
+      "median_oos_sharpe": -2.044397312878049
+    }
+  ],
+  "placebo_block_permute": [
+    {
+      "placebo_run": 0,
+      "seed": 191664963,
+      "mode": "block_permute",
+      "mean_oos_sharpe": -1.2435023716395623,
+      "median_oos_sharpe": -1.395855179653002
+    }
+  ],
+  "data_integrity_report": [
+    {
+      "symbol": "SPY",
+      "n_obs": 505,
+      "first": "2020-01-02T00:00:00+00:00",
+      "last": "2021-12-31T00:00:00+00:00",
+      "n_expected_sessions": 505,
+      "n_missing_sessions": 0,
+      "n_observed_closures": 0,
+      "n_weekend_bars": 0,
+      "n_holiday_bars": 0,
+      "n_zero_volume": 0
+    }
+  ],
+  "leaderboard": [
+    {
+      "experiment_id": "20260910T115130Z_3a32f7aa27250788",
+      "timestamp_utc": "20260910T115130Z",
+      "strategy": "walk_forward_baseline",
+      "data_mode": "synthetic",
+      "target": "SPY",
+      "universe": [
+        "SPY"
+      ],
+      "trials": 16,
+      "n_trials_global": 16,
+      "search_class": "bounded_small_search",
+      "mean_oos_sharpe": 2.211232617181074,
+      "median_oos_sharpe": 2.0391188751387848,
+      "mean_oos_auc": 0.5492529196865413,
+      "worst_oos_dd": -0.03440577683085677,
+      "bootstrap_lo": 0.06085669172359234,
+      "bootstrap_hi": 3.3018674532313828,
+      "survives_cost_stress": true,
+      "survives_delay_stress": true,
+      "placebo_percentile": 1.0,
+      "robustness_score": 1.0,
+      "dataset_version": "dcb4ac583ce8822f",
+      "feature_version": "9304939ac943d318",
+      "promotion_state": "RESEARCH_ONLY",
+      "failed_gates": "placebo_separates;placebo_sample_adequate"
+    }
+  ]
+}
