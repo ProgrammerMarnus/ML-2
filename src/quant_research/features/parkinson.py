@@ -125,12 +125,31 @@ def lagged_parkinson_volatility(ohlcv: pd.DataFrame) -> pd.Series:
 
     Raises:
         TypeError: If ohlcv is not a pandas DataFrame.
-        DataValidationError: If input validation fails.
+        DataValidationError: If input validation fails or if fabricated
+            ranges are detected (_synthetic_range marker present).
 
     Notes:
         Annualization assumes 252 observations per year. The function
         performs no imputation, scaling, or parameter fitting.
+        
+    D09 fix: Rejects data with _synthetic_range=True marker to prevent
+        computing volatility from fabricated OHLC ranges.
     """
+    # D09 fix: reject fabricated ranges before computation
+    if ohlcv is None or not isinstance(ohlcv, pd.DataFrame):
+        raise DataValidationError(
+            f"parkinson_volatility requires a non-None DataFrame; "
+            f"received {type(ohlcv).__name__}"
+        )
+    if "_synthetic_range" in ohlcv.columns:
+        if ohlcv["_synthetic_range"].any():
+            n_synthetic = ohlcv["_synthetic_range"].sum()
+            raise DataValidationError(
+                f"Cannot compute Parkinson volatility on fabricated ranges: "
+                f"{n_synthetic} rows have _synthetic_range=True. "
+                f"Parkinson volatility requires genuine high/low measurements."
+            )
+    
     _validate_input(ohlcv)
 
     work: pd.DataFrame = (

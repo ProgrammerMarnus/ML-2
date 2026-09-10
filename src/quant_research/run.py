@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -148,8 +149,15 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
     # same OOS family is visible across artifact directories.  The ledger lives in
     # a shared project location (not under ``out``) so separate output directories
     # still share the same family history.
-    _repo_root = Path(__file__).resolve().parents[2]
-    shared_ledger_dir = _repo_root / "data" / "research_ledgers"
+    # B18/D12: Make shared-ledger location injectable for test isolation.
+    # Default remains repo-root/data/research_ledgers for production runs.
+    ledger_dir_env = os.environ.get("ML2_LEDGER_DIR")
+    if ledger_dir_env:
+        shared_ledger_dir = Path(ledger_dir_env)
+    else:
+        # Derive repo root from this module's location
+        _module_root = Path(__file__).parent.parent
+        shared_ledger_dir = _module_root / "data" / "research_ledgers"
     shared_ledger_dir.mkdir(parents=True, exist_ok=True)
     ledger = SearchLedger(shared_ledger_dir / "search_ledger.jsonl")
     eval_fp = cfg.evaluation.fingerprint() if hasattr(cfg.evaluation, "fingerprint") else str(cfg.evaluation)
@@ -362,7 +370,7 @@ def _register_and_decide(cfg, out, report, baseline, summary, robustness, boot,
         {**summary, "annual_turnover": annual_turnover},
         robustness, boot, placebo, integrity_ok,
         report["feature_leakage_check"]["passed"], counter.count, cfg.promotion,
-        n_family_searches=(ledger.family_search_count(family_id) if ledger else 0),
+        n_family_searches=(ledger.family_attempt_count(family_id) if ledger else 0),
     )
     decision = promotion_decision(checks)
     folds = baseline.folds
