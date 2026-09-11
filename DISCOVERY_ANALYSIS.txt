@@ -612,3 +612,96 @@ CAVEATS - DO NOT OVER-CELEBRATE YET:
 ================================================================================
 END OF DISCOVERY ANALYSIS
 ================================================================================
+
+================================================================================
+
+EXPERIMENT 7 (LOCAL STABILITY): Seed 43 + data refresh - CANDIDATE WAS FRAGILE
+================================================================================
+
+- Ran locally on the Pi (fresh yfinance download, fresh research ledger via
+  QUANT_RESEARCH_LEDGER_DIR to mirror Colab's fresh-clone conditions)
+- Config: identical to Experiment 6 except model.random_seed=43
+- Experiment ID: 20260911T183421Z_ef826e491d987fbd
+
+RESULT: 12/14 gates passed, state RESEARCH_ONLY
+  FAILED: cost_stress_survives (20bps sharpe=-0.0816),
+          placebo_separates (percentile=0.40, adj_p=0.619)
+
+PERFORMANCE vs seed 42 (Colab):
+  Mean OOS Sharpe   +0.7502  ->  +0.2783
+  Full Net Sharpe   +0.7179  ->  +0.2496
+  Full Gross        +0.8445  ->  +0.3814
+  Max DD            -0.0630  ->  -0.0794
+  Trades            258      ->  282
+  Positive folds    6/7      ->  4/7
+  Bootstrap P(>0)   0.992    ->  0.808
+  Placebo pct       0.95     ->  0.40  (FLIPPED)
+  Cost 20bps        +0.397   ->  -0.082  (FLIPPED)
+  Delay 3 bars      +0.631   ->  +0.674  (HELD)
+  Gates             14/14    ->  12/14
+  State             CANDIDATE->  RESEARCH_ONLY
+
+Folds (seed 43):
+  F1 (2018-19): -0.5459 (was -0.0808)   F2 (2019-20): +0.0064 (was +0.7245)
+  F3 (2020-21): +1.2240 (was +1.0848)   F4 (2021-22): +1.9502 (was +1.9502 IDENTICAL)
+  F5 (2022-23): +0.7699 (was +0.9224)   F6 (2023-24): -0.9940 (was +0.1527 FLIPPED)
+  F7 (2024-25): -0.4625 (was +0.4974 FLIPPED)
+
+Fold 4 is byte-identical across seeds -> GradientBoosting with default
+subsample=1.0/max_features=None is effectively deterministic; the performance
+variance comes from (a) threshold/hold selection flipping on near-tied
+validation Sharpes, and (b) a DIFFERENT yfinance dataset download:
+  seed43 dataset_version e4d35affc5d3b3f9 (2 clipped OHLC rows)
+  vs V2/Colab 4d48473a9148484a / (1 clipped row)
+So this run measures seed + data-refresh variance together (a real-world
+download-refresh robustness test, not a pure seed test).
+
+INTERPRETATION:
+- The pv-2.2.0 signal extensions remain directionally positive on a fresh
+  download (net Sharpe +0.25, delay stress robust, 12/14 gates) but the
+  seed-42 CANDIDATE result does NOT replicate. Specifically:
+  * placebo_separates flipped from exactly-at-threshold (0.95) to failing
+    (0.40) - confirming the razor-thin margin was the binding constraint.
+  * cost stress at 20bps flipped - the strategy is cost-fragile at the 4x
+    stress level.
+- The experiment is UNSTABLE across data refreshes: fold-level threshold
+  selection (validation-tied) flips performance signs in F1/F6/F7.
+
+================================================================================
+
+EXPERIMENT 8 (LOCAL STABILITY): Seed 7 - SECOND NON-PASSING REPRO ON FRESH DATA
+================================================================================
+- Config: identical to Exp 7 except model.random_seed=7
+- Exp ID: 20260911T185438Z_29b2f71f3c17c121
+- dataset_version: 883de66bbd22cbde  <-- yet another fresh yfinance download
+
+RESULT: 12/14 gates, RESEARCH_ONLY  (same 2 failures as seed 43)
+  FAILED: cost_stress_survives (20bps -0.1617), placebo_separates (pct=0.70)
+  Net Sharpe +0.1973  |  Bootstrap P(>0)=0.6960 (just clears 0.65)
+  Folds: 4/7 positive; F5 flipped to -0.98, F6 +0.64, F1 -0.24
+
+--------------------------------------------------------------------------------
+3-SEED COMPOSITE (all on FRESH data downloads = reproducibility + refresh test)
+--------------------------------------------------------------------------------
+  Seed  Dataset    NetS  Mean  BootP>|0   Placebo  Cost20bps  Gates  State
+  42*   4d48473a   0.718  0.750 0.992  0.95 PASS   +0.397     14/14  CANDIDATE
+  43    e4d35aff   0.250  0.278 0.808  0.40 FAIL   -0.082     12/14  RESEARCH_ONLY
+  7     883de66b   0.197  0.348 0.696  0.70 FAIL   -0.162     12/14  RESEARCH_ONLY
+    (* = Colab; 43,7 = local Pi, fresh QUANT_RESEARCH_LEDGER_DIR)
+
+VERDICT: seed-42 CANDIDATE DID NOT REPLICATE.
+- Mean Sharpe drops +0.75 -> +0.28 -> +0.35 (median ~0.35 on refresh).
+- placebo_separates fails 2/2 on fresh downloads (0.40, 0.70), despite
+  passing on Colab - the edge sits inside the placebo null.
+- cost stress at 20bps fails 2/3 (the strategy is cost-fragile).
+- Delay stress is the one STABLE feature: 0.63/0.67/0.52 across all seeds.
+- Directionally positive: 12/14 gates, positive mean & median Sharpe,
+  delay-robust, turnover plausible -> viable RESEARCH signal, not production.
+- Root cause of the original inflation: favorable Colab data-refresh window
+  coincided with threshold/hold selection flipping in F6/F7 to positive.
+
+================================================================================
+FINAL VERDICT: pv-2.2.0 signal is a real-but-small RESEARCH signal.
+The seed-42 CANDIDATE is NOT confirmed; it was ~3x inflated by a favorable
+data-refresh + seed coincidence. Do NOT promote. Close this line of inquiry.
+================================================================================

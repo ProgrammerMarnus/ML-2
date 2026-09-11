@@ -1,0 +1,53 @@
+# Real-data research run (yfinance; no credentials required)
+data:
+  mode: yfinance
+  assets: [SPY, QQQ]
+  target: SPY
+  start: "2012-01-01"
+  end: "2026-01-01"
+  frequency: 1d
+  raw_snapshot_dir: data/raw_snapshots
+
+evaluation:
+  train_window: 1260
+  validation_window: 252
+  test_window: 252
+  step_bars: 252
+  purge_bars: 5
+  embargo_bars: 5
+  expanding: true
+
+execution:
+  fee_bps: 5.0
+  slippage_bps: 1.0
+  signal_delay_bars: 0
+  target_vol: 0.10
+  max_position: 1.0
+
+model:
+  type: gradient_boosting
+  random_seed: 43
+  parameters:
+    C: 1.0
+    max_iter: 1000
+  gb_n_estimators: 200
+  gb_learning_rate: 0.05
+  hold_bars: 5
+
+research:
+  max_trials: 48
+  bootstrap_samples: 500
+  placebo_runs: 20
+  threshold_candidates: [0.65, 0.70, 0.75, 0.80, 0.85, 0.90]
+  hold_candidates: [10, 15, 20, 30]
+
+promotion:
+  min_median_oos_sharpe: 0.0
+  min_mean_oos_sharpe: 0.0
+  max_oos_dd: -0.50
+  cost_stress_fee_bps: 10.0
+  delay_stress_bars: 1
+  min_bootstrap_positive_prob: 0.60
+  min_placebo_percentile: 0.95
+  max_single_fold_share: 0.60
+  max_annual_turnover: 60.0
