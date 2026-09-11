@@ -28,18 +28,21 @@ execution:
   max_position: 1.0
 
 model:
-  type: logistic           # logistic | gradient_boosting
+  type: gradient_boosting  # logistic | gradient_boosting
   random_seed: 42
   parameters:
     C: 1.0
     max_iter: 1000
+  gb_n_estimators: 200
+  gb_learning_rate: 0.05
+  hold_bars: 5
 
 research:
   max_trials: 48
   bootstrap_samples: 500
   placebo_runs: 20
-  threshold_candidates: [0.50, 0.52, 0.54, 0.56, 0.58, 0.60, 0.62, 0.64, 0.66]
-  hold_candidates: [1, 2, 3, 5]
+  threshold_candidates: [0.65, 0.70, 0.75, 0.80, 0.85, 0.90]
+  hold_candidates: [10, 15, 20, 30]
 
 promotion:
   min_median_oos_sharpe: 0.0

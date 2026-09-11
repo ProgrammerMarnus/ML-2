@@ -117,7 +117,7 @@ class ExecutionConfig:
 
 @dataclass(frozen=True)
 class ModelConfig:
-    type: str = "logistic"
+    type: str = "gradient_boosting"
     random_seed: int = 42
     parameters: Dict[str, Any] = field(default_factory=lambda: {"C": 1.0, "max_iter": 1000})
     # Optional explicit hyperparameters.  `None` means "unset": build_model falls
@@ -125,9 +125,9 @@ class ModelConfig:
     # configs working).  An explicitly set field (non-None) is authoritative and
     # overrides the ``parameters`` entry with the same meaning (C08/C09).
     logreg_C: Optional[float] = None
-    gb_learning_rate: Optional[float] = None
-    gb_n_estimators: Optional[int] = None
-    hold_bars: Optional[int] = None
+    gb_learning_rate: Optional[float] = 0.05
+    gb_n_estimators: Optional[int] = 200
+    hold_bars: Optional[int] = 5
 
     def __post_init__(self) -> None:
         import math
@@ -170,9 +170,9 @@ class ResearchConfig:
     bootstrap_samples: int = 500
     placebo_runs: int = 20
     threshold_candidates: List[float] = field(
-        default_factory=lambda: [0.50, 0.52, 0.54, 0.56, 0.58, 0.60, 0.62, 0.64, 0.66]
+        default_factory=lambda: [0.65, 0.70, 0.75, 0.80, 0.85, 0.90]
     )
-    hold_candidates: List[int] = field(default_factory=lambda: [1, 2, 3, 5])
+    hold_candidates: List[int] = field(default_factory=lambda: [10, 15, 20, 30])
 
     def __post_init__(self) -> None:
         if self.max_trials <= 0:

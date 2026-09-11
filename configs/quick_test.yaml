@@ -1,11 +1,12 @@
-# Real-data research run (yfinance; no credentials required)
+# Quick-test configuration (reduced trials for fast iteration)
 data:
-  mode: yfinance
-  assets: [SPY, QQQ]
+  mode: synthetic
+  assets: [SPY, QQQ, AAPL, MSFT, JPM, GLD, TLT]
   target: SPY
   start: "2012-01-01"
   end: "2026-01-01"
   frequency: 1d
+  csv_path: null
   raw_snapshot_dir: data/raw_snapshots
 
 evaluation:
@@ -30,16 +31,16 @@ model:
   parameters:
     C: 1.0
     max_iter: 1000
-  gb_n_estimators: 200
+  gb_n_estimators: 50
   gb_learning_rate: 0.05
   hold_bars: 5
 
 research:
-  max_trials: 48
-  bootstrap_samples: 500
-  placebo_runs: 20
-  threshold_candidates: [0.65, 0.70, 0.75, 0.80, 0.85, 0.90]
-  hold_candidates: [10, 15, 20, 30]
+  max_trials: 12
+  bootstrap_samples: 100
+  placebo_runs: 10
+  threshold_candidates: [0.50, 0.60, 0.70, 0.80]
+  hold_candidates: [3, 5, 10]
 
 promotion:
   min_median_oos_sharpe: 0.0

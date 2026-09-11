@@ -18,3 +18,7 @@ SYMBOL_DTYPE = "string"
 
 class DataValidationError(ValueError):
     """Raised when raw data violates the normalized schema or sanity rules."""
+
+
+class DataQualityWarning(UserWarning):
+    """Warned when minor provider data quality issues are tolerated (rows dropped)."""
