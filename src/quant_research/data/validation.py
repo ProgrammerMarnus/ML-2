@@ -98,27 +98,18 @@ def validate_ohlcv(df: pd.DataFrame, require_volume: bool = True) -> pd.DataFram
 
     # --- OHLC sanity -------------------------------------------------
     # B13: Enforce complete OHLC relationships. open and close must lie within
-    # [low, high], and volume must be finite (not infinite).
-    # Tolerant: drop minor violations (common in provider data like yfinance)
-    # rather than failing the entire pipeline.
-    tol = 0.001  # 0.1% tolerance for floating-point/provider data issues
-    ohlc_bad = (
-        (out["open"] < out["low"] * (1 - tol))
-        | (out["open"] > out["high"] * (1 + tol))
-        | (out["close"] < out["low"] * (1 - tol))
-        | (out["close"] > out["high"] * (1 + tol))
-    )
-    if ohlc_bad.any():
-        n_drop = int(ohlc_bad.sum())
-        import warnings
-        warnings.warn(
-            f"Dropping {n_drop} rows with OHLC relationship violations "
-            f"(close/open outside [low, high] range; likely provider data quality issues)",
-            DataQualityWarning,
+    # [low, high], and volume must be finite (not infinite).  Strict contract:
+    # fail loudly rather than silently repairing or dropping bars (A21/D08).
+    if (out["open"] < out["low"]).any() or (out["open"] > out["high"]).any():
+        bad = out[(out["open"] < out["low"]) | (out["open"] > out["high"])]
+        raise DataValidationError(
+            f"open price outside [low, high] range in {len(bad)} rows:\n{bad.head()}"
         )
-        out = out[~ohlc_bad].reset_index(drop=True)
-        if len(out) == 0:
-            raise DataValidationError("all rows dropped due to OHLC violations")
+    if (out["close"] < out["low"]).any() or (out["close"] > out["high"]).any():
+        bad = out[(out["close"] < out["low"]) | (out["close"] > out["high"])]
+        raise DataValidationError(
+            f"close price outside [low, high] range in {len(bad)} rows:\n{bad.head()}"
+        )
     if require_volume:
         if not np.isfinite(out["volume"]).all():
             bad = out[~np.isfinite(out["volume"])]
@@ -127,13 +118,7 @@ def validate_ohlcv(df: pd.DataFrame, require_volume: bool = True) -> pd.DataFram
             )
     bad_hilo = out["high"] < out["low"]
     if bad_hilo.any():
-        n_drop = int(bad_hilo.sum())
-        import warnings
-        warnings.warn(
-            f"Dropping {n_drop} rows where high < low (provider data quality issues)",
-            DataQualityWarning,
-        )
-        out = out[~bad_hilo].reset_index(drop=True)
+        raise DataValidationError(f"{int(bad_hilo.sum())} rows violate high >= low")
     for col in ("open", "high", "low", "close"):
         bad = (out[col] <= 0) | ~pd.to_numeric(out[col], errors="coerce").apply(
             lambda v: pd.notna(v) and abs(v) != float("inf")

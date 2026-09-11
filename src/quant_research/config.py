@@ -125,9 +125,9 @@ class ModelConfig:
     # configs working).  An explicitly set field (non-None) is authoritative and
     # overrides the ``parameters`` entry with the same meaning (C08/C09).
     logreg_C: Optional[float] = None
-    gb_learning_rate: Optional[float] = 0.05
-    gb_n_estimators: Optional[int] = 200
-    hold_bars: Optional[int] = 5
+    gb_learning_rate: Optional[float] = None
+    gb_n_estimators: Optional[int] = None
+    hold_bars: Optional[int] = None
 
     def __post_init__(self) -> None:
         import math

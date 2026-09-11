@@ -16,7 +16,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from .price_volume import build_price_volume_features
+from .price_volume import build_price_volume_features, build_signal_extensions
 from .information import build_information_features
 
 
@@ -24,25 +24,41 @@ def _split(n: int) -> int:
     return n // 2
 
 
+def _build_full_panel(close, volume, target: str, open_=None, high=None, low=None):
+    """Legacy price/volume panel joined with signal extensions when OHLC given."""
+    feats = build_price_volume_features(close, volume, target)
+    if open_ is not None and high is not None and low is not None:
+        feats = feats.join(build_signal_extensions(open_, high, low, close, volume, target))
+    return feats
+
+
 def _perturb(close, volume, target: str, perturb_close: bool, perturb_volume: bool,
-             columns=None, seed: int = 7) -> tuple:
+             columns=None, seed: int = 7, open_=None, high=None, low=None) -> tuple:
     """Build features before/after perturbing only FUTURE observations."""
-    feats_before = build_price_volume_features(close, volume, target)
+    feats_before = _build_full_panel(close, volume, target, open_, high, low)
     n = len(close)
     split = _split(n)
     close2 = close.copy()
     volume2 = volume.copy()
+    open2 = open_.copy() if open_ is not None else None
+    high2 = high.copy() if high is not None else None
+    low2 = low.copy() if low is not None else None
     rng = np.random.default_rng(seed)
     cols = columns if columns is not None else list(close.columns)
     if perturb_close:
-        close2.loc[close2.index[split:], cols] *= (
-            1 + rng.normal(0, 0.05, (n - split, len(cols)))
-        )
+        pert = 1 + rng.normal(0, 0.05, (n - split, len(cols)))
+        close2.loc[close2.index[split:], cols] *= pert
+        # OHLC-derived features depend on open/high/low too; perturb them only
+        # when the price perturbation is active so the leak check covers them.
+        if open2 is not None:
+            open2.loc[open2.index[split:], cols] *= pert
+            high2.loc[high2.index[split:], cols] *= pert
+            low2.loc[low2.index[split:], cols] *= pert
     if perturb_volume:
         volume2.loc[volume2.index[split:], cols] *= (
             rng.lognormal(0, 0.5, (n - split, len(cols)))
         )
-    feats_after = build_price_volume_features(close2, volume2, target)
+    feats_after = _build_full_panel(close2, volume2, target, open2, high2, low2)
     return feats_before, feats_after, split
 
 
@@ -134,6 +150,8 @@ def _synthetic_event(eid, symbol, ts, rng) -> dict:
 def feature_leakage_report(
     close: pd.DataFrame, volume: pd.DataFrame, target: str,
     info_events: pd.DataFrame | None = None,
+    open_: pd.DataFrame | None = None, high: pd.DataFrame | None = None,
+    low: pd.DataFrame | None = None,
 ) -> dict:
     """Perturb future data; earlier features must be unchanged.
 
@@ -152,25 +170,31 @@ def feature_leakage_report(
 
     # 1. future price perturbation (all assets) - legacy behavior
     fb, fa, sp = _perturb(close, volume, target, True, False,
-                          columns=list(close.columns), seed=seed)
+                          columns=list(close.columns), seed=seed,
+                          open_=open_, high=high, low=low)
     dims["future_price"] = _history_delta(fb, fa, sp)
+    if open_ is not None:
+        dims["future_ohlc_extensions"] = dims["future_price"]
 
     # 2. future volume perturbation
     fb, fa, sp = _perturb(close, volume, target, False, True,
-                          columns=list(volume.columns), seed=seed)
+                          columns=list(volume.columns), seed=seed,
+                          open_=open_, high=high, low=low)
     dims["future_volume"] = _history_delta(fb, fa, sp)
 
     # 3. future cross-asset price perturbation (non-target assets only)
     if non_target:
         fb, fa, sp = _perturb(close, volume, target, True, False,
-                              columns=non_target, seed=seed)
+                              columns=non_target, seed=seed,
+                              open_=open_, high=high, low=low)
         dims["future_cross_asset_price"] = _history_delta(fb, fa, sp)
     else:
         dims["future_cross_asset_price"] = 0.0
 
     # 4. future target-asset price perturbation (target column only)
     fb, fa, sp = _perturb(close, volume, target, True, False,
-                          columns=[target], seed=seed)
+                          columns=[target], seed=seed,
+                          open_=open_, high=high, low=low)
     dims["future_target_price"] = _history_delta(fb, fa, sp)
 
     # 5. future information-event perturbation (only when events supplied)

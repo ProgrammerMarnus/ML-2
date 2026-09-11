@@ -353,3 +353,121 @@ EXPERIMENT LOG (continued)
 ================================================================================
 END OF DISCOVERY ANALYSIS
 ================================================================================
+
+================================================================================
+
+EXPERIMENT 5 (COLAB): GBM n_est=200 on Real SPY/QQQ - HIGH THRESHOLD CONFIG
+================================================================================
+
+- Ran via Google Colab (VSCode extension) on 2026-09-11
+- Config: threshold=[0.65, 0.70, 0.75, 0.80, 0.85, 0.90], hold=[10, 15, 20, 30]
+- Model: gradient_boosting (n_est=200, lr=0.05)
+- Data: yfinance SPY/QQQ 2012-2025
+- Experiment ID: 20260911T154142Z_889e7ac671f1ff42
+
+PERFORMANCE:
+  Mean OOS Sharpe:   +0.3978
+  Median OOS Sharpe: +0.5916
+  Full Net Sharpe:   +0.2277
+  Full Gross Sharpe: +0.3354
+  AUC:               0.4955
+  Max DD:            -0.1103
+  Trades:            232
+  Positive Folds:    5 / 7
+
+PROMOTION GATES (11 passed, 3 failed):
+  PASS: median_oos_sharpe_positive, mean_oos_sharpe_positive, worst_dd_within_limit,
+        bootstrap_positive_prob, placebo_sample_adequate, not_single_fold,
+        turnover_plausible, data_integrity, lookahead_resolved,
+        trial_accounting_consistent, family_search_within_cap
+  FAIL: cost_stress_survives (20bps sharpe=-0.0412), delay_stress_survives
+        (3bars sharpe=-0.0265), placebo_separates (percentile=0.65)
+
+BOOTSTRAP:
+  Mean:       +0.2193
+  95% CI:     [-0.5136, +0.9626]
+  P(Sharpe>0): 0.7200
+
+PLACEBO:
+  Percentile:  0.6500 (needs 0.95)
+  Adj p-value: 0.3810
+  Null Mean:   +0.2212
+  Observed:    +0.3978
+  N Runs:      20
+
+COST STRESS:
+  fee=  0.0 bps: sharpe=+0.3175 [OK]
+  fee=  2.5 bps: sharpe=+0.2726 [OK]
+  fee=  5.0 bps: sharpe=+0.2277 [OK]
+  fee= 10.0 bps: sharpe=+0.1378 [OK]  <- survives at gate threshold!
+  fee= 20.0 bps: sharpe=-0.0412 [FAIL] <- gate fails because 20bps row negative
+
+DELAY STRESS:
+  delay= 0 bars: sharpe=+0.2277 [OK]
+  delay= 1 bars: sharpe=+0.3286 [OK]
+  delay= 2 bars: sharpe=+0.0196 [OK]
+  delay= 3 bars: sharpe=-0.0265 [FAIL] <- gate fails because 3bar row negative
+
+PER-FOLD RESULTS:
+  Fold 1 (2018-19): thr=0.65  sharpe=+1.1500  trades=56  to=11.39  net=+0.0545 auc=0.504
+  Fold 2 (2019-20): thr=0.70  sharpe=+NaN     trades=0   to=0.00   net=0.0000 auc=0.470
+  Fold 3 (2020-21): thr=0.65  sharpe=+0.3512  trades=42  to=7.22   net=+0.0158 auc=0.452
+  Fold 4 (2021-22): thr=0.75  sharpe=+1.1646  trades=8   to=3.09   net=+0.0216 auc=0.556
+  Fold 5 (2022-23): thr=0.65  sharpe=-1.4621  trades=98  to=13.92  net=-0.0695 auc=0.466
+  Fold 6 (2023-24): thr=0.70  sharpe=+0.5573  trades=9   to=3.63   net=+0.0147 auc=0.480
+  Fold 7 (2024-25): thr=0.65  sharpe=+0.6258  trades=19  to=5.80   net=+0.0202 auc=0.539
+
+================================================================================
+
+V1 vs V2 COMPARISON (both real SPY/QQQ, GBM n_est=200):
+================================================================================
+
+                     V1 (low threshold)     V2 (high threshold)
+  thresholds      [0.50..0.80]             [0.65..0.90]
+  holds           [5,10,15,20,30]          [10,15,20,30]
+  ---------------  ----------------------   ----------------------
+  Mean OOS Sharpe  +0.4963                  +0.3978
+  Full Net Sharpe  +0.2748                  +0.2277
+  Full Gross       +0.4431                  +0.3354
+  Cost drag        0.168 (imperfect)        0.108 (IMPROVED 36%)
+  Trades           563                      232  (IMPROVED 59%)
+  Positive folds   4 / 7                    5 / 7  (IMPROVED)
+  Max DD           -0.1294                  -0.1103 (IMPROVED)
+  Cost stress 10bp +0.134                   +0.138 (similar)
+  Cost stress 20bp -0.147                   -0.041 (IMPROVED 2.5x)
+  Delay stress 2b  -0.068                   +0.020 (IMPROVED - now positive)
+  Delay stress 3b  -0.076                   -0.027 (IMPROVED 3x)
+  Placebo pct      0.70                     0.65  (slightly worse)
+  Bootstrap P(>0)  0.746                    0.720 (similar)
+
+VERDICT ON HIGH-THRESHOLD STRATEGY:
+- CONFIRMED: the high-threshold, low-turnover profile works as designed
+  * 59% fewer trades (563 -> 232)
+  * 36% lower cost drag (0.168 -> 0.108)
+  * 5/7 positive folds (up from 4/7)
+  * Cost stress at 20bps improved from -0.147 to -0.041 (not yet positive)
+  * Delay stress at 2 bars flipped from negative to positive
+- TRADEOFF: net Sharpe slightly lower (+0.275 -> +0.228) because fewer trades
+  means less exposure during strong periods (Fold 3, Fold 7)
+- STILL FAILING (same 3 gates, marginally improved):
+  * cost_stress_survives: dies at 20bps fees
+  * delay_stress_survives: dies at 3 bars delay
+  * placebo_separates: 0.65 percentile
+- Fold 2 STILL has 0 trades (2019-2020): model has no confidence in that regime
+- Fold 5 (2022 bear) is the biggest loser: -1.46 Sharpe (98 trades, whipsawed)
+
+KEY TAKEAWAY:
+The high-threshold hypothesis is directionally CORRECT - turnover and cost drag
+improved dramatically and the strategy now survives 10bps fees. But it cannot
+fully close the remaining 3 gates without a better signal. The 20bps cost gate
+and 3-bar delay gate require either:
+  1. Much higher signal quality (better features/model) - NOT achievable by
+     threshold tuning alone
+  2. Accepting the strategy is RESEARCH_ONLY with these gates failed
+  3. Re-examining whether the 20bps/3bar stress levels are appropriate for the
+     actual execution costs of SPY/QQQ daily trading (SPY 5bps round trip is
+     realistic; 20bps is a 4x stress)
+
+================================================================================
+END OF DISCOVERY ANALYSIS
+================================================================================

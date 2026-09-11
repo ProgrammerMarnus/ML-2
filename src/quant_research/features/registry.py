@@ -14,7 +14,7 @@ from typing import List
 
 from .information import INFO_FEATURE_VERSION
 from .parkinson import PARKINSON_FEATURE_VERSION
-from .price_volume import FEATURE_VERSION
+from .price_volume import FEATURE_VERSION, SIGNAL_EXT_VERSION
 
 PRICE_VOLUME_SOURCE = "price_volume"
 INFORMATION_SOURCE = "information"
@@ -79,8 +79,27 @@ def information_feature_specs() -> List[FeatureSpec]:
     ]
 
 
+def signal_extension_feature_specs() -> List[FeatureSpec]:
+    v = SIGNAL_EXT_VERSION
+    rule = "trailing window ending at bar t (inclusive); no future data"
+    norm = "fold-local StandardScaler"
+    imp = "NaN during warm-up; fold-local imputer"
+    return [
+        FeatureSpec("overnight_gap", "open[t]/close[t-1]-1", PRICE_VOLUME_SOURCE, 2, rule, imp, norm, v),
+        FeatureSpec("intraday_return", "close[t]/open[t]-1", PRICE_VOLUME_SOURCE, 1, rule, imp, norm, v),
+        FeatureSpec("day_range_position", "(close-low)/(high-low)", PRICE_VOLUME_SOURCE, 1, rule, imp, norm, v),
+        FeatureSpec("rsi_14", "Wilder RSI(14) on daily changes", PRICE_VOLUME_SOURCE, 15, rule, imp, norm, v),
+        FeatureSpec("bollinger_position_20", "(close-SMA20)/(2*std20)", PRICE_VOLUME_SOURCE, 21, rule, imp, norm, v),
+        FeatureSpec("fifty_two_week_position", "(close-min252)/(max252-min252)", PRICE_VOLUME_SOURCE, 252, rule, imp, norm, v),
+        FeatureSpec("vol_of_vol_20", "std(realized_vol_20, 20)", PRICE_VOLUME_SOURCE, 41, rule, imp, norm, v),
+        FeatureSpec("price_volume_corr_20", "corr(daily ret, log vol change, 20)", PRICE_VOLUME_SOURCE, 22, rule, imp, norm, v),
+        FeatureSpec("amihud_illiquidity_20", "mean(|ret|/dollar_volume, 20)", PRICE_VOLUME_SOURCE, 21, rule, imp, norm, v),
+    ]
+
+
 def registry() -> List[FeatureSpec]:
-    return price_volume_feature_specs() + information_feature_specs()
+    return (price_volume_feature_specs() + signal_extension_feature_specs()
+            + information_feature_specs())
 
 
 def registry_hash(names: List[str]) -> str:

@@ -31,7 +31,7 @@ import pandas as pd
 
 from . import CODE_VERSION
 from .config import AppConfig, load_config
-from .data.loaders import load_market_data, to_panels
+from .data.loaders import load_market_data, to_panels, to_price_panels
 from .data.snapshots import create_run_manifest, get_git_info, save_manifest, save_snapshot
 from .data.validation import missing_data_report, validate_ohlcv
 from .evaluation.bootstrap import bootstrap_sharpe
@@ -47,7 +47,7 @@ from .experiments.promotion import evaluate_gates, promotion_decision, stress_su
 from .experiments.registry import ExperimentRegistry, TrialCounter, SearchLedger
 from .features.information import build_information_features
 from .features.leakage import feature_leakage_report
-from .features.price_volume import build_price_volume_features
+from .features.price_volume import build_price_volume_features, build_signal_extensions
 from .features.point_in_time import validate_events
 from .features.registry import registry_hash
 from .portfolio.risk import risk_report
@@ -105,6 +105,7 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
     snapshot_meta = save_snapshot(ohlcv, cfg.data.raw_snapshot_dir, name=f"{cfg.data.mode}_ohlcv")
     dataset_version = snapshot_meta["dataset_hash"]
     close, volume = to_panels(ohlcv)
+    open_, high, low = to_price_panels(ohlcv)[:3]
     report["data_meta"] = data_meta
     report["snapshot_metadata"] = snapshot_meta
     report["ohlcv"] = ohlcv
@@ -120,14 +121,16 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
 
     # --- 3. features -----------------------------------------------------------
     price_feats = build_price_volume_features(close, volume, cfg.data.target)
+    ext_feats = build_signal_extensions(open_, high, low, close, volume, cfg.data.target)
     if events is not None:
         info_feats = build_information_features(close.index, events, cfg.data.target)
-        features = price_feats.join(info_feats, how="left")
+        features = price_feats.join(ext_feats, how="left").join(info_feats, how="left")
         info_cols = list(info_feats.columns)
     else:
-        features = price_feats
+        features = price_feats.join(ext_feats, how="left")
         info_cols = []
-    leakage = feature_leakage_report(close, volume, cfg.data.target, info_events=events)
+    leakage = feature_leakage_report(close, volume, cfg.data.target, info_events=events,
+                                     open_=open_, high=high, low=low)
     report["feature_leakage_check"] = leakage
     integrity_ok = integrity_ok and leakage["passed"]
 
@@ -391,7 +394,7 @@ def _register_and_decide(cfg, out, report, baseline, summary, robustness, boot,
         "trials_this_experiment": int(counter.count - start_count),
         "dataset_version": dataset_version,
         "feature_version": feature_version,
-        "strategy_version": "baseline-2.1.3",
+        "strategy_version": "baseline-2.2.0",
         "code_version": CODE_VERSION,
         "seed": cfg.model.random_seed,
         "config_fingerprint": cfg.fingerprint(),

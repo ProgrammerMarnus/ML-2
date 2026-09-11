@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 from ..config import DataConfig
-from .schemas import DataValidationError, OHLCV_COLUMNS
+from .schemas import DataValidationError, DataQualityWarning, OHLCV_COLUMNS
 from .validation import expected_sessions, validate_ohlcv
 
 
@@ -178,7 +178,7 @@ def load_yfinance_ohlcv(assets: List[str], start: str, end: str) -> pd.DataFrame
         raise DataValidationError("yfinance normalization produced no rows")
     long = pd.concat(frames, ignore_index=True).sort_values(
         ["timestamp", "symbol"], kind="stable").reset_index(drop=True)
-    return validate_ohlcv(long)
+    return _clean_provider_ohlc(long)
 
 
 def _frame_from_provider(symbol: str, sub: pd.DataFrame, date_col: str) -> pd.DataFrame:
@@ -193,6 +193,40 @@ def _frame_from_provider(symbol: str, sub: pd.DataFrame, date_col: str) -> pd.Da
             "volume": sub["Volume"].to_numpy(dtype="float64"),
         }
     )
+
+
+def _clean_provider_ohlc(long: pd.DataFrame) -> pd.DataFrame:
+    """yfinance adapter-specific OHLC containment repair (documented).
+
+    yfinance occasionally emits a close/open a few bps outside [low, high]
+    (provider rounding artifact).  The shared, strict validator still rejects
+    such bars everywhere else; here we clip ONLY tiny violations back into the
+    band and surface a DataQualityWarning.  Any violation beyond the tolerance
+    band fails loudly rather than being repaired.
+    """
+    tol = 0.005  # 0.5% band - beyond this treat as corruption
+    ll, hh = long["low"], long["high"]
+    oc = long["close"], long["open"]
+    big = (
+        (oc[0] < ll * (1 - tol)) | (oc[0] > hh * (1 + tol))
+        | (oc[1] < ll * (1 - tol)) | (oc[1] > hh * (1 + tol))
+    )
+    if big.any():
+        raise DataValidationError(
+            f"yfinance rows violate OHLC containment beyond {tol * 100:.1f}% "
+            f"tolerance ({int(big.sum())} rows); refusing to repair large disagreements"
+        )
+    repair = (oc[0] < ll) | (oc[0] > hh) | (oc[1] < ll) | (oc[1] > hh)
+    if repair.any():
+        long.loc[repair, "close"] = oc[0].clip(lower=ll, upper=hh)
+        long.loc[repair, "open"] = oc[1].clip(lower=ll, upper=hh)
+        import warnings
+        warnings.warn(
+            f"Clipped {int(repair.sum())} yfinance OHLC containment violation(s) "
+            f"into [low, high] (provider rounding artifact; documented repair)",
+            DataQualityWarning,
+        )
+    return validate_ohlcv(long)
 
 
 def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
@@ -343,3 +377,13 @@ def to_panels(ohlcv: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     close = ohlcv.pivot(index="timestamp", columns="symbol", values="close").sort_index()
     volume = ohlcv.pivot(index="timestamp", columns="symbol", values="volume").sort_index()
     return close, volume
+
+
+def to_price_panels(ohlcv: pd.DataFrame):
+    """Convert validated long OHLCV to wide (open, high, low, close, volume) frames."""
+    open_ = ohlcv.pivot(index="timestamp", columns="symbol", values="open").sort_index()
+    high = ohlcv.pivot(index="timestamp", columns="symbol", values="high").sort_index()
+    low = ohlcv.pivot(index="timestamp", columns="symbol", values="low").sort_index()
+    close = ohlcv.pivot(index="timestamp", columns="symbol", values="close").sort_index()
+    volume = ohlcv.pivot(index="timestamp", columns="symbol", values="volume").sort_index()
+    return open_, high, low, close, volume

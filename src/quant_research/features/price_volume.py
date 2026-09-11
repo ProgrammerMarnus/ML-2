@@ -13,6 +13,7 @@ import pandas as pd
 from ..data.validation import validate_wide_panel
 
 FEATURE_VERSION = "pv-2.1.0"
+SIGNAL_EXT_VERSION = "pv-2.2.0"
 
 
 def simple_returns(close: pd.DataFrame) -> pd.DataFrame:
@@ -135,3 +136,124 @@ def make_labels(close: pd.DataFrame, target: str, horizon: int = 1) -> pd.Series
     label = pd.Series(np.nan, index=close.index)
     label[fwd.notna()] = (fwd[fwd.notna()] > 0).astype(float)
     return label
+
+
+# ---------------------------------------------------------------------------
+# Signal-extension features (pv-2.2.0) - all causal from data at/before bar t
+# ---------------------------------------------------------------------------
+
+
+def overnight_gap(open_: pd.DataFrame, close: pd.DataFrame) -> pd.DataFrame:
+    """open[t] / close[t-1] - 1 (overnight session gap).
+
+    Uses open at bar t and close at bar t-1; known at bar t open.  Well-
+    documented that overnight and intraday returns have different dynamics.
+    """
+    return open_ / close.shift(1) - 1.0
+
+
+def intraday_return(open_: pd.DataFrame, close: pd.DataFrame) -> pd.DataFrame:
+    """close[t] / open[t] - 1 (daytime-only return within bar t)."""
+    return close / open_ - 1.0
+
+
+def day_range_position(high: pd.DataFrame, low: pd.DataFrame,
+                        close: pd.DataFrame) -> pd.DataFrame:
+    """(close - low) / (high - low): where the close sits in the day's range.
+
+    Zero-range bars (flat tape) yield NaN rather than fabricated values.
+    """
+    rng = high - low
+    return (close - low) / rng.replace(0.0, np.nan)
+
+
+def rsi(close: pd.DataFrame, window: int = 14) -> pd.DataFrame:
+    """Wilder RSI over daily changes ending at bar t (inclusive)."""
+    delta = close.diff()
+    gain = delta.clip(lower=0.0)
+    loss = (-delta).clip(lower=0.0)
+    avg_gain = gain.ewm(alpha=1.0 / window, min_periods=window, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1.0 / window, min_periods=window, adjust=False).mean()
+    rs = avg_gain / avg_loss.replace(0.0, np.nan)
+    return 100.0 - 100.0 / (1.0 + rs)
+
+
+def bollinger_position(close: pd.DataFrame, window: int = 20) -> pd.DataFrame:
+    """(close - SMA) / (2 * std) over trailing `window` bars ending at t."""
+    sma = close.rolling(window, min_periods=window).mean()
+    sd = close.rolling(window, min_periods=window).std()
+    return (close - sma) / (2.0 * sd.replace(0.0, np.nan))
+
+
+def fifty_two_week_position(close: pd.DataFrame, window: int = 252) -> pd.DataFrame:
+    """(close - min) / (max - min) over the trailing 252-bar range."""
+    rng = close.rolling(window, min_periods=window).max() -         close.rolling(window, min_periods=window).min()
+    num = close - close.rolling(window, min_periods=window).min()
+    return num / rng.replace(0.0, np.nan)
+
+
+def vol_of_vol(close: pd.DataFrame, window: int = 20) -> pd.DataFrame:
+    """Rolling std of realized volatility: volatility-clustering regime proxy."""
+    rv = realized_volatility(close, window)
+    return rv.rolling(window, min_periods=window).std()
+
+
+def price_volume_correlation(close: pd.DataFrame, volume: pd.DataFrame,
+                              window: int = 20) -> pd.DataFrame:
+    """Rolling correlation of daily return with log-volume change (t-window)."""
+    rets = simple_returns(close)
+    vol_chg = np.log(volume / volume.shift(1))
+    return rets.rolling(window, min_periods=window).corr(vol_chg)
+
+
+def amihud_illiquidity(close: pd.DataFrame, volume: pd.DataFrame,
+                        window: int = 20) -> pd.DataFrame:
+    """Mean(|ret| / dollar_volume) over the trailing `window` bars.
+
+    A rolling Amihud-style liquidity-stress proxy (higher = more illiquid).
+    """
+    rets = simple_returns(close).abs()
+    dv = (close * volume).replace(0.0, np.nan)
+    ratio = rets / dv
+    return ratio.rolling(window, min_periods=window).mean()
+
+
+SIGNAL_EXTENSION_COLUMNS = [
+    "overnight_gap",
+    "intraday_return",
+    "day_range_position",
+    "rsi_14",
+    "bollinger_position_20",
+    "fifty_two_week_position",
+    "vol_of_vol_20",
+    "price_volume_corr_20",
+    "amihud_illiquidity_20",
+]
+
+
+def build_signal_extensions(
+    open_: pd.DataFrame, high: pd.DataFrame, low: pd.DataFrame,
+    close: pd.DataFrame, volume: pd.DataFrame, target: str,
+) -> pd.DataFrame:
+    """Assemble the pv-2.2.0 signal-extension panel for `target` (causal)."""
+    validate_wide_panel(open_, "open")
+    validate_wide_panel(high, "high")
+    validate_wide_panel(low, "low")
+    validate_wide_panel(close, "close")
+    validate_wide_panel(volume, "volume", allow_zero=True)
+    if target not in close.columns:
+        raise KeyError(f"target {target!r} not in close panel")
+
+    parts = {
+        "overnight_gap": overnight_gap(open_, close)[target],
+        "intraday_return": intraday_return(open_, close)[target],
+        "day_range_position": day_range_position(high, low, close)[target],
+        "rsi_14": rsi(close, 14)[target],
+        "bollinger_position_20": bollinger_position(close, 20)[target],
+        "fifty_two_week_position": fifty_two_week_position(close, 252)[target],
+        "vol_of_vol_20": vol_of_vol(close, 20)[target],
+        "price_volume_corr_20": price_volume_correlation(close, volume, 20)[target],
+        "amihud_illiquidity_20": amihud_illiquidity(close, volume, 20)[target],
+    }
+    feats = pd.DataFrame(parts, index=close.index).sort_index()
+    return feats
