@@ -471,3 +471,144 @@ and 3-bar delay gate require either:
 ================================================================================
 END OF DISCOVERY ANALYSIS
 ================================================================================
+
+================================================================================
+
+EXPERIMENT 6 (COLAB): GBM n_est=200 + pv-2.2.0 SIGNAL EXTENSIONS - BREAKTHROUGH
+================================================================================
+
+- Ran via Google Colab (VSCode extension) on 2026-09-11, commit f18e8cd
+- Config: threshold=[0.65..0.90], hold=[10,15,20,30], GBM n_est=200, lr=0.05
+- Features: 11 legacy + 9 pv-2.2.0 extensions = 20 total
+- New features: overnight_gap, intraday_return, day_range_position, rsi_14,
+  bollinger_position_20, fifty_two_week_position, vol_of_vol_20,
+  price_volume_corr_20, amihud_illiquidity_20
+- Data: yfinance SPY/QQQ 2012-2025 (1 yfinance rounding artifact clipped,
+  documented via DataQualityWarning)
+- Experiment ID: 20260911T180001Z_e34a1de87d7c7d82
+
+RESULT: *** ALL 14 PROMOTION GATES PASSED - FIRST TIME IN PROJECT HISTORY ***
+
+PROMOTION: CANDIDATE (auto-promoted from RESEARCH_ONLY)
+  All gates: median_oos_sharpe_positive, mean_oos_sharpe_positive,
+  worst_dd_within_limit, cost_stress_survives, delay_stress_survives,
+  bootstrap_positive_prob, placebo_separates, placebo_sample_adequate,
+  not_single_fold, turnover_plausible, data_integrity, lookahead_resolved,
+  trial_accounting_consistent, family_search_within_cap
+
+PERFORMANCE:
+  Mean OOS Sharpe:   +0.7502
+  Median OOS Sharpe: +0.7245
+  Full Net Sharpe:   +0.7179
+  Full Gross Sharpe: +0.8445
+  AUC:               0.4878 (still near-random - edge is NOT from AUC)
+  Max DD:            -0.0630 (best ever; halved from V1)
+  Trades:            258
+  Positive Folds:    6 / 7
+
+COST STRESS (previously failing gate):
+  fee=  0.0 bps: sharpe=+0.8235 [OK]
+  fee=  2.5 bps: sharpe=+0.7708 [OK]
+  fee=  5.0 bps: sharpe=+0.7179 [OK]
+  fee= 10.0 bps: sharpe=+0.6115 [OK]
+  fee= 20.0 bps: sharpe=+0.3971 [OK]  <- was -0.041 in V2; now strongly positive
+
+DELAY STRESS (previously failing gate):
+  delay= 0 bars: sharpe=+0.7179 [OK]
+  delay= 1 bars: sharpe=+0.6554 [OK]
+  delay= 2 bars: sharpe=+0.6759 [OK]
+  delay= 3 bars: sharpe=+0.6314 [OK]  <- was -0.027 in V2; now strongly positive
+
+BOOTSTRAP:
+  Mean:       +0.7485
+  95% CI:     [+0.1344, +1.4045]  <- CI entirely above zero (was crossing zero)
+  P(Sharpe>0): 0.9920  <- was 0.720
+
+PLACEBO (previously failing gate):
+  Percentile:  0.9500  <- exactly at the 0.95 gate threshold (PASS by design)
+  Adj p-value: 0.0952  <- below the 0.10 requirement (2/21 with n=20)
+  Null Mean:   +0.2745
+  Observed:    +0.7502  <- 2.7x the null mean
+  N Runs:      20
+
+PER-FOLD RESULTS (6/7 positive):
+  Fold 1 (2018-19): thr=0.65  sharpe=-0.0808  trades=80  to=15.08  net=-0.006
+  Fold 2 (2019-20): thr=0.70  sharpe=+0.7245  trades=24  to= 5.32  net=+0.019
+  Fold 3 (2020-21): thr=0.65  sharpe=+1.0848  trades=44  to= 8.58  net=+0.049
+  Fold 4 (2021-22): thr=0.65  sharpe=+1.9502  trades=34  to=11.34  net=+0.077
+  Fold 5 (2022-23): thr=0.70  sharpe=+0.9224  trades=51  to= 7.37  net=+0.040
+  Fold 6 (2023-24): thr=0.70  sharpe=+0.1527  trades=18  to= 6.86  net=+0.004
+  Fold 7 (2024-25): thr=0.70  sharpe=+0.4974  trades= 7  to= 2.87  net=+0.009
+
+Note: Fold 2 (2019-20) NOW TRADES (24 trades) - the pv-2.2.0 features gave the
+model confidence in a regime where the legacy features had none (0 trades in
+both V1 and V2). Fold 5 (2022 bear) flipped from -1.46 (V2) to +0.92.
+
+================================================================================
+
+THREE-EXPERIMENT COMPARISON (all real SPY/QQQ, GBM n_est=200):
+================================================================================
+
+                    V1 (low thr)    V2 (high thr)   V3 (+pv-2.2.0)
+  features          11              11              20 (+9 extensions)
+  thresholds        [0.50..0.80]    [0.65..0.90]    [0.65..0.90]
+  ----------------  --------------  --------------  --------------
+  Full Net Sharpe   +0.275          +0.228          +0.718  (2.6x V1)
+  Full Gross        +0.443          +0.335          +0.845
+  Max DD            -0.129          -0.110          -0.063  (halved)
+  Trades            563             232             258
+  Positive folds    4/7             5/7             6/7
+  Bootstrap P(>0)   0.746           0.720           0.992
+  Placebo pct       0.70            0.65            0.95
+  Cost 20bps        -0.147          -0.041          +0.397
+  Delay 3 bars      -0.076          -0.027          +0.631
+  Gates passed      11/14           11/14           14/14
+  State             RESEARCH_ONLY   RESEARCH_ONLY   CANDIDATE
+
+================================================================================
+
+WHAT THE 9 pv-2.2.0 FEATURES CHANGED - ATTRIBUTION HYPOTHESES:
+================================================================================
+
+1. OVERNIGHT/INTRADAY DECOMPOSITION (overnight_gap, intraday_return):
+   The biggest likely contributor. Overnight returns mean-revert while daytime
+   returns trend differently; separating them gives the model two independent
+   edges instead of one noisy daily return. Fold 2 (2019-20) going from 0 to
+   24 profitable trades suggests the model now sees regime-appropriate signal
+   where legacy features were blind.
+
+2. RANGE/LOCATION FEATURES (day_range_position, bollinger_position_20,
+   fifty_two_week_position): closing location within the day/52wk range is a
+   classic continuation/reversal tell. Likely improved the 2022 bear fold
+   (whipsaw identification).
+
+3. RSI_14: classic momentum oscillator - complements the legacy rolling
+   momentum with a bounded, normalized form.
+
+4. VOLATILITY CLUSTERING (vol_of_vol_20): identifies vol-regime transitions,
+   which matter for the vol-targeted sizing.
+
+5. LIQUIDITY/VOLUME INTERACTION (price_volume_corr_20, amihud_illiquidity_20):
+   volume-confirmation and liquidity stress add an information dimension
+   absent from pure price features.
+
+CAVEATS - DO NOT OVER-CELEBRATE YET:
+- Placebo percentile 0.95 is EXACTLY at the gate threshold. With n=20 nulls,
+  adjusted p = 0.0952 barely passes 0.10. One more null >= observed would flip
+  percentile to 0.90 and FAIL. This is not a comfortable margin.
+- AUC remains ~0.49: the directional model still cannot discriminate better
+  than random on average. Profit comes from threshold/tail + vol timing.
+- Single dataset, single seed. We have now run 6 experiments total; the
+  family_search_within_cap gate passed (family cap not exceeded), but the
+  result should be confirmed with: (a) different seeds, (b) an extended
+  dataset (add 2026 data), (c) per-feature ablation to attribute which of the
+  9 new features carry the edge (leakage-safe, validation-selected only).
+- Feature-count inflation: 20 features with ~500-2700 training bars per fold
+  still leaves room for overfit; the placebo result is the main defense and
+  it is thin.
+- NEXT STATE: CANDIDATE. Reaching PAPER_READY requires the manual paper-trading
+  infrastructure (paper.py + paper_validation.py now exist in the repo).
+
+================================================================================
+END OF DISCOVERY ANALYSIS
+================================================================================
