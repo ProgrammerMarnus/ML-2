@@ -72,9 +72,17 @@ def apply_change(task):
         RUNPY.write_text("\n".join(out) + "\n")
         print("    patched run.py to drop " + feat, flush=True)
     elif task["kind"] == "seed":
+        # derive seed number from tag like "seed44" -> 44
+        tag = task["tag"]
+        if tag.startswith("seed") and tag[4:].isdigit():
+            seed = int(tag[4:])
+        else:
+            raise ValueError(
+                f"seed task tag '{tag}' does not look like seed<N>"
+            )
         cfg = REPO / "configs" / "real_spy.yaml"
         text = cfg.read_text().replace(
-            "random_seed: 42", "random_seed: " + str(task["seed"])
+            "random_seed: 42", "random_seed: " + str(seed)
         )
         Path(task["cfg"]).write_text(text)
     elif task["kind"] == "variant":
