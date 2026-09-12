@@ -69,7 +69,7 @@ LOG_FILE = REPO_ROOT / "strategy-runs.jsonl"
 RESULT_RE = re.compile(
     r"RESULT\s+net_sharpe=([+-]?\d+(?:\.\d+)?)\s+state=([A-Z_]+)\s+gates=(\d+)/(\d+)"
 )
-
+HEADER_RE = re.compile(r"^([a-z0-9]+)\|(.+?)\|(act|plan)\|\d+/\d+", re.MULTILINE)
 GUARDS = """HARD RULES (never violate):
 - RESEARCH RUNS ONLY. No live orders, no broker code, do not touch
   paper.py / operational.py / paper_validation.py.
@@ -251,15 +251,17 @@ def run_one(runner, prompt, mode, thinking, passthru, per_task_min, task_id, tag
                               text=True, timeout=(per_task_min + 5) * 60)
         out = (proc.stdout or "") + "\n" + (proc.stderr or "")
         m = RESULT_RE.search(out[-4000:])
+        hdrs = HEADER_RE.findall(out)
+        model = ("%s/%s" % hdrs[-1][:2]) if hdrs else "?"
         if m and proc.returncode == 0:
-            return True, proc.returncode, m.group(0), round(time.time() - t0, 1)
+            return True, proc.returncode, m.group(0), model, round(time.time() - t0, 1)
         tail = (proc.stderr or proc.stdout or "").strip().splitlines()[-3:]
         why = "NO-RESULT-LINE"
         if tail:
             why = "rc=%d | %s" % (proc.returncode, " // ".join(s.strip()[:120] for s in tail))
-        return False, proc.returncode, why, round(time.time() - t0, 1)
+        return False, proc.returncode, why, model, round(time.time() - t0, 1)
     except subprocess.TimeoutExpired:
-        return False, 124, "TIMEOUT", round(time.time() - t0, 1)
+        return False, 124, "TIMEOUT", "?", round(time.time() - t0, 1)
 
 
 def build_arg_parser():
@@ -389,18 +391,18 @@ def main(argv=None):
             if args.no_commit:
                 prompt = strip_commits(prompt)
             full_prompt = prompt + "\n\n" + GUARDS.format(m=args.per_task_min)
-            ok, rc, result, secs = run_one(
+            ok, rc, result, model, secs = run_one(
                 args.runner, full_prompt, args.mode, args.thinking,
                 passthru, args.per_task_min, tid, tag)
             entry = {"task_id": tid, "tag": tag, "status": "ok" if ok else "fail",
-                     "rc": rc, "result": result, "secs": secs,
+                     "rc": rc, "result": result, "model": model, "secs": secs,
                      "ts": datetime.now(timezone.utc).isoformat()}
             write_log(args.log, entry)
             if args.prune and ok:
                 removed = prune_task_artifacts(str(REPO_ROOT), tag.replace("abl_", "abl").split("_")[0] + "_" + tag.split("_", 1)[-1] if "_" in tag else tag)
                 entry["pruned"] = removed
             mark = "OK " if ok else "FAIL"
-            print(f"[{mark}] {tid} {tag} {result} ({secs}s)", flush=True)
+            print(f"[{mark}] {tid} {tag} [{model}] {result} ({secs}s)", flush=True)
             if ok:
                 ok_count += 1
             else:
