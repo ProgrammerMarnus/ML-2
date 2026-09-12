@@ -1156,3 +1156,96 @@ VERDICT (PHASE B seed 46):
 - Close this line: no further seed-chasing without a new signal hypothesis.
 
 ================================================================================
+PHASE B (LOCAL): Seed 46 vs 42/43/7 + 44/44r/45 - DETAILED ANALYSIS
+================================================================================
+
+Seed 46 analysis vs prior seeds (42/43/7 historical + 44/44r/45 fresh):
+
+SEED COMPARISON TABLE:
+┌───────┬────────────┬────────┬────────┬────────┬────────┬──────────┬──────────┬──────────┬───────┬─────────────────┐
+│ Seed  │  Dataset   │ NetSR  │  Mean  │  Med   │ BootP  │ Placebo  │ Cost10bp │ Cost20bp │ Delay │ Gates / State   │
+│       │  hash(hex) │        │  SR    │  SR    │ >0     │   pct    │          │          │  3b   │                 │
+├───────┼────────────┼────────┼────────┼────────┼────────┼──────────┼──────────┼──────────┼───────┼─────────────────┤
+│ 42*   │ 4d48473a   │ +0.718 │ +0.750 │ n/a    │ 0.992  │ 0.95 PASS│ +0.397   │ +0.631   │ +1.36 │ 14/14 CANDIDATE │
+│ 43    │ e4d35aff   │ +0.250 │ +0.278 │ +0.006 │ 0.808  │ 0.40 FAIL│ +0.139   │ -0.082   │ +0.67 │ 12/14 RESEARCH_ │
+│ 7     │ 883de66b   │ +0.197 │ +0.348 │ +0.006 │ 0.696  │ 0.70 FAIL│ +0.078   │ -0.162   │ +0.52 │ 12/14 RESEARCH_ │
+│ 44    │ 185d05e0   │ +0.353 │ +0.353 │ +0.236 │ 0.868  │ 0.70 FAIL│ +0.240   │ +0.015   │ +0.35 │ 13/14 RESEARCH_ │
+│ 44r   │ af3db0ba   │ +0.314 │ +0.359 │ +0.218 │ 0.834  │ 0.60 FAIL│ +0.204   │ -0.017   │ +0.35 │ 12/14 RESEARCH_ │
+│ 45    │ a773ba6f   │ +0.113 │ +0.229 │ +0.006 │ 0.644  │ 0.50 FAIL│ -0.007   │ -0.246   │ +0.31 │ 12/14 RESEARCH_ │
+│ 46    │ c55e8526   │ +0.345 │ +0.552 │ +0.243 │ 0.858  │ 0.90 FAIL│ +0.232   │ +0.004   │ +0.44 │ 13/14 RESEARCH_ │
+└───────┴────────────┴────────┴────────┴────────┴────────┴──────────┴──────────┴──────────┴───────┴─────────────────┘
+* = historical anchor (do NOT report as current; rest = fresh yfinance downloads)
+
+KEY OBSERVATIONS vs 42/43/7 + 44/44r/45:
+
+1. NET SHARPE POSITIONING: 
+   - Seed 46 net +0.3448 is WITHIN the fresh-download cluster (44 at +0.353 top,
+     45 at +0.113 bottom). Far below historical anchor 42 at +0.718.
+   - Mean SR +0.552 is highest of ALL runs (fresh and anchor combined) - driven by
+     F4 outlier (+2.659). Median +0.243 also highest fresh median.
+   - This pattern (high mean, moderate median, dominated by single fold) matches
+     44/44r behavior - never replicates the anchor's consistent across-fold pattern.
+
+2. PLACEBO FAILURE (binding constraint, unchanged from all fresh runs):
+   - Percentile 0.90 is closest approach yet to 0.95 threshold, but adj_p=0.1429 
+     still fails (need ≤0.10). MC SE 0.067, so within ~0.75 SE of boundary.
+   - ALL 3 placebo modes fail: shuffle_features 0.90/adj_p 0.143, 
+     permute_target 0.75/adj_p 0.286, block_permute 0.80/adj_p 0.238.
+   - Null mean +0.109 is lowest of fresh runs (43/7/44/44r/45 had +0.167..+0.379),
+     suggesting slight improvement in separation but not enough.
+   - Historical anchor 42 had 0.95 percentile - the ONLY run to pass. Fresh runs
+     consistently fail at 0.40-0.90 range. This is the CORE PROBLEM.
+
+3. COST ROBUSTNESS - BEST OF FRESH RUNS:
+   - Only fresh run to pass cost gate outright: +0.232 at 10bps, +0.004 at 20bps.
+   - Lowest turnover (9.19) of all fresh runs - mechanical driver of cost edge.
+   - All other fresh runs fail at 20bps (44r -0.017, 45 -0.246, 7 -0.162, 43 -0.082).
+   - Anchor 42 survives 20bps easily at +0.631.
+
+4. DELAY ROBUSTNESS - STABLE POSITIVE:
+   - 3-bar delay +0.436 is positive (gate requires >0 at 3-bar).
+   - 1-bar is thinnest margin (+0.023) but still positive.
+   - Delay dimension is the only consistently stable stress across fresh runs.
+
+5. BOOTSTRAP - PASSES BUT WEAK:
+   - P(>0)=0.858 passes the 0.60 gate but CI [-0.284, +1.133] straddles zero.
+   - All fresh runs pass bootstrap (0.64-0.87 range), so this is not discriminating.
+
+6. FOLD PATTERN:
+   - 6/7 positive folds (best fresh hit rate, ties anchor).
+   - F4 dominates at +2.659 (57% of positive pool) - single-fold concentration 
+     0.571 just under 0.60 cap.
+   - F5 (-0.791) is worst single fold of any run - bear market 2022-23 with 104 trades.
+   - F1 first positive 2018-19 fold of ANY fresh run (+0.243 vs -0.55 on 43/44/44r/45).
+
+7. AUC PATHOLOGY:
+   - AUC 0.490 (below 0.50) yet positive Sharpe - ranking metric decoupled from 
+     positioned return. Same pattern across ALL fresh runs. Anchor had AUC 0.512.
+
+DIFFERENCES vs 45 (closest comparison - one download apart):
+   - Seed 45: a773ba6f → Seed 46: c55e8526 (different yfinance download)
+   - Net SR delta: +0.113 → +0.345 (+0.232 improvement)
+   - Mean SR delta: +0.229 → +0.552 (+0.323)
+   - Median SR delta: +0.006 → +0.243 (+0.236) - median no longer collapses to ~0!
+   - Gates: 12/14 → 13/14 (cost gate flips from FAIL to PASS)
+   - Placebo: 0.50 → 0.90 (improves but still fails)
+   - This is a pure dataset-version effect, not seed effect (GBM is deterministic
+     given same data; different download = different data = different results).
+
+COMPARISON TO ANCHOR 42:
+   - Anchor net +0.718 is ~2x the best fresh run (+0.353/44).
+   - Anchor placebo 0.95 PASS vs fresh max 0.90 FAIL.
+   - Anchor cost20 +0.631 vs fresh best +0.004.
+   - The anchor remains an UNREPLICATED OUTLIER. Fresh downloads consistently 
+     produce weaker, placebo-inseparable results.
+
+CONCLUSION:
+   Seed 46 confirms the pattern: pv-2.2.0 signal is REAL-BUT-SMALL in fresh data.
+   Upper bound of fresh range now probed twice (44 +0.353, 46 +0.345). No further
+   seed-chasing will bridge the gap to anchor-level performance without a new signal
+   hypothesis. The placebo separation failure is the fundamental blocker - not a 
+   tuning problem, not a seed problem, but a signal-strength problem relative to 
+   the null distribution in fresh data.
+
+================================================================================
+================================================================================
