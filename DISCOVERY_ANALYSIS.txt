@@ -901,3 +901,129 @@ VERDICT (PHASE B seed 44 rerun):
 - Close this line: no further seed-chasing without a new signal hypothesis.
 
 ================================================================================
+================================================================================
+PHASE B (LOCAL): Seed 45 - FIFTH FRESH-DOWNLOAD REPRO (vs 42/43/7/44/44r)
+================================================================================
+
+- Config ref: configs/real_spy.yaml (seed 45 override; thresholds [0.65..0.90],
+  holds [10,15,20,30], GBM n_est=200 lr=0.05, max_trials=48 -> 42
+  used/trials_this_experiment=42; configs/quick_test.yaml (synthetic,
+  max_trials=12) reference only - NOT used; src/quant_research/run.py +
+  config.py + features/price_volume.py unchanged - NO gate edits, RESEARCH ONLY)
+- Exp ID: 20260912T231914Z_d6cac35c8897c245 (artifacts_seed45/)
+- Seed: 45 | dataset_version: a773ba6f16db8c8e (fresh yfinance SPY/QQQ download
+  2026-09-12, snapshot 20260912T230511Z_yfinance_ohlcv_a773ba6f16db8c8e, 7040
+  rows, 2012-01-03..2025-12-31, 3520 obs/symbol, 0 missing sessions,
+  integrity OK per data_integrity_report)
+- Features: 20 (11 legacy + 9 pv-2.2.0 extensions), feature_version 0cacdf8c0553a5e5
+- Code: V2.1.3, strategy baseline-2.2.0, config_fingerprint 28760b3dd0fdf66b,
+  git eaa21851abd2042cc0b35ef67f9a470ff4a957a3 (clean)
+- Family: 9b41ccfaafe8238a (n_trials_global=42, within cap)
+
+RESULT: 12/14 gates, state RESEARCH_ONLY
+  FAILED: cost_stress_survives (10bps Sharpe -0.0067 < 0; 20bps -0.2456; gate
+    requires ALL fee>=10bps > 0 - fails already at 10bps, weakest cost profile
+    of all fresh runs) + placebo_separates (pct=0.50, adj_p=0.5238 vs req
+    >=0.95 / <=0.10)
+  PASSED (12): median_oos_sharpe_positive, mean_oos_sharpe_positive,
+    worst_dd_within_limit, delay_stress_survives, bootstrap_positive_prob,
+    placebo_sample_adequate, not_single_fold, turnover_plausible, data_integrity,
+    lookahead_resolved, trial_accounting_consistent, family_search_within_cap
+
+HEADLINE METRICS:
+  Full net Sharpe:   +0.1126 (gross +0.2553, drag 0.0494)
+  Full net return:   +0.0297 (gross +0.0791; fee 0.0391 + slip 0.0078)
+  Mean OOS Sharpe:   +0.2286 | Median: +0.0064 | AUC 0.4891 | Brier 0.2631
+  Max DD: -0.1080 | Trades 340 | Turnover 11.18 | Pos folds 4/7
+  Single-fold share 0.5951 (<=0.60 OK, tightest margin of all runs - 0.005 headroom) |
+    Bootstrap P(>0)=0.644 (n=500, seed 45, obs +0.1126, mean +0.1263,
+    CI [-0.4494, +0.7816] - weakest bootstrap of all fresh runs)
+  Placebo null (shuffle_features, n=20): null_mean +0.2086, null_med +0.2335,
+    null_std 0.4976, null_p95 0.8529, observed +0.2286 -> pct 0.50, adj_p 0.5238,
+    MC SE 0.1118 (permute_target pct 0.55 adj_p 0.4762 null_mean +0.3059;
+    block_permute pct 0.45 adj_p 0.5714 null_mean +0.2631 - edge inside null on
+    all 3 modes; null_mean ABOVE observed-adjacent on 2/3 modes)
+
+FOLDS (seed 45, thr selected on validation):
+  F1 (2018-19): -0.5459 thr=0.65 80tr to=16.10 auc=0.495 net=-0.0386
+  F2 (2019-20): +0.0064 thr=0.75 18tr to=4.06  auc=0.478 net=-0.0001
+  F3 (2020-21): +1.0848 thr=0.65 44tr to=8.58  auc=0.473 net=+0.0491
+  F4 (2021-22): +1.9502 thr=0.65 34tr to=11.34 auc=0.489 net=+0.0765
+  F5 (2022-23): -0.6686 thr=0.65 95tr to=15.11 auc=0.471 net=-0.0438
+  F6 (2023-24): +0.2358 thr=0.65 42tr to=12.94 auc=0.513 net=+0.0086
+  F7 (2024-25): -0.4625 thr=0.65 27tr to=10.09 auc=0.505 net=-0.0167
+  Note: F1/F3/F4/F6 match 44r values on same thresholds (dataset a773ba6f vs
+  af3db0ba one download apart - GBM deterministic core subsample=1.0 reproduces
+  exactly where regime/data overlap); F2 threshold flips 0.70->0.75 with same
+  near-zero outcome (+0.0064, validation-tied); F5 flips +0.2181 (57tr, thr 0.70)
+  -> -0.6686 (95tr, thr 0.65) and F7 flips -0.4371 (9tr, thr 0.70) -> -0.4625
+  (27tr, thr 0.65): threshold/hold selection instability on near-tied validation
+  Sharpes remains the variance engine, NOT model stochasticity.
+
+STRESS:
+  Cost: 0bps +0.2315 / 2.5 +0.1722 / 5 +0.1126 / 10 -0.0067 (GATE FAIL already
+    at 10bps - only fresh run to fail at 10bps; cf 44r +0.2038, 44 +0.2402) /
+    20bps -0.2456 (deepest cost failure of all fresh runs)
+  Delay: 0b +0.1126 / 1b +0.1146 (GATE PASS) / 2b +0.1227 / 3b +0.3061 (all +)
+  Slippage: 0bps +0.1364 / 1 +0.1126 / 2 +0.0888 / 5 +0.0172 / 10 -0.1024
+    (fails at 10bps slip vs 44r holding +0.1152)
+  Param perturbation 0.5x +0.4083 / 0.8x +0.0926 / 1.25x +0.5135 / 2.0x +0.2081
+    (all positive); missing-data (10%) +0.3467; regime: drawdown_deep level=1
+    +0.8080 (441 bars) vs level=0 -0.2863 (1323 bars); high_vol level=0 +0.2927
+    vs level=1 -0.0166.
+  Ablation (price_volume source): mean +0.1280 / median +0.5017 (informative,
+    not a gate).
+
+--------------------------------------------------------------------------------
+6-POINT COMPOSITE (42=historical anchor for context only; 43/7/44/44r/45=fresh)
+--------------------------------------------------------------------------------
+  Seed  Dataset    NetS   Mean   Med    BootP   Placebo  Cost10bps  Cost20bps  Delay3b  Gates  State
+  42*   4d48473a   0.718  0.750  n/a    0.992   0.95 PASS (10bps+)    +0.397    +0.631   14/14  CANDIDATE
+  43    e4d35aff   0.250  0.278  0.006  0.808   0.40 FAIL +0.1392     -0.082    +0.674   12/14  RESEARCH_ONLY
+  7     883de66b   0.197  0.348  0.006  0.696   0.70 FAIL +0.0777     -0.162    +0.52    12/14  RESEARCH_ONLY
+  44    185d05e0   0.353  0.353  0.236  0.868   0.70 FAIL +0.2402     +0.015    +0.310   13/14  RESEARCH_ONLY
+  44r   af3db0ba   0.314  0.359  0.218  0.834   0.60 FAIL +0.2038     -0.017    +0.354   12/14  RESEARCH_ONLY
+  45    a773ba6f   0.113  0.229  0.006  0.644   0.50 FAIL -0.0067     -0.246    +0.306   12/14  RESEARCH_ONLY
+    (* = historical anchor - do NOT report as current; rest = fresh downloads)
+
+VS ANALYSIS (45 vs 42/43/7 + 44/44r):
+- 45 net +0.1126 is the WEAKEST fresh-download run (prior fresh floor was 7 at
+  +0.197; fresh cluster now +0.11..+0.35, median fresh net ~+0.25). Mean +0.229
+  also weakest (prior floor 43 at +0.278). Median +0.006 collapses to ~0 (same
+  as 43/7) vs 44/44r at +0.22/+0.24 - median fragility confirmed.
+- placebo_separates fails 5/5 on fresh downloads (0.40/0.70/0.70/0.60/0.50) vs
+  0.95 anchor: CONFIRMED binding constraint. Null mean (+0.209) sits at/above
+  observed (+0.229); observed lands at pct 0.50 (MC SE ~0.11) - dead-center of
+  the null, not separated. All 3 placebo modes fail (0.50/0.55/0.45) with null
+  means +0.209/+0.306/+0.263 - null ABOVE zero on every mode.
+- Cost robustness WEAKEST 6/6: first fresh run to fail already at 10bps (-0.007)
+  where 44/44r held +0.24/+0.20. Cost ladder -0.246/-0.007/+0.113 across
+  20/10/5bps shows continuous cost fragility, not binary: turnover 11.18
+  (highest of fresh runs except seed-7-era) amplifies fee drag.
+- Delay robustness STABLE 6/6 (3-bar all positive: +0.63/+0.67/+0.52/+0.31/...
+  +0.35/+0.31). Only stable-positive stress dimension.
+- Bootstrap P(>0) stable-pass 6/6 (0.99/0.81/0.70/0.87/0.83/0.64) but 45 at
+  0.644 clears the 0.60 bar by only 0.044 - thinnest margin yet; CI
+  [-0.449, +0.782] straddles zero widely.
+- 4/7 positive folds (vs 5/7 on 44/44r, 4/7 on 43/7). Losers F1 (-0.55, 2018-19),
+  F5 (-0.67, 2022-23 bear, 95 trades worst fold), F7 (-0.46, 2024-25) -
+  regime/thin-signal + threshold-flip (F5 thr 0.70->0.65 flips sign), not cost.
+- Single-fold share 0.595 (vs 0.558 44r / 0.393 44) - closest to the 0.60 cap
+  of any run (0.005 headroom): concentration fragility rising as net falls.
+- AUC 0.489 (below 0.50) with positive Sharpe again: ranking metric decoupled
+  from timing/positioned return - same pathology as all prior folds.
+- Seed-45 vs 44r (af3db0ba -> a773ba6f, one download apart): delta net -0.202,
+  mean -0.130, median -0.212, gates 12/14 -> 12/14 (same fails, deeper). F5/F7
+  threshold flips drive most of the delta. Demonstrates download-version +
+  selection sensitivity exceeds seed sensitivity (GBM core deterministic).
+
+VERDICT (PHASE B seed 45):
+- RESEARCH_ONLY confirmed. Do NOT promote. No gate edits made (per HARD RULES).
+- pv-2.2.0 signal = real-but-small, lower bound now probed: fresh-download net
+  Sharpe spans +0.11..+0.35 (median ~+0.25), delay-robust, turnover-plausible,
+  bootstrap-pass (thinnest margin), but placebo-inseparable 5/5 and
+  cost-marginal-to-failing (45 fails even 10bps). Historical CANDIDATE remains
+  an unreplicated outlier (~2-6x above fresh range depending on endpoint).
+- Close this line: no further seed-chasing without a new signal hypothesis.
+
+================================================================================
