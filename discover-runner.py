@@ -175,6 +175,9 @@ def build_parser():
                     choices=["launch", "analyze", "full"])
     ap.add_argument("--runner", default=str(RUNNER))
     ap.add_argument("--log", default=str(LOG))
+    ap.add_argument("--mode", default="act", choices=["act"],
+                    help="CLI compatibility with cline-runner; "
+                         "agent always runs in act mode")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--cleanup", action="store_true")
     ap.add_argument("--reset", action="store_true")
