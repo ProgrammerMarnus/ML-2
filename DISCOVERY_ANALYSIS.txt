@@ -705,3 +705,90 @@ FINAL VERDICT: pv-2.2.0 signal is a real-but-small RESEARCH signal.
 The seed-42 CANDIDATE is NOT confirmed; it was ~3x inflated by a favorable
 data-refresh + seed coincidence. Do NOT promote. Close this line of inquiry.
 ================================================================================
+================================================================================
+PHASE B (LOCAL): Seed 44 - THIRD FRESH-DOWNLOAD REPRO (vs 42/43/7)
+================================================================================
+
+- Config ref: configs/real_spy.yaml (thresholds [0.65..0.90], holds [10,15,20,30],
+  GBM n_est=200 lr=0.05, max_trials=48 -> 42 used; src/quant_research/run.py +
+  config.py + features/price_volume.py unchanged - NO gate edits, RESEARCH ONLY)
+- Exp ID: 20260912T223713Z_836472d1f9d9d827 (artifacts_seed44/)
+- Seed: 44 | dataset_version: 185d05e0258707ac (fresh yfinance SPY/QQQ download
+  2026-09-12, snapshot 20260912T222314Z, 7040 rows, 2012-01-03..2025-12-31,
+  3520 obs/symbol, 0 missing sessions, integrity OK)
+- Features: 20 (11 legacy + 9 pv-2.2.0 extensions), feature_version 0cacdf8c0553a5e5
+- Code: V2.1.3, git 51c3d6b (clean), strategy baseline-2.2.0
+
+RESULT: 13/14 gates, state RESEARCH_ONLY
+  FAILED: placebo_separates ONLY (percentile=0.70, adj_p=0.3333 < 0.95 req)
+  PASSED (13): median_oos_sharpe_positive, mean_oos_sharpe_positive,
+    worst_dd_within_limit, cost_stress_survives, delay_stress_survives,
+    bootstrap_positive_prob, placebo_sample_adequate, not_single_fold,
+    turnover_plausible, data_integrity, lookahead_resolved,
+    trial_accounting_consistent, family_search_within_cap
+
+HEADLINE METRICS:
+  Full net Sharpe:   +0.3527 (gross +0.4871, drag 0.0468)
+  Full net return:   +0.1067 (gross +0.1535; fee 0.0345 + slip 0.0069)
+  Mean OOS Sharpe:   +0.3532 | Median: +0.2358 | AUC 0.4912 | Brier 0.2621
+  Max DD: -0.0794 | Trades 290 | Turnover 9.865 | Pos folds 5/7
+  Single-fold share 0.3931 (<=0.60 OK) | Bootstrap P(>0)=0.868 (n=500, seed 44)
+  Placebo null (shuffle_features, n=20): null_mean +0.190, null_med +0.103,
+    null_std 0.349, null_p95 0.745, observed +0.3532 -> pct 0.70, adj_p 0.333
+    (permute_target pct 0.80; block_permute pct 0.45 - edge inside null)
+
+FOLDS (seed 44, thr selected on validation):
+  F1 (2018-19): -0.5459 thr=0.65 80tr to=16.10 auc=0.494 net=-0.0386
+  F2 (2019-20): +0.0064 thr=0.70 18tr to=4.06  auc=0.478 net=-0.0001
+  F3 (2020-21): +1.0848 thr=0.65 44tr to=8.58  auc=0.482 net=+0.0491
+  F4 (2021-22): +1.3581 thr=0.65 52tr to=15.86 auc=0.491 net=+0.0659
+  F5 (2022-23): +0.7699 thr=0.70 45tr to=6.64  auc=0.480 net=+0.0329
+  F6 (2023-24): +0.2358 thr=0.65 42tr to=12.94 auc=0.513 net=+0.0086
+  F7 (2024-25): -0.4371 thr=0.70  9tr to=4.87  auc=0.500 net=-0.0118
+  Note: F1/F2/F5 byte-identical to seed-43 values (-0.5459/+0.0064/+0.7699);
+  F3 matches seed-42 Colab (+1.0848); F4/F6/F7 are new (+1.3581/+0.2358/-0.4371).
+  GBM deterministic core (subsample=1.0) -> variance is threshold/hold flips +
+  fresh-download data version, NOT model stochasticity.
+
+STRESS:
+  Cost: 0bps +0.4647 / 2.5 +0.4088 / 5 +0.3527 / 10 +0.2402 (GATE PASS) /
+    20bps +0.0149 (marginally positive - first fresh-download pass at 20bps)
+  Delay: 0b +0.3527 / 1b +0.3807 (GATE PASS) / 2b +0.2528 / 3b +0.3098 (all +)
+  Slippage stress holds; param perturbation 0.5x-2.0x all positive Sharpe;
+  missing-data (10%) +0.2779; regime: deep-drawdown level=1 +1.12 (441 bars).
+
+--------------------------------------------------------------------------------
+4-SEED COMPOSITE (42=Colab anchor for context; 43/7/44=fresh local downloads)
+--------------------------------------------------------------------------------
+  Seed  Dataset    NetS   Mean   Med    BootP   Placebo  Cost20bps  Delay3b  Gates  State
+  42*   4d48473a   0.718  0.750  n/a    0.992   0.95 PASS +0.397    +0.631   14/14  CANDIDATE
+  43    e4d35aff   0.250  0.278  n/a    0.808   0.40 FAIL -0.082    +0.674   12/14  RESEARCH_ONLY
+  7     883de66b   0.197  0.348  n/a    0.696   0.70 FAIL -0.162    +0.52    12/14  RESEARCH_ONLY
+  44    185d05e0   0.353  0.353  0.236  0.868   0.70 FAIL +0.015    +0.310   13/14  RESEARCH_ONLY
+    (* = Colab historical anchor - do NOT report as current; rest = fresh data)
+
+VS ANALYSIS:
+- Seed 44 is the BEST fresh-download run (net +0.353 vs +0.250/+0.197) and the
+  ONLY fresh run to pass cost_stress (even 20bps stays +0.015). Cost fragility
+  is therefore marginal/continuous, not binary: -0.162/-0.082/+0.015 across
+  7/43/44 at identical gate definitions.
+- placebo_separates fails 3/3 on fresh downloads (0.40/0.70/0.70) vs 0.95
+  anchor: CONFIRMED binding constraint. Null mean (+0.19) sits above zero;
+  observed +0.35 lands at pct 0.70 (MC SE ~0.10) - inside the null, not separated.
+- Delay robustness is STABLE 4/4 (3-bar: +0.63/+0.67/+0.52/+0.31 all positive).
+- Bootstrap P(>0) stable-pass 4/4 (0.99/0.81/0.70/0.87).
+- 5/7 positive folds (vs 4/7 on 43/7; 6/7 anchor). Losers are F1 (-0.55,
+  2018-19) and F7 (-0.44, 2024-25, only 9 trades) - regime/thin-signal, not cost.
+- AUC 0.491 (below 0.50) with positive Sharpe again: ranking metric decoupled
+  from timing/positioned return - same pathology as prior folds.
+
+VERDICT (PHASE B seed 44):
+- RESEARCH_ONLY confirmed. Do NOT promote. No gate edits made (per HARD RULES).
+- pv-2.2.0 signal = real-but-small: net Sharpe clusters +0.20..+0.35 on fresh
+  downloads (median ~+0.30), delay-robust, turnover-plausible, bootstrap-pass,
+  but placebo-inseparable and cost-marginal. Anchor CANDIDATE remains
+  unreplicated outlier (~2-3x inflated by favorable refresh + selection flip).
+- Close this line: no further seed-chasing without a new signal hypothesis.
+
+================================================================================
+
