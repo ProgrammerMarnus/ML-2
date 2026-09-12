@@ -117,10 +117,16 @@ def revert_change(task):
 def launch_pipeline(task):
     """Launch pipeline as background process. Returns (pid, logfile)."""
     log = "/tmp/disc_" + task["tag"] + ".log"
+    out_dir = task["out"]
+    # Remove stale output directory so LockedTestProtocol doesn't reject
+    # a previous (failed) run's test_lock.json.
+    out_path = REPO / out_dir
+    if out_path.exists():
+        subprocess.run(["rm", "-rf", str(out_path)], check=False)
     cmd = (
         "nohup env QUANT_RESEARCH_LEDGER_DIR=" + task["ledger"]
         + " python3 -m quant_research.run --config " + task["cfg"]
-        + " --output " + task["out"] + " > " + log
+        + " --output " + out_dir + " > " + log
         + " 2>&1 & echo LAUNCHED pid=$!"
     )
     proc = subprocess.run(
@@ -138,6 +144,10 @@ def wait_for_pipeline(log, timeout_s, poll_s):
             text = Path(log).read_text(errors="ignore")
             if "promotion_state" in text or "experiment_id" in text:
                 return True
+            # Detect crash: Traceback in log means pipeline died
+            if "Traceback" in text or "Exception" in text:
+                print("  pipeline crashed (see log)", flush=True)
+                return False
         time.sleep(poll_s)
     return False
 
