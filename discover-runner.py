@@ -192,10 +192,11 @@ def main(argv=None):
     if args.reset:
         text = RUNPY.read_text()
         cleaned = "\n".join(
-            ln for ln in text.splitlines() if "# ABLATE-" not in ln
+            ln for ln in text.splitlines()
+            if "# ABLATE-" not in ln and "# PHASE A ablation" not in ln
         )
         RUNPY.write_text(cleaned + "\n")
-        print("reset: removed all ablation patches")
+        print("reset: removed all ablation patches (incl. legacy Phase A)")
         return 0
 
     all_tasks = load_tasks()
