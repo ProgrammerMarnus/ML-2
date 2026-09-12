@@ -241,7 +241,9 @@ def prune_task_artifacts(root, tag):
 
 
 def run_one(runner, prompt, mode, thinking, passthru, per_task_min, task_id, tag):
-    cmd = [sys.executable, str(runner), prompt, "-l", "1",
+    # Single-shot task: cline-runner requires -lp/-lp2 whenever -l is given,
+    # so omit the loop flags entirely (main prompt runs exactly once).
+    cmd = [sys.executable, str(runner), prompt,
            "-m", mode, "-t", thinking] + passthru
     t0 = time.time()
     try:
@@ -249,8 +251,13 @@ def run_one(runner, prompt, mode, thinking, passthru, per_task_min, task_id, tag
                               text=True, timeout=(per_task_min + 5) * 60)
         out = (proc.stdout or "") + "\n" + (proc.stderr or "")
         m = RESULT_RE.search(out[-4000:])
-        ok = bool(m) and proc.returncode == 0
-        return ok, proc.returncode, (m.group(0) if m else "NO-RESULT-LINE"), round(time.time() - t0, 1)
+        if m and proc.returncode == 0:
+            return True, proc.returncode, m.group(0), round(time.time() - t0, 1)
+        tail = (proc.stderr or proc.stdout or "").strip().splitlines()[-3:]
+        why = "NO-RESULT-LINE"
+        if tail:
+            why = "rc=%d | %s" % (proc.returncode, " // ".join(s.strip()[:120] for s in tail))
+        return False, proc.returncode, why, round(time.time() - t0, 1)
     except subprocess.TimeoutExpired:
         return False, 124, "TIMEOUT", round(time.time() - t0, 1)
 
