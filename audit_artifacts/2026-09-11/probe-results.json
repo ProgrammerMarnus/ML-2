@@ -1,0 +1,143 @@
+{
+  "discovery_replay": {
+    "n_folds": 5,
+    "positions_equal": true,
+    "original_fee": 0.005062984328938994,
+    "replay_fee": 0.00354496726545474,
+    "net_delta_at_fold_starts": [
+      0.00041786988419255177,
+      0.00048104874521462604,
+      0.0005272723752054967,
+      0.0003954294715684301
+    ],
+    "accounting_assertion": "\nNot equal to tolerance rtol=0, atol=1e-10\nfee costs do not scale exactly with turnover\nMismatched elements: 1 / 1 (100%)\nMax absolute difference among violations: 0.00151802\nMax relative difference among violations: 0.29982654\n ACTUAL: array(0.003545)\n DESIRED: array(0.005063)",
+    "cost_stress_assertion": "\nNot equal to tolerance rtol=0, atol=1e-12\ndelay=0 replay turnover differs\nMismatched elements: 1 / 1 (100%)\nMax absolute difference among violations: 3.03603413\nMax relative difference among violations: 0.42821751\n ACTUAL: array(10.125969)\n DESIRED: array(7.089935)"
+  },
+  "discovery_lock": {
+    "verify_calls": 0,
+    "evaluated_folds": 5
+  },
+  "discovery_start": {
+    "ledger_entries": [],
+    "trial_count": 0
+  },
+  "parameter_anchor": {
+    "baseline_C": 0.01,
+    "factor_one_C": 1.0,
+    "max_probability_difference": 0.12531291388748178
+  },
+  "malformed_lock": {
+    "{}": {
+      "accepted": true,
+      "replacement_n_folds": 5
+    },
+    "{\"spec\": {}}": {
+      "accepted": true,
+      "replacement_n_folds": 5
+    },
+    "{\"folds\": [], \"hash\": null}": {
+      "accepted": true,
+      "replacement_n_folds": 5
+    }
+  },
+  "corrupt_ledger": {
+    "before_corruption": 1,
+    "after_corruption_and_another_search": 1
+  },
+  "paper_latency": {
+    "configured_latency": 3,
+    "status_at_submission": "SUBMITTED",
+    "submitted_at": "2020-01-01 00:00:00+00:00",
+    "filled_at": null
+  },
+  "paper_kill_pending": {
+    "kill_active": true,
+    "order_status": "CANCELLED",
+    "position": 0.0
+  },
+  "paper_duplicate_id": {
+    "position": 0.0,
+    "recorded_order_count": 1,
+    "recorded_filled_quantity": 0.0,
+    "reconciliation": {
+      "consistent": true,
+      "discrepancies": {},
+      "n_orders": 1,
+      "n_filled": 0,
+      "n_rejected": 0,
+      "n_cancelled": 0,
+      "n_pending": 1
+    }
+  },
+  "paper_exit": {
+    "exit_status": "FILLED",
+    "reason": null,
+    "remaining_position": 0.0
+  },
+  "pending_exposure": {
+    "position": 8.0,
+    "cash": 200.0,
+    "configured_max_position": 1.0,
+    "actual_position_weight": 0.8
+  },
+  "paper_marks": {
+    "before": 1000.0,
+    "value_when_held_symbol_omitted": 1000.0,
+    "value_after_nan_price": 1000.0
+  },
+  "paper_evidence": {
+    "state": "PAPER_READY",
+    "days": 0,
+    "filled_orders": 0,
+    "start": "2026-09-11T21:40:11.980256+00:00",
+    "end": "2026-09-11T21:40:11.980849+00:00",
+    "gates": {
+      "min_execution_days": false,
+      "no_safeguard_breaches": true,
+      "reconciliation_consistent": true,
+      "kill_switch_tested": true,
+      "daily_loss_controlled": true
+    }
+  },
+  "paper_breaches": {
+    "state": "PAPER_READY",
+    "breaches": 120,
+    "max_drawdown": -0.2,
+    "gates": {
+      "min_execution_days": false,
+      "no_safeguard_breaches": false,
+      "reconciliation_consistent": true,
+      "kill_switch_tested": true,
+      "daily_loss_controlled": true
+    }
+  },
+  "paper_fees": {
+    "probe_error": "TypeError",
+    "message": "unsupported operand type(s) for *: 'int' and 'NoneType'"
+  },
+  "event_identity": {
+    "single_attention": 0.6931471805599453,
+    "redelivered_attention": 1.0986122886681096,
+    "revised_sentiment": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "missing_value_conflict_accepted_rows": 2
+  },
+  "fabricated_ohlc": {
+    "synthetic_range_rows": 244,
+    "overnight_matches_close_return": true,
+    "intraday_return_unique": [
+      0.0
+    ],
+    "range_position_nonmissing": 0
+  },
+  "invalid_return": {
+    "infinite_net_bar": Infinity,
+    "reported_sharpe": 4.037628225203752,
+    "missing_return_gross": 0.0,
+    "position_during_missing_return": 0.6911819397223076
+  }
+}

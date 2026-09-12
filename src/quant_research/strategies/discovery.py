@@ -271,7 +271,6 @@ def discover_and_evaluate_oos(
             "per_fold_score": dict(pfscores), "per_fold_dd": dict(pfdds),
             "validation_sharpe": vsharpe, "validation_max_dd": vdd,
         }
-
     # D04: anchor the fold clock on declared observations (feature rows with
     # any usable input) BEFORE inspecting labels/outcomes, identically to
     # _validation_sharpe.  Missing labels/returns never move fold membership;
@@ -282,10 +281,16 @@ def discover_and_evaluate_oos(
     ff = fwd.loc[common]
     folds = walk_forward_splits(X.index, cfg.evaluation)
 
-    # C14: record the discovery search attempt on the shared research-family
-    # ledger (output-location-independent).  Record START before the fold loop
-    # so interrupted/abandoned searches remain visible; record OUTCOME when the
-    # evaluation completes (or abort if it raises).
+    # E09: verify the supplied lock BEFORE evaluating candidates so a forged
+    # or re-cut test layout cannot consume trials/fits.  A None lock skips
+    # verification (direct-call path); run.py always supplies the pipeline lock.
+    if locked_test is not None:
+        locked_test.verify(folds)
+
+    # E11: record the discovery search attempt on the shared research-family
+    # ledger BEFORE candidate evaluation (output-location-independent) so
+    # interrupted/abandoned searches remain visible.  Record OUTCOME when the
+    # evaluation completes; record an aborted outcome if it raises.
     _ledger_start_entry = None
     if ledger is not None and family_id is not None:
         n_grid = len(grid)
@@ -338,13 +343,19 @@ def discover_and_evaluate_oos(
 
         # NESTED selection: fold-k validation score only (data that lies
         # strictly before fold-k's test window).  Ties break on the lower
-        # candidate_id for determinism; non-finite scores (e.g. a flat
-        # validation run) rank last, deterministically.
+        # candidate_id for determinism.  E15: non-finite fold scores (None /
+        # NaN / inf -- e.g. a flat validation run) always rank AFTER every
+        # finite score, so an undefined candidate can never outrank a valid
+        # negative score.
         def _fold_key(cid):
             s = candidates[cid]["per_fold_score"].get(spec.fold_id, float("nan"))
-            if not np.isfinite(s):
-                return (1.0, cid)
-            return (-s, cid)
+            try:
+                fv = float(s)
+            except (TypeError, ValueError):
+                return (1.0, float("inf"), cid)
+            if not np.isfinite(fv):
+                return (1.0, float("inf"), cid)
+            return (0.0, -fv, cid)
 
         best = min(candidates, key=_fold_key)
         c = candidates[best]
@@ -412,6 +423,12 @@ def discover_and_evaluate_oos(
             "overlapping folds are not supported (use step_bars >= test_window)")
     oos_idx = pos_full.index
     gross = pos_full * ff.loc[oos_idx].fillna(0.0)
+    # E08: recompute turnover from the MERGED position path so it matches what
+    # a merged replay observes (backtest turnover_full at fold starts silently
+    # drops the cross-fold entry trade because the fold-local ledger had no
+    # position the bar before; the folded turnovers then cannot reproduce the
+    # merged path).  The first OOS bar opens from flat; every later bar --
+    # including fold starts -- pays |pos[t]-pos[t-1]|.
     turnover = pos_full.diff().abs()
     if len(turnover):
         turnover.iloc[0] = abs(pos_full.iloc[0])

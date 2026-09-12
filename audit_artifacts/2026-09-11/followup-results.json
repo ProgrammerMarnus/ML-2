@@ -1,0 +1,82 @@
+{
+  "nonfinite_discovery_ranking": {
+    "candidate_validation_scores": {
+      "logistic": -2.0,
+      "gradient_boosting": "NaN"
+    },
+    "selected_model_types": [
+      "gradient_boosting",
+      "gradient_boosting",
+      "gradient_boosting",
+      "gradient_boosting",
+      "gradient_boosting"
+    ],
+    "selected_validation_scores": [
+      NaN,
+      NaN,
+      NaN,
+      NaN,
+      NaN
+    ]
+  },
+  "saved_market_family_fragmentation": {
+    "snapshots": [
+      "/home/marnus/VS-Code/ML-2/data/raw_snapshots/20260911T182049Z_yfinance_ohlcv_e4d35affc5d3b3f9.parquet",
+      "/home/marnus/VS-Code/ML-2/data/raw_snapshots/20260911T184105Z_yfinance_ohlcv_883de66bbd22cbde.parquet"
+    ],
+    "same_symbol_timestamps": true,
+    "maximum_absolute_differences": {
+      "open": 0.00021510268993552017,
+      "high": 0.00021642407239141903,
+      "low": 0.00021124136151229322,
+      "close": 0.000213623046875,
+      "volume": 0.0
+    },
+    "records": [
+      {
+        "path": "/home/marnus/VS-Code/ML-2/artifacts_stab_seed43/20260911T183421Z_ef826e491d987fbd_results.json",
+        "family": "2e95b5cc982a0109",
+        "dataset": "e4d35affc5d3b3f9",
+        "ledger": "/tmp/ledgers/seed43/search_ledger.jsonl",
+        "global_trials": 42,
+        "family_gate": [
+          "family_search_within_cap: family search count 1 <= max_family_searches 1 (selection_correction=none)"
+        ]
+      },
+      {
+        "path": "/home/marnus/VS-Code/ML-2/artifacts_stab_seed7/20260911T185438Z_29b2f71f3c17c121_results.json",
+        "family": "7ce3f854e641e9a8",
+        "dataset": "883de66bbd22cbde",
+        "ledger": "/tmp/ledgers/seed7/search_ledger.jsonl",
+        "global_trials": 42,
+        "family_gate": [
+          "family_search_within_cap: family search count 1 <= max_family_searches 1 (selection_correction=none)"
+        ]
+      }
+    ]
+  },
+  "confirmed_prior_fixes": {
+    "incompatible_dataset_rejected": "LockedTestViolation",
+    "incompatible_policy_rejected": "LockedTestViolation",
+    "invalid_json_rejected": "LockedTestViolation",
+    "interior_fold_end_nan_rejected": "DataValidationError",
+    "interior_fold_end_infinity_rejected": "DataValidationError"
+  },
+  "runner_classifier": {
+    "Task completed. Added HTTP 403 and 429 regression tests.": {
+      "ok": false,
+      "action": "next-account",
+      "reason": "auth failure",
+      "exit_code": 0,
+      "output_tail": "Task completed. Added HTTP 403 and 429 regression tests."
+    },
+    "Task completed successfully.": {
+      "ok": true,
+      "action": "success",
+      "reason": "exit 0, no error",
+      "exit_code": 0,
+      "output_tail": "Task completed successfully."
+    }
+  },
+  "runner_self_test": "[PASS] want=next-model got=next-model\n[PASS] want=next-model got=next-model\n[PASS] want=next-model got=next-model\n[PASS] want=next-model got=next-model\n[PASS] want=next-model got=next-model\n[PASS] want=next-model got=next-model\n[PASS] want=next-account got=next-account\n[PASS] want=next-account got=next-account\n[PASS] want=fatal got=fatal\n[PASS] want=success got=success\nself-test: 10/10 passed\n"
+}

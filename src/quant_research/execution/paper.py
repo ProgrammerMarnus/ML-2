@@ -12,6 +12,7 @@ Order lifecycle:
 
 from __future__ import annotations
 
+import math
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
@@ -183,22 +184,44 @@ class PaperBroker:
         self.audit_trail: List[AuditEvent] = []
         self._current_bar: Optional[pd.Timestamp] = None
         self._bar_counter: int = 0
+        self._last_marks: Dict[str, float] = {}
 
     def submit(self, order: PaperOrder, current_price: float,
                current_time: pd.Timestamp) -> PaperOrder:
-        """Submit an order for execution."""
-        order.created_at = current_time
-        self._current_bar = current_time
+        """Submit an order for execution.
 
+        Runs pre-trade checks: kill switch, position limit, cash, exposure.
+        Returns a SafeguardResult that is FAILING when the order cannot be accepted.
+        """
+        # E07: order-ID idempotency — retrying an order_id must not double-execute
+        # and must be checked before other guards so a retry keeps its original
+        # record/history instead of being overwritten.  Reuse of a terminal
+        # REJECTED/CANCELLED id is also forbidden (history must never be overwritten).
+        existing = self.orders.get(order.order_id)
+        if existing is not None:
+            self._audit(current_time, "ORDER_DUPLICATE_REJECTED", order.order_id,
+                        order.symbol,
+                        f"duplicate order_id {order.order_id} rejected; "
+                        f"existing status {existing.status.value}")
+            return existing
+        if not isinstance(current_time, pd.Timestamp) or current_time.tzinfo is None:
+            return self._reject(order, current_time,
+                "current_time must be a timezone-aware pd.Timestamp")
+        if not math.isfinite(current_price) or current_price <= 0:
+            return self._reject(order, current_time,
+                f"current_price must be finite and positive; got {current_price}")
+        # E03: kill switch blocks ALL order submission, including pending re-submits.
+        if self.safeguards.kill_switch_active:
+            self._audit(current_time, "SUBMIT_REJECTED", order.order_id, order.symbol,
+                "kill switch active")
+            return self._reject(order, current_time, "kill switch active; no orders accepted")
         validation_error = self._validate_order(order, current_price)
         if validation_error:
             return self._reject(order, current_time, validation_error)
-
         safeguard_failures = self._run_safeguards(order, current_price, current_time)
         if safeguard_failures:
             reasons = "; ".join(f"{s.name}: {s.detail}" for s in safeguard_failures)
             return self._reject(order, current_time, f"Safeguard(s) tripped: {reasons}")
-
         order.status = OrderStatus.SUBMITTED
         order.submitted_at = current_time
         order.expected_price = current_price
@@ -207,9 +230,11 @@ class PaperBroker:
         self._audit(current_time, "ORDER_SUBMITTED", order.order_id,
                     order.symbol, f"{order.side.value} {order.quantity} {order.symbol} @ {order.order_type.value}",
                     {"price": current_price})
-
+        # E06: market orders respect configured latency; they rest as SUBMITTED
+        # at submission and fill on a later process_bar.
         if order.order_type == OrderType.MARKET:
-            self._try_fill_market(order, current_price, current_time)
+            order.slippage_bps = self.slippage_bps
+            order.latency_bars = self.latency_bars
         return order
 
     def _reject(self, order: PaperOrder, ts: pd.Timestamp, reason: str) -> PaperOrder:
@@ -241,13 +266,45 @@ class PaperBroker:
             return failures
 
         current_pos = self.positions.get(order.symbol, Position(order.symbol))
-        order_value = order.remaining_quantity * current_price
         portfolio_value = max(self.current_value, 1.0)
-        new_position_value = abs(current_pos.quantity * current_price) + order_value
-        position_weight = new_position_value / portfolio_value
-        pos_check = self.safeguards.check_position(position_weight)
-        if not pos_check.passed:
-            failures.append(pos_check)
+        current_qty = current_pos.quantity
+        if order.side == OrderSide.BUY:
+            new_qty = current_qty + order.remaining_quantity
+        else:
+            new_qty = current_qty - order.remaining_quantity
+        pending_net = 0.0
+        for oid in self.pending_orders:
+            po = self.orders.get(oid)
+            if po is None or po.symbol != order.symbol:
+                continue
+            if po.side == OrderSide.BUY:
+                pending_net += po.remaining_quantity
+            else:
+                pending_net -= po.remaining_quantity
+        new_qty += pending_net
+        # Reducing or flattening exposure must always be allowed (E04): only
+        # block orders that increase the absolute position beyond the limit.
+        # Pending same-symbol exposure counts toward the limit (E05).
+        if abs(new_qty) > abs(current_qty):
+            position_weight = abs(new_qty * current_price) / portfolio_value
+            pos_check = self.safeguards.check_position(position_weight)
+            if not pos_check.passed:
+                failures.append(pos_check)
+        # Cash covers the order plus pending same-side notional (E05); sells
+        # that reduce a long (or cover a short) need no cash.
+        if order.side == OrderSide.BUY:
+            pending_buy_notional = 0.0
+            for oid in self.pending_orders:
+                po = self.orders.get(oid)
+                if po is None or po.symbol != order.symbol:
+                    continue
+                if po.side == OrderSide.BUY:
+                    pending_buy_notional += po.remaining_quantity * current_price
+            required = order.remaining_quantity * current_price + pending_buy_notional
+            if self.cash < required and current_qty >= 0:
+                failures.append(SafeguardResult(
+                    "cash", False,
+                    f"insufficient cash {self.cash:.2f} for {required:.2f}"))
 
         dl_check = self.safeguards.check_daily_loss(self.daily_return)
         if not dl_check.passed:
@@ -260,15 +317,12 @@ class PaperBroker:
         return failures
 
     def _try_fill_market(self, order: PaperOrder, current_price: float,
-                          current_time: pd.Timestamp) -> None:
-        slippage_factor = self.slippage_bps / 10000.0
-        if order.side == OrderSide.BUY:
-            fill_price = current_price * (1.0 + slippage_factor)
-        else:
-            fill_price = current_price * (1.0 - slippage_factor)
+                           current_time: pd.Timestamp) -> None:
+        # E06: market orders respect configured latency; they rest as
+        # SUBMITTED at submission and fill on a later process_bar.
         order.slippage_bps = self.slippage_bps
         order.latency_bars = self.latency_bars
-        self._execute_fill(order, fill_price, order.remaining_quantity, current_time)
+        return None
 
     def _try_fill_limit(self, order: PaperOrder, current_price: float,
                          current_time: pd.Timestamp) -> None:
@@ -367,22 +421,90 @@ class PaperBroker:
     def process_bar(self, timestamp: pd.Timestamp, prices: Dict[str, float]) -> List[PaperOrder]:
         self._current_bar = timestamp
         self._bar_counter += 1
+        # E03: a tripped kill switch freezes pending flow: cancel resting
+        # orders so they can never fill after the trip.
+        if self.safeguards.kill_switch_active:
+            for order_id in list(self.pending_orders):
+                order = self.orders[order_id]
+                order.status = OrderStatus.CANCELLED
+                order.cancel_reason = "kill_switch_active"
+                self.pending_orders.remove(order_id)
+                self._audit(timestamp, "ORDER_CANCELLED", order_id, order.symbol,
+                            "cancelled: kill_switch_active")
+            self._update_portfolio_value(prices)
+            return []
+        # E19: seed last-valid marks before any valuation/fill logic.
+        for symbol, px in prices.items():
+            try:
+                fpx = float(px)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(fpx) and fpx > 0 and symbol not in self._last_marks:
+                self._last_marks[symbol] = fpx
         filled_orders: List[PaperOrder] = []
         for symbol, pos in self.positions.items():
-            if symbol in prices:
-                pos.update_unrealized(prices[symbol])
+            if symbol not in prices:
+                continue
+            try:
+                px = float(prices[symbol])
+            except (TypeError, ValueError):
+                continue
+            if not math.isfinite(px) or px <= 0:
+                continue
+            pos.update_unrealized(px)
         for order_id in list(self.pending_orders):
             order = self.orders[order_id]
-            if order.order_type == OrderType.LIMIT and order.symbol in prices:
-                self._try_fill_limit(order, prices[order.symbol], timestamp)
-                if order.status in (OrderStatus.FILLED, OrderStatus.PARTIAL_FILL):
-                    filled_orders.append(order)
+            if order.symbol not in prices:
+                continue
+            try:
+                opx = float(prices[order.symbol])
+            except (TypeError, ValueError):
+                continue
+            if not math.isfinite(opx) or opx <= 0:
+                continue
+            if order.order_type == OrderType.LIMIT:
+                self._try_fill_limit(order, opx, timestamp)
+            elif order.order_type == OrderType.MARKET:
+                slippage_factor = self.slippage_bps / 10000.0
+                if order.side == OrderSide.BUY:
+                    fill_price = opx * (1.0 + slippage_factor)
+                else:
+                    fill_price = opx * (1.0 - slippage_factor)
+                order.slippage_bps = self.slippage_bps
+                order.latency_bars = self.latency_bars
+                self._execute_fill(order, fill_price, order.remaining_quantity, timestamp)
+            if order.status in (OrderStatus.FILLED, OrderStatus.PARTIAL_FILL):
+                filled_orders.append(order)
         self._update_portfolio_value(prices)
         return filled_orders
 
     def _update_portfolio_value(self, prices: Dict[str, float]) -> None:
-        position_value = sum(pos.quantity * prices[symbol]
-            for symbol, pos in self.positions.items() if symbol in prices)
+        # E19: mark with the last valid price when a held symbol is omitted
+        # or its update is missing/NaN/non-positive; such marks never move
+        # the portfolio value.
+        for symbol, px in prices.items():
+            try:
+                fpx = float(px)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(fpx) and fpx > 0:
+                self._last_marks[symbol] = fpx
+        position_value = 0.0
+        for symbol, pos in self.positions.items():
+            if symbol in prices:
+                try:
+                    px = float(prices[symbol])
+                except (TypeError, ValueError):
+                    px = self._last_marks.get(symbol, float("nan"))
+                if not math.isfinite(px) or px <= 0:
+                    px = self._last_marks.get(symbol)
+                    if px is None:
+                        continue
+            else:
+                if symbol not in self._last_marks:
+                    continue
+                px = self._last_marks[symbol]
+            position_value += pos.quantity * px
         self.current_value = self.cash + position_value
         if self.current_value > self.peak_value:
             self.peak_value = self.current_value

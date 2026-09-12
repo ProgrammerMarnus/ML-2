@@ -87,6 +87,17 @@ def _long_from_wide_csv(raw: pd.DataFrame) -> pd.DataFrame:
     """
     if "timestamp" not in raw.columns:
         raw = raw.rename(columns={raw.columns[0]: "timestamp"})
+    # E18: reject timezone-naive CSV timestamps so forex/local-time inputs can
+    # never be silently shifted into the wrong session (same rule as PIT
+    # events: tz must be explicit).
+    _ts_check = pd.to_datetime(raw["timestamp"], errors="coerce")
+    if _ts_check.isna().any():
+        raise DataValidationError("CSV contains unparseable timestamps")
+    if _ts_check.apply(lambda t: t.tzinfo is None).any():
+        raise DataValidationError(
+            "CSV contains timezone-naive timestamps; timestamps must carry "
+            "an explicit timezone so UTC conversion can never move bars"
+        )
     close_cols = [c for c in raw.columns if c.startswith("Close_")]
     if not close_cols:
         raise DataValidationError("CSV must contain Close_<ASSET> columns")
@@ -380,10 +391,24 @@ def to_panels(ohlcv: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
 
 def to_price_panels(ohlcv: pd.DataFrame):
-    """Convert validated long OHLCV to wide (open, high, low, close, volume) frames."""
+    """Convert validated long OHLCV to wide (open, high, low, close, volume) frames.
+
+    E18: OHLC provenance propagates.  When the long frame carries
+    ``_synthetic_range`` (close-only CSV imports fabricate
+    open==high==low==close), every derived OHLC panel is tagged with the
+    ``_synthetic_range`` DataFrame attribute so range-dependent consumers
+    (signal extensions, Parkinson) can reject fabricated inputs instead of
+    silently treating them as measured ranges.
+    """
     open_ = ohlcv.pivot(index="timestamp", columns="symbol", values="open").sort_index()
     high = ohlcv.pivot(index="timestamp", columns="symbol", values="high").sort_index()
     low = ohlcv.pivot(index="timestamp", columns="symbol", values="low").sort_index()
     close = ohlcv.pivot(index="timestamp", columns="symbol", values="close").sort_index()
     volume = ohlcv.pivot(index="timestamp", columns="symbol", values="volume").sort_index()
+    if "_synthetic_range" in ohlcv.columns and bool(ohlcv["_synthetic_range"].any()):
+        for _panel in (open_, high, low):
+            try:
+                _panel._synthetic_range = True
+            except Exception:
+                pass
     return open_, high, low, close, volume

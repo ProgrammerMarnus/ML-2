@@ -95,35 +95,71 @@ class PaperValidationRunner:
             starting_cash=self.broker.initial_cash,
         )
         self._prev_order_count = 0
+        self._prev_filled_count = 0
         self._peak_value = self.broker.initial_cash
         self._max_drawdown = 0.0
         self._fees_paid = 0.0
 
-    def record_step(self, broker: PaperBroker, bar_data: Optional[Dict[str, float]] = None) -> None:
-        """Record one bar of paper execution."""
-        self.report.n_days_executed += 1
-        current_order_count = len(broker.orders)
-        new_orders = current_order_count - self._prev_order_count
-        if new_orders > 0:
-            self.report.n_orders_submitted += new_orders
-            self._prev_order_count = current_order_count
-        self.report.n_orders_filled = sum(
-            1 for o in broker.orders.values() if o.status == OrderStatus.FILLED)
-        self.report.n_orders_rejected = sum(
-            1 for o in broker.orders.values() if o.status == OrderStatus.REJECTED)
-        self.report.n_orders_cancelled = sum(
-            1 for o in broker.orders.values() if o.status == OrderStatus.CANCELLED)
+    def record_step(self, broker: PaperBroker, bar_data: Optional[Dict[str, float]] = None,
+                     current_time: Optional[pd.Timestamp] = None) -> None:
+        """Record one live-executed bar of paper execution.
+
+        A step advances ``n_days_executed`` only when it carries a real fill and a
+        monotonically advancing timestamp.  Calls without new fills, calls with
+        stale or missing timestamps, and calls after a kill-switch trip add no days.
+        """
+        # E02: every step observes real breach state; breaches accumulate and
+        # are never cleared by this probe.
+        self._sync_ledger_counts(broker)
         if broker.safeguards.kill_switch_active and not self.report.kill_switch_tripped:
             self.report.kill_switch_tripped = True
-        for order in broker.orders.values():
-            if order.status in (OrderStatus.FILLED, OrderStatus.PARTIAL_FILL):
-                fill_cost = order.filled_quantity * (order.filled_price or 0.0)
-                self._fees_paid += fill_cost * broker.fee_bps / 10000.0
+        if not broker.reconcile()["consistent"]:
+            self.report.n_reconciliation_failures += 1
+        self.report.final_reconciliation_consistent = broker.reconcile()["consistent"]
+        drawdown = (broker.current_value - self._peak_value) / self._peak_value if self._peak_value > 0 else 0.0
+        if drawdown < -self.val_cfg.max_daily_loss_before_kill:
+            self.report.n_safeguard_breaches += 1
+        if broker.safeguards.kill_switch_active:
+            self.report.n_safeguard_breaches += 1
+        self._fees_paid = self._live_cumulative_fees(broker)
+        self._track_drawdown(broker)
+        # E01: only a live-executed fill with a strictly advancing timestamp
+        # advances the session count; calls without new fills (or replays of
+        # historical fills) add no days.  A missing/non-finite timestamp is not
+        # a session.
+        if current_time is None or not isinstance(current_time, pd.Timestamp):
+            return
+        if current_time.tzinfo is None:
+            return
+        if getattr(self, "_last_step_time", None) is not None and current_time <= self._last_step_time:
+            return
+        filled_now = sum(1 for o in broker.orders.values() if o.status in (OrderStatus.FILLED, OrderStatus.PARTIAL_FILL))
+        if filled_now <= getattr(self, "_prev_filled_count", 0):
+            return
+        self._prev_filled_count = filled_now
+        self._last_step_time = current_time
+        self.report.n_days_executed += 1
+
+    def _sync_ledger_counts(self, broker: PaperBroker) -> None:
+        self.report.n_orders_submitted = len(broker.orders)
+        self.report.n_orders_filled = sum(1 for o in broker.orders.values() if o.status == OrderStatus.FILLED)
+        self.report.n_orders_rejected = sum(1 for o in broker.orders.values() if o.status == OrderStatus.REJECTED)
+        self.report.n_orders_cancelled = sum(1 for o in broker.orders.values() if o.status == OrderStatus.CANCELLED)
+        self._prev_order_count = len(broker.orders)
+
+    def _track_drawdown(self, broker: PaperBroker) -> None:
         if broker.current_value > self._peak_value:
             self._peak_value = broker.current_value
         if self._peak_value > 0:
             dd = (broker.current_value - self._peak_value) / self._peak_value
             self._max_drawdown = min(self._max_drawdown, dd)
+
+    def _live_cumulative_fees(self, broker: PaperBroker) -> float:
+        total = 0.0
+        for o in broker.orders.values():
+            if o.status in (OrderStatus.FILLED, OrderStatus.PARTIAL_FILL):
+                total += (o.filled_quantity * (o.filled_price or 0.0) * broker.fee_bps / 10000.0)
+        return total
 
     def test_kill_switch(self) -> None:
         """Test the kill switch: trip it and reset it."""
@@ -149,7 +185,15 @@ class PaperValidationRunner:
         return result["consistent"]
 
     def finalize(self, experiment_id: str = "") -> PaperValidationReport:
-        """Finalize the validation report and compute gate results."""
+        """Finalize the validation report and compute gate results.
+
+        Gates are derived from OBSERVED execution evidence, not default field
+        values.  A report whose n_days_executed is zero because no real fills were
+        recorded cannot pass min_execution_days; a report whose kill_switch_tested
+        is False because test_kill_switch was never called cannot pass the
+        kill-switch gate.  Default-true gates that discard actual test outcomes
+        are not permitted.
+        """
         self.report.end_time = datetime.now(timezone.utc).isoformat()
         self.report.experiment_id = experiment_id
         self.run_reconciliation()
@@ -165,14 +209,25 @@ class PaperValidationRunner:
         }
         vc = self.val_cfg
         gates: Dict[str, bool] = {}
+        # E01/E02: min_execution_days requires actual recorded sessions.
         gates["min_execution_days"] = self.report.n_days_executed >= vc.min_paper_days_validated
+        # E02: no_safeguard_breaches reflects observed breaches accumulated during
+        # record_step, not a default-zero field.
         gates["no_safeguard_breaches"] = self.report.n_safeguard_breaches <= vc.max_safeguard_breaches
         gates["reconciliation_consistent"] = self.report.final_reconciliation_consistent
+        # E02: kill_switch_tested requires that test_kill_switch was actually
+        # called AND that it both blocked orders AND reset cleanly.  A default-True
+        # gate that passes without the test having been run is not permitted.
         if vc.kill_switch_must_be_tested:
-            gates["kill_switch_tested"] = self.report.kill_switch_tested and self.report.kill_switch_reset
+            gates["kill_switch_tested"] = (
+                self.report.kill_switch_tested
+                and self.report.kill_switch_reset
+                and self.report.gate_results.get("kill_switch_blocks_orders", False)
+            )
         gates["daily_loss_controlled"] = (
             self.report.max_drawdown_observed >= -vc.max_daily_loss_before_kill
-            or self.report.kill_switch_tripped)
+            or self.report.kill_switch_tripped
+        )
         self.report.gate_results = gates
         all_passed = all(gates.values())
         if all_passed and self.report.n_days_executed >= vc.min_paper_days_live_eligible:

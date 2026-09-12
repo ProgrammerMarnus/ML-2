@@ -38,12 +38,36 @@ def setup():
     return cfg, feats, y, fwd
 
 
-def _model_coefs(res):
+def _model_params(res):
+    """E22: model-type-agnostic fitted-parameter snapshot.
+
+    The default model is gradient boosting (no ``coef_``); logistic models
+    expose ``coef_``/``intercept_``.  Compare whichever fitted state the model
+    exposes so the isolation invariant holds for EITHER model type.
+    """
     out = {}
     for fid in sorted(res.fitted_models):
         m = res.fitted_models[fid].named_steps["model"]
-        out[fid] = (m.coef_.copy(), m.intercept_.copy())
+        if hasattr(m, "coef_"):
+            out[fid] = ("coef", np.asarray(m.coef_).copy(),
+                        np.asarray(m.intercept_).copy())
+        elif hasattr(m, "feature_importances_"):
+            out[fid] = ("importances",
+                        np.asarray(m.feature_importances_).copy())
+        else:
+            out[fid] = ("params", str(m.get_params()))
     return out
+
+
+def _assert_params_equal(got, ref):
+    assert set(got) == set(ref)
+    for fid in ref:
+        assert got[fid][0] == ref[fid][0]
+        for a, b in zip(got[fid][1:], ref[fid][1:]):
+            if isinstance(a, str):
+                assert a == b
+            else:
+                np.testing.assert_array_equal(a, b)
 
 
 def test_mutating_test_labels_does_not_change_selection(setup):
@@ -59,7 +83,7 @@ def test_mutating_test_labels_does_not_change_selection(setup):
     """
     cfg, feats, y, fwd = setup
     base = run_walk_forward(feats, y, fwd, cfg)
-    ref = _model_coefs(base)
+    ref = _model_params(base)
 
     # (a) last fold: no later folds exist -> complete invariance
     y2 = y.copy()
@@ -73,10 +97,8 @@ def test_mutating_test_labels_does_not_change_selection(setup):
     pd.testing.assert_series_equal(
         res2.folds["selected_features"].reset_index(drop=True),
         base.folds["selected_features"].reset_index(drop=True))
-    got = _model_coefs(res2)
-    for fid in ref:
-        np.testing.assert_array_equal(got[fid][0], ref[fid][0])
-        np.testing.assert_array_equal(got[fid][1], ref[fid][1])
+    got = _model_params(res2)
+    _assert_params_equal(got, ref)
 
     # (b) per-fold: fold k's own selection is untouched by its own test labels
     for spec in base.fold_specs:
@@ -89,10 +111,16 @@ def test_mutating_test_labels_does_not_change_selection(setup):
             base.folds["threshold"].iloc[spec.fold_id - 1]
         assert resk.folds["selected_features"].iloc[spec.fold_id - 1] == \
             base.folds["selected_features"].iloc[spec.fold_id - 1]
+        # E22: compare fitted state without assuming a logistic model.
         mk = resk.fitted_models[spec.fold_id].named_steps["model"]
         mb = base.fitted_models[spec.fold_id].named_steps["model"]
-        np.testing.assert_array_equal(mk.coef_, mb.coef_)
-        np.testing.assert_array_equal(mk.intercept_, mb.intercept_)
+        assert type(mk) is type(mb)
+        if hasattr(mk, "coef_"):
+            np.testing.assert_array_equal(mk.coef_, mb.coef_)
+            np.testing.assert_array_equal(mk.intercept_, mb.intercept_)
+        elif hasattr(mk, "feature_importances_"):
+            np.testing.assert_array_equal(
+                mk.feature_importances_, mb.feature_importances_)
 
 
 def test_mutating_test_returns_does_not_change_selection(setup):
@@ -112,11 +140,9 @@ def test_mutating_test_returns_does_not_change_selection(setup):
     pd.testing.assert_series_equal(
         res2.folds["selected_features"].reset_index(drop=True),
         base.folds["selected_features"].reset_index(drop=True))
-    ref = _model_coefs(base)
-    got = _model_coefs(res2)
-    for fid in ref:
-        np.testing.assert_array_equal(got[fid][0], ref[fid][0])
-        np.testing.assert_array_equal(got[fid][1], ref[fid][1])
+    ref = _model_params(base)
+    got = _model_params(res2)
+    _assert_params_equal(got, ref)
 
 
 def test_thresholds_come_from_validation_candidates(setup):

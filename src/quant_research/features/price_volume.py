@@ -235,7 +235,17 @@ def build_signal_extensions(
     open_: pd.DataFrame, high: pd.DataFrame, low: pd.DataFrame,
     close: pd.DataFrame, volume: pd.DataFrame, target: str,
 ) -> pd.DataFrame:
-    """Assemble the pv-2.2.0 signal-extension panel for `target` (causal)."""
+    """Assemble the pv-2.2.0 signal-extension panel for `target` (causal).
+
+    E18: OHLC provenance is enforced.  Panels carrying a ``_synthetic_range``
+    attribute (close-only CSV imports fabricate open==high==low==close) are
+    rejected: overnight_gap would silently equal the full close-to-close
+    return, intraday_return would be identically zero, and day_range_position
+    would be undefined — fabricated inputs masquerading as measured signals.
+    OHLC panels must carry genuine measured ranges; the flag check uses the
+    ``_synthetic_range`` DataFrame attribute set by
+    ``data.loaders.to_price_panels``.
+    """
     validate_wide_panel(open_, "open")
     validate_wide_panel(high, "high")
     validate_wide_panel(low, "low")
@@ -243,6 +253,14 @@ def build_signal_extensions(
     validate_wide_panel(volume, "volume", allow_zero=True)
     if target not in close.columns:
         raise KeyError(f"target {target!r} not in close panel")
+    for _name, _panel in (("open", open_), ("high", high), ("low", low)):
+        if bool(getattr(_panel, "_synthetic_range", False)):
+            from ..data.schemas import DataValidationError
+            raise DataValidationError(
+                f"cannot build signal extensions from fabricated {_name} "
+                f"panel (_synthetic_range=True): close-only imports carry no "
+                f"measured intraday range"
+            )
 
     parts = {
         "overnight_gap": overnight_gap(open_, close)[target],

@@ -141,11 +141,17 @@ class LockedTestProtocol:
         persisted under a different dataset or evaluation policy must be
         REJECTED (not silently replaced).
 
-        D01: Corrupt or malformed lock files are also rejected rather than
-        treated as a fresh empty lock.
+        D01/E12: Corrupt, malformed, or structurally invalid lock files are
+        also rejected rather than treated as a fresh empty lock.  A valid
+        lock is a dict with a non-empty ``folds`` list and a string ``hash``;
+        each fold carries a ``fold_id`` and a non-empty ``test_timestamps``
+        (or ``test_start``/``test_end`` legacy pair).  Anything else -- "{}",
+        '{"spec": {}}', folds/hash mismatches, empty folds -- raises
+        LockedTestViolation instead of silently adopting a replacement.
         """
         try:
-            data = json.loads(self._lock_path.read_text(encoding="utf-8"))
+            raw = self._lock_path.read_text(encoding="utf-8")
+            data = json.loads(raw)
             if isinstance(data, dict) and isinstance(data.get("spec"), dict):
                 # B12-era nested layout: {"hash":..., "spec": {...}}
                 self._frozen_spec = data["spec"]
@@ -156,8 +162,12 @@ class LockedTestProtocol:
                 self._frozen_spec = data
                 self._frozen_hash = data.get("hash")
             else:
-                self._frozen_spec = None
-                self._frozen_hash = None
+                raise LockedTestViolation(
+                    f"persisted lock file {self._lock_path} has an unrecognized "
+                    f"schema (keys={sorted(data.keys()) if isinstance(data, dict) else type(data).__name__}); "
+                    f"refusing to proceed with an unverifiable test lock")
+        except LockedTestViolation:
+            raise
         except Exception as exc:
             # D01: Corrupt lock file must be rejected, not silently replaced.
             raise LockedTestViolation(
@@ -166,6 +176,7 @@ class LockedTestProtocol:
                 f"proceed with an unverifiable test lock") from exc
         if self._frozen_spec is None:
             return
+        self._validate_lock_schema()
         stored_did = self._frozen_spec.get("dataset_id")
         stored_cfp = self._frozen_spec.get("config_fingerprint")
         if self._dataset_id is not None and stored_did is not None \
@@ -185,6 +196,24 @@ class LockedTestProtocol:
                 f"incompatible test lock")
             self._frozen_spec = None
             self._frozen_hash = None
+
+    def _validate_lock_schema(self) -> None:
+        spec = self._frozen_spec or {}
+        folds = spec.get("folds")
+        h = spec.get("hash", self._frozen_hash)
+        if not isinstance(h, str) or not h:
+            raise LockedTestViolation("persisted lock has no valid hash")
+        if not isinstance(folds, list) or len(folds) == 0:
+            raise LockedTestViolation("persisted lock has no folds list")
+        for i, f in enumerate(folds):
+            if not isinstance(f, dict):
+                raise LockedTestViolation("persisted lock fold is not an object")
+            ts = f.get("test_timestamps")
+            if isinstance(ts, list) and len(ts) > 0:
+                continue
+            if f.get("test_start") and f.get("test_end"):
+                continue
+            raise LockedTestViolation("persisted lock fold has no test membership")
 
     def _save_lock(self) -> None:
         """Persist the current lock to disk."""

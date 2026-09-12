@@ -117,6 +117,19 @@ def backtest(
     idx = fwd_returns.index
     if not idx.is_unique:
         raise ValueError("fwd_returns index must be unique (no overlapping bars)")
+    # E21: missing/non-finite realized returns are rejected at the public
+    # boundary.  The engine must never silently zero an infinite print (a
+    # fabricated or broken feed) into an infinite/net-zero P&L bar, nor
+    # silently flatten exposure through a NaN bar without telling the caller.
+    vals = pd.to_numeric(fwd_returns, errors="coerce").to_numpy(dtype=float)
+    bad = ~np.isfinite(vals)
+    if bool(bad.any()):
+        bad_pos = np.flatnonzero(bad).tolist()
+        kinds = sorted({("inf" if np.isinf(vals[i]) else "nan") for i in bad_pos})
+        raise ValueError(
+            f"fwd_returns has non-finite values ({'/'.join(kinds)}) at "
+            f"position(s) {bad_pos[:8]} of {len(vals)}; clean the return feed "
+            f"before backtesting")
     sig = signal.reindex(idx).astype("float64")
 
     # execution_lag = inherent market execution lag + configured signal delay.

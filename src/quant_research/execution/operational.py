@@ -166,10 +166,23 @@ class ManualOverride:
         pos = self.broker.get_position(symbol)
         if abs(pos.quantity) < 1e-9:
             return None
+        # E04: liquidation bypasses nothing via submit guards (reducing orders
+        # are allowed), but flatten must not depend on them: cancel blockers,
+        # lift a tripped kill switch for the exit only, fill immediately, and
+        # restore the prior kill-switch state.
+        self.broker.cancel_all(symbol=symbol, reason="flatten_blocker")
+        was_tripped = self.broker.safeguards.kill_switch_active
+        if was_tripped:
+            self.broker.safeguards.reset_kill_switch()
         side = OrderSide.SELL if pos.quantity > 0 else OrderSide.BUY
         order = PaperOrder(symbol=symbol, side=side, quantity=abs(pos.quantity))
-        return self.broker.submit(order, current_price=current_price,
-                                   current_time=pd.Timestamp.now(tz="UTC"))
+        result = self.broker.submit(order, current_price=current_price,
+                                    current_time=pd.Timestamp.now(tz="UTC"))
+        if result.status == OrderStatus.SUBMITTED:
+            self.broker.process_bar(pd.Timestamp.now(tz="UTC"), {symbol: current_price})
+        if was_tripped:
+            self.broker.safeguards.trip_kill_switch("flatten_restore")
+        return result
 
     def flatten_all(self, prices: Dict[str, float]) -> List[PaperOrder]:
         """Close all positions. Returns list of orders submitted."""
@@ -258,13 +271,17 @@ class FailureRestartTest:
         ts = pd.Timestamp.now(tz="UTC")
         order = PaperOrder(symbol="TEST2", side=OrderSide.BUY, quantity=10)
         self.broker.submit(order, current_price=100.0, current_time=ts)
+        # E06 latency: advance one bar so the entry actually fills.
+        self.broker.process_bar(ts + pd.Timedelta("1ns"), {"TEST2": 100.0})
         if "TEST2" in prices:
             pos = self.broker.get_position("TEST2")
             if pos.quantity > 0:
                 flatten_order = PaperOrder(symbol="TEST2", side=OrderSide.SELL, quantity=pos.quantity)
                 self.broker.submit(flatten_order, current_price=prices["TEST2"], current_time=ts)
+                self.broker.process_bar(ts + pd.Timedelta("2ns"), {"TEST2": prices["TEST2"]})
                 new_pos = self.broker.get_position("TEST2")
                 return abs(new_pos.quantity) < 1e-9
+            return False
         return True
 
     def test_reconciliation_after_ops(self) -> bool:
@@ -272,6 +289,7 @@ class FailureRestartTest:
         ts = pd.Timestamp.now(tz="UTC")
         order = PaperOrder(symbol="TEST3", side=OrderSide.BUY, quantity=5)
         self.broker.submit(order, current_price=100.0, current_time=ts)
+        self.broker.process_bar(ts + pd.Timedelta("1ns"), {"TEST3": 100.0})
         return self.broker.reconcile()["consistent"]
 
     def run_all(self, prices: Optional[Dict[str, float]] = None) -> Dict[str, bool]:

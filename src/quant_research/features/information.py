@@ -84,6 +84,12 @@ def _assign_clusters(ev: pd.DataFrame,
     order. An earlier-published copy that arrives later must not preempt an
     already-available story. Cluster membership is decided using only events
     available at each decision time.
+
+    E17: revisions of the SAME event_id (same event_id, different revision)
+    are versions of one story, never syndicated copies of each other.  They
+    are never assigned to another event's cluster and never marked
+    ``_is_copy``; revision resolution happens per-bar in
+    ``build_information_features`` via the latest eligible revision.
     """
     out = ev.copy()
     if "topic" not in out.columns or out["topic"].isna().all():
@@ -101,13 +107,22 @@ def _assign_clusters(ev: pd.DataFrame,
     symbols = out["symbol"].astype("string").fillna("")
     etimes = out["event_time"]
     eids = out["event_id"].astype(object).to_numpy()
+    # E17: rows sharing an event_id are revisions of one story — pin each to
+    # its own event_id so same-topic revisions can never absorb each other
+    # (or any other event's rows).
+    eid_series = out["event_id"].astype("string")
+    _multi_ids = set(eid_series.value_counts().loc[lambda s: s > 1].index.astype(str))
     for i in range(len(out)):
         if is_copy[i]:
             continue
         canonical[i] = eids[i]
+        if str(eids[i]) in _multi_ids:
+            continue  # E17: revised story — neither absorbs nor is absorbed
         for j in range(i + 1, len(out)):
             if is_copy[j] or symbols.iloc[j] != symbols.iloc[i]:
                 continue
+            if str(eids[j]) in _multi_ids or str(eids[j]) == str(eids[i]):
+                continue  # E17: never absorb another event's revision chain
             if topics.iloc[i] == "" or topics.iloc[j] != topics.iloc[i]:
                 continue
             if abs((etimes.iloc[j] - etimes.iloc[i]).to_pytimedelta()) > window:
@@ -176,8 +191,19 @@ def build_information_features(
 
     if deduplicate and len(ev) > 1:
         evc = _assign_clusters(ev)
-        canon = evc[~evc["_is_copy"]].reset_index(drop=True)
         copies = evc[evc["_is_copy"]]
+        # E17: resolutions must be REVISION-aware, never double-count revisions.
+        # Same-id rows are versions of ONE story, not independent evidence.
+        # Keep every revision row here; the per-bar loop below resolves each
+        # event_id to its single latest eligible revision (highest revision
+        # with availability_time <= t, ties -> earliest availability).
+        rev_num_all = pd.to_numeric(evc["revision"], errors="coerce").fillna(0).to_numpy()
+        evc = evc.assign(_rev_num=rev_num_all)
+        evc_av = pd.to_datetime(evc["availability_time"], utc=True)
+        evc_av_idx = pd.DatetimeIndex(evc_av)
+        evc_av_us = evc_av_idx.as_unit("ns")
+        evc = evc.assign(_av_int=evc_av_us.asi8)
+        canon_all = evc[~evc["_is_copy"]].reset_index(drop=True)
         # copy availability (ns) per canonical story, sorted, for live counting
         copy_by_canon: dict = {}
         if len(copies):
@@ -186,6 +212,7 @@ def build_information_features(
                 av_idx = pd.DatetimeIndex(av)
                 av_us = av_idx.as_unit("ns")
                 copy_by_canon[cid] = np.sort(av_us.asi8)
+        canon = canon_all
     else:
         canon = ev.assign(_canonical_id=ev["event_id"].astype(object))
         copy_by_canon = {}
@@ -203,32 +230,53 @@ def build_information_features(
             return pd.to_numeric(canon[col], errors="coerce").fillna(default).to_numpy()
         return np.full(len(canon), default)
 
-    sentiment = _num("sentiment", 0.0)
-    novelty = _num("novelty", 0.0)
-    sources = canon["source"].astype("string").fillna("").to_numpy()
-    cid_arr = canon["_canonical_id"].astype(object).to_numpy()
-    avail = canon_av_int
+    sentiment_all = _num("sentiment", 0.0)
+    novelty_all = _num("novelty", 0.0)
+    sources_all = canon["source"].astype("string").fillna("").to_numpy()
+    cid_all = canon["_canonical_id"].astype(object).to_numpy()
+    avail_all = canon_av_int
+    eid_all = canon["event_id"].astype(object).to_numpy()
+    if "_rev_num" in canon.columns:
+        rev_all = canon["_rev_num"].to_numpy()
+    else:
+        rev_all = np.zeros(len(canon))
 
     rows = np.zeros((n, len(INFO_COLUMNS)))
     for i, t in enumerate(ts_int):
-        live = avail <= t
-        if not live.any():
+        live_mask = avail_all <= t
+        if not live_mask.any():
             continue
+        # E17: resolve each event_id to its latest eligible revision only.
+        live_pos = np.flatnonzero(live_mask)
+        # highest revision first; ties -> earliest availability (stable order)
+        order = live_pos[np.lexsort((avail_all[live_pos], -rev_all[live_pos]))]
+        seen: set = set()
+        keep = []
+        for p in order:
+            eid = eid_all[p]
+            if eid in seen:
+                continue
+            seen.add(eid)
+            keep.append(p)
+        keep = np.asarray(keep)
+        live_idx = np.zeros(len(canon), dtype=bool)
+        live_idx[keep] = True
+        live = live_idx
         age = np.maximum(i - first_bar[live], 0)
         w = 0.5 ** (age / halflife)
-        s = sentiment[live]
-        nv = novelty[live]
+        s = sentiment_all[live]
+        nv = novelty_all[live]
         wsum = w.sum()
         rows[i, 0] = float(np.average(s, weights=w)) if wsum > 0 else 0.0
         rows[i, 1] = float(np.average(np.abs(s), weights=w)) if wsum > 0 else 0.0
         rows[i, 2] = float(np.log1p(int(live.sum())))
-        rows[i, 3] = float(np.unique(sources[live]).size)
+        rows[i, 3] = float(np.unique(sources_all[live]).size)
         rows[i, 4] = float(np.average(nv, weights=w)) if wsum > 0 else 0.0
         rows[i, 5] = abs(rows[i, 0]) - rows[i, 1]
         rows[i, 6] = float(np.max(np.abs(s) * w))
         # corroboration of each live story: 1 (itself) + live absorbed copies
         counts = np.ones(int(live.sum()), dtype=float)
-        for k, cid in enumerate(cid_arr[live]):
+        for k, cid in enumerate(cid_all[live]):
             ck = copy_by_canon.get(cid)
             if ck is not None and len(ck):
                 counts[k] += float(np.searchsorted(ck, t, side="right"))

@@ -61,14 +61,21 @@ def test_paper_broker_records_fills_and_prevents_duplicates():
     ts = pd.Timestamp("2024-01-02", tz="UTC")
     order = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=10)
     broker.submit(order, current_price=100.0, current_time=ts)
+    # E06: market orders rest one bar (no same-bar fill) then fill next bar.
+    assert order.status.value == "SUBMITTED"
+    broker.process_bar(pd.Timestamp("2024-01-03", tz="UTC"), {"SPY": 100.0})
     assert order.filled_price is not None
     assert order.slippage_bps > 0
     assert order.latency_bars >= 1  # no same-bar fill by construction
     assert order.status.value == "FILLED"
-    # Submitting the same order object again should re-fill it (idempotent)
-    # The broker tracks by order_id, so a new order with same ID is still processed
+    # E07: retrying the same order_id is idempotent: no second execution,
+    # original record and history preserved.
+    n_events = len(order.fill_events)
     result = broker.submit(order, current_price=100.0, current_time=ts)
     assert result.status.value == "FILLED"
+    assert result is order
+    assert broker.get_position("SPY").quantity == 10
+    assert len(order.fill_events) == n_events
 
 
 def test_safeguards_trip_kill_switch():
@@ -92,10 +99,12 @@ def test_paper_broker_order_lifecycle():
     broker = PaperBroker(fee_bps=5.0, slippage_bps=1.0)
     ts = pd.Timestamp("2024-01-02", tz="UTC")
 
-    # Market order fills immediately
+    # Market order rests one bar (E06 latency) then fills on the next bar.
     order = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=100)
     assert order.status == OrderStatus.PENDING
     broker.submit(order, current_price=100.0, current_time=ts)
+    assert order.status == OrderStatus.SUBMITTED
+    broker.process_bar(pd.Timestamp("2024-01-03", tz="UTC"), {"SPY": 100.0})
     assert order.status == OrderStatus.FILLED
     assert order.filled_price is not None
     assert order.filled_quantity == 100
@@ -160,17 +169,19 @@ def test_paper_broker_position_tracking():
     broker = PaperBroker(slippage_bps=0.0)  # No slippage for exact price tracking
     ts = pd.Timestamp("2024-01-02", tz="UTC")
 
-    # Buy 10 shares at 100
+    # Buy 10 shares at 100 (fills next bar)
     order1 = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=10)
     broker.submit(order1, current_price=100.0, current_time=ts)
+    broker.process_bar(pd.Timestamp("2024-01-03", tz="UTC"), {"SPY": 100.0})
 
     pos = broker.get_position("SPY")
     assert pos.quantity == 10
     assert pos.avg_entry_price == 100.0
 
-    # Buy 10 more at 110
+    # Buy 10 more at 110 (fills next bar)
     order2 = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=10)
     broker.submit(order2, current_price=110.0, current_time=ts)
+    broker.process_bar(pd.Timestamp("2024-01-04", tz="UTC"), {"SPY": 110.0})
 
     pos = broker.get_position("SPY")
     assert pos.quantity == 20
@@ -185,6 +196,7 @@ def test_paper_broker_audit_trail():
 
     order = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=10)
     broker.submit(order, current_price=100.0, current_time=ts)
+    broker.process_bar(pd.Timestamp("2024-01-03", tz="UTC"), {"SPY": 100.0})
 
     events = broker.get_audit_trail()
     assert len(events) >= 2  # SUBMITTED + FILLED
@@ -200,6 +212,7 @@ def test_paper_broker_reconciliation():
 
     order = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=10)
     broker.submit(order, current_price=100.0, current_time=ts)
+    broker.process_bar(pd.Timestamp("2024-01-03", tz="UTC"), {"SPY": 100.0})
 
     result = broker.reconcile()
     assert result["consistent"]
@@ -467,6 +480,7 @@ def test_monitoring_format_status():
     ts = pd.Timestamp("2024-01-02", tz="UTC")
     order = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=10)
     broker.submit(order, current_price=100.0, current_time=ts)
+    broker.process_bar(pd.Timestamp("2024-01-03", tz="UTC"), {"SPY": 100.0})
 
     status = dashboard.format_status()
     assert "Paper Trading Status" in status
@@ -486,6 +500,7 @@ def test_manual_override_flatten():
     ts = pd.Timestamp("2024-01-02", tz="UTC")
     order = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=10)
     broker.submit(order, current_price=100.0, current_time=ts)
+    broker.process_bar(pd.Timestamp("2024-01-03", tz="UTC"), {"SPY": 100.0})
 
     pos = broker.get_position("SPY")
     assert pos.quantity == 10

@@ -74,6 +74,20 @@ def replay_oos(
     # B06: dispatch replay through the baseline's stored executable spec so a
     # no-override replay reproduces the identical ledger (feature subset, risk
     # input, per-fold holds, boundary policy, frozen anchor).
+    # E08: a fold_restart (nested-discovery) ledger replays through the
+    # discovery path itself so the merged turnover/cost contract -- including
+    # the boundary liquidation+re-entry charged on the merged position path --
+    # is bit-identical.  Routing it through the baseline walk-forward would
+    # silently drop the cross-fold entry trade (different hold/feature/threshold
+    # semantics) and understate fees.
+    if str(getattr(baseline, "boundary_policy", "continuous")) == "fold_restart":
+        from ..strategies._replay_discovery import replay_discovery_oos as _rd
+
+        return _rd(
+            features, y, fwd, cfg, baseline,
+            exec_cfg=exec_cfg,
+            trial_counter=trial_counter,
+        )
     return run_walk_forward(
         features, y, fwd, cfg,
         locked_test=locked_test,
@@ -407,23 +421,35 @@ def parameter_perturbation(
     # Use baseline's persisted model config if available (D06 fix)
     base = baseline.model_cfg if baseline.model_cfg is not None else cfg.model
     for f in factors:
-        # D06: Preserve explicit baseline parameters (logreg_C, gb_learning_rate,
-        # gb_n_estimators) so a factor of 1.0 reproduces the baseline exactly.
-        # Use replace() to copy all explicit fields, then override parameters
-        # AND explicit fields so the perturbation is actually consumed.
+        # E14: perturb the EFFECTIVE hyperparameters -- the explicit
+        # ModelConfig fields that build_model actually consumes (logreg_C,
+        # gb_learning_rate, gb_n_estimators), NOT the legacy parameters-dict
+        # aliases ("C", "learning_rate") that build_model never reads.  A
+        # factor of 1.0 therefore reproduces the baseline probabilities
+        # exactly; the probe's max-probability-difference at factor 1.0 is 0.
         params = dict(base.parameters)
         if base.type == "logistic":
-            params["C"] = float(params.get("C", 1.0)) * f
-            model_cfg = replace(base, parameters=params,
-                                logreg_C=params["C"])
+            base_c = base.logreg_C if base.logreg_C is not None else float(params.get("C", 1.0))
+            new_c = float(base_c) * f
+            params["C"] = new_c
+            model_cfg = replace(base, parameters=params, logreg_C=new_c)
         elif base.type == "gradient_boosting":
-            params["learning_rate"] = float(params.get("learning_rate", 0.05)) * f
-            model_cfg = replace(base, parameters=params,
-                                gb_learning_rate=params["learning_rate"])
+            base_lr = (base.gb_learning_rate if base.gb_learning_rate is not None
+                       else float(params.get("learning_rate", 0.05)))
+            new_lr = float(base_lr) * f
+            params["learning_rate"] = new_lr
+            model_cfg = replace(base, parameters=params, gb_learning_rate=new_lr)
         else:
             raise ValueError(f"unknown model type {base.type!r}")
-        res = replay_oos(features, y, fwd, cfg, baseline, locked_test,
-                         model_cfg=model_cfg, reuse_models=False)
+        if str(getattr(baseline, "boundary_policy", "continuous")) == "fold_restart":
+            from ..strategies._replay_discovery import \
+                replay_discovery_oos as _rd
+
+            res = _rd(features, y, fwd, cfg, baseline,
+                      model_cfg=model_cfg)
+        else:
+            res = replay_oos(features, y, fwd, cfg, baseline, locked_test,
+                             model_cfg=model_cfg, reuse_models=False)
         rows.append(_summarize_result(res, factor=float(f),
                                       model_type=model_cfg.type))
     return pd.DataFrame(rows)

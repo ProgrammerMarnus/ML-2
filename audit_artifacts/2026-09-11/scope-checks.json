@@ -1,0 +1,17 @@
+{
+  "head": "0f98bb89bb838d603f9ae712c6dab48c724c63d6",
+  "source_test_config_files_compared": 73,
+  "changed_since_isolated_copy": [],
+  "high_confidence_secret_locations": [],
+  "scanned_tracked_paths": 386,
+  "final_source_parity": true,
+  "report_links_valid": true,
+  "isolated_project_ledger_records": 18,
+  "pytest": {
+    "passed": 308,
+    "failed": 6,
+    "errors": 1,
+    "warnings": 1906,
+    "seconds": 573.93
+  }
+}

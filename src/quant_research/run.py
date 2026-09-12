@@ -164,10 +164,17 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
     shared_ledger_dir.mkdir(parents=True, exist_ok=True)
     ledger = SearchLedger(shared_ledger_dir / "search_ledger.jsonl")
     eval_fp = cfg.evaluation.fingerprint() if hasattr(cfg.evaluation, "fingerprint") else str(cfg.evaluation)
+    # E10: family key uses the coarse lineage (kind+major version), NOT the
+    # exact content digest, so tiny revisions (type suffixes, patched rows)
+    # stay in the same family.  The exact digest travels on the start/outcome
+    # entries (dataset_hash field) for forensics.
+    from .experiments.registry import family_lineage as _lineage
     family_id = SearchLedger.family_id(dataset_version, eval_fp)
     n_threshold_trials = len(getattr(cfg.research, "threshold_candidates", [0.5]))
     start_entry = ledger.record_start(family_id, "baseline_threshold_search", n_threshold_trials,
-                                      dataset_version, eval_fp, {"stage": "walk_forward_baseline"})
+                                      dataset_version, eval_fp,
+                                      {"stage": "walk_forward_baseline",
+                                       "dataset_lineage": _lineage(dataset_version)})
     attempt_id = start_entry.get("attempt_id", "")
 
     baseline = run_walk_forward(features, y, fwd, cfg, locked_test=locked_test,

@@ -188,7 +188,20 @@ def validate_events(events: pd.DataFrame) -> pd.DataFrame:
                         # value so missing timestamps don't mask conflicts.
                         nunique = len(vals.dropna().unique()) + int(vals.isna().any())
                     else:
-                        nunique = vals.nunique()
+                        # E16: missing identity values are DISTINCT from any
+                        # populated value (and never silently equal to it).
+                        # Mirror the datetime branch: count NaN/None as its own
+                        # value so [1.0, NaN] or [None, "wire"] conflict instead
+                        # of being silently equated (pandas nunique() drops
+                        # NaN, which hid the conflict).  Two rows that both
+                        # lack the field ([NaN, NaN]) still dedup.
+                        try:
+                            n_non_null = vals[~vals.isna()].nunique(dropna=True)
+                            has_null = bool(vals.isna().any())
+                        except Exception:
+                            n_non_null = vals.nunique()
+                            has_null = False
+                        nunique = int(n_non_null) + int(has_null)
                     if nunique > 1:
                         conflicting.append(
                             (str(eid), col, int(rev) if rev is not None and rev != "__null_revision__" else None))

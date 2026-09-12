@@ -1,0 +1,26 @@
+import warnings; warnings.filterwarnings('ignore')
+import numpy as np, pandas as pd
+from quant_research.config import AppConfig, EvaluationConfig, ModelConfig, ResearchConfig
+from quant_research.strategies.discovery import discover_and_evaluate_oos
+from quant_research.evaluation.robustness import replay_oos
+idx = pd.bdate_range('2020-01-01', periods=244, tz='UTC')
+rng = np.random.default_rng(810)
+X = pd.DataFrame(rng.normal(size=(len(idx),3)), index=idx, columns=['a','b','c'])
+fwd = pd.Series(rng.normal(0.001,0.009,len(idx)), index=idx)
+y=(fwd>0).astype(float)
+cfg=AppConfig(evaluation=EvaluationConfig(train_window=60,validation_window=30,test_window=30,step_bars=30,purge_bars=2,embargo_bars=2),model=ModelConfig(type='logistic'),research=ResearchConfig(max_trials=2,threshold_candidates=[0.0],hold_candidates=[1],placebo_runs=1,bootstrap_samples=10))
+orig=discover_and_evaluate_oos(X,{'all':list(X)},y,fwd,cfg)
+print('orig fee',orig.fee_costs,'policy',orig.boundary_policy,'hold',orig.hold_bars,orig.per_fold_hold_bars)
+print(orig.folds[['fold_id','oos_turnover','threshold']].to_string())
+rep=replay_oos(X,y,fwd,cfg,orig,None)
+print('replay fee',rep.fee_costs,'policy',rep.boundary_policy)
+print(rep.folds[['fold_id','oos_turnover','threshold']].to_string())
+print('pos equal',orig.oos_positions.equals(rep.oos_positions))
+p0=orig.oos_positions.sort_index(); p1=rep.oos_positions.sort_index()
+t0=p0.diff().abs(); t0.iloc[0]=abs(p0.iloc[0])
+t1=p1.diff().abs(); t1.iloc[0]=abs(p1.iloc[0])
+print('cont turnover orig',float(t0.sum()),'replay',float(t1.sum()))
+print('fold-sum orig',float(orig.folds['oos_turnover'].sum()),'replay',float(rep.folds['oos_turnover'].sum()))
+print('fee_bps',cfg.execution.fee_bps)
+print('net at fold starts orig:',[orig.oos_returns.loc[s.test_idx[0]] for s in orig.fold_specs[1:]])
+print('net at fold starts replay:',[rep.oos_returns.loc[s.test_idx[0]] for s in rep.fold_specs[1:]])

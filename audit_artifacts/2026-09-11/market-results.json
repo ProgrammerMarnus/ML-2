@@ -1,0 +1,96 @@
+{
+  "reference_manifest": "/home/marnus/VS-Code/ML-2/artifacts_stab_seed7/20260911T185438Z_29b2f71f3c17c121_manifest.json",
+  "snapshot": {
+    "snapshot_id": "20260911T184105Z_yfinance_ohlcv_883de66bbd22cbde",
+    "path": "data/raw_snapshots/20260911T184105Z_yfinance_ohlcv_883de66bbd22cbde.parquet",
+    "dataset_hash_truncated": "883de66bbd22cbde",
+    "dataset_hash_full": "374a293f87113b1dd405479a41da0e14fa828f43d20dbe7d75ca971b20e9ea94",
+    "n_rows": 7040,
+    "symbols": [
+      "QQQ",
+      "SPY"
+    ],
+    "created_utc": "20260911T184105Z"
+  },
+  "missing_sessions": [
+    {
+      "symbol": "QQQ",
+      "n_obs": 3520,
+      "first": "2012-01-03 00:00:00+00:00",
+      "last": "2025-12-31 00:00:00+00:00",
+      "n_expected_sessions": 3520,
+      "n_missing_sessions": 0,
+      "n_observed_closures": 0,
+      "n_weekend_bars": 0,
+      "n_holiday_bars": 0,
+      "n_zero_volume": 0
+    },
+    {
+      "symbol": "SPY",
+      "n_obs": 3520,
+      "first": "2012-01-03 00:00:00+00:00",
+      "last": "2025-12-31 00:00:00+00:00",
+      "n_expected_sessions": 3520,
+      "n_missing_sessions": 0,
+      "n_observed_closures": 0,
+      "n_weekend_bars": 0,
+      "n_holiday_bars": 0,
+      "n_zero_volume": 0
+    }
+  ],
+  "leakage": {
+    "checked_rows": 1760,
+    "max_abs_delta_history": 0.0,
+    "dimensions": {
+      "future_price": 0.0,
+      "future_ohlc_extensions": 0.0,
+      "future_volume": 0.0,
+      "future_cross_asset_price": 0.0,
+      "future_target_price": 0.0,
+      "future_information_event": 0.0,
+      "future_information_event_membership": 0.0
+    },
+    "information_event": {
+      "key": "information_event",
+      "split_ts": null,
+      "max_abs_delta_history": 0.0,
+      "passed": true
+    },
+    "information_event_membership": {
+      "max_abs_delta_history": 0.0,
+      "passed": true
+    },
+    "passed": true,
+    "detail": "features on unchanged history identical under future-data perturbation"
+  },
+  "baseline_summary": {
+    "mean_oos_sharpe": 0.3482021714499787,
+    "median_oos_sharpe": 0.006396952172595236,
+    "mean_oos_auc": 0.48600642852836234,
+    "mean_oos_brier": 0.26401389971667505,
+    "worst_oos_dd": -0.09838219074446097,
+    "full_oos_max_dd": -0.0983821907444613,
+    "total_oos_trades": 322,
+    "positive_folds": 4,
+    "n_folds": 7,
+    "single_fold_share": 0.5293526183441062,
+    "full_oos_sharpe": 0.19734968546789208,
+    "full_oos_net_sharpe": 0.19734968546789208,
+    "full_oos_gross_sharpe": 0.34032211818364383,
+    "full_oos_net_return": 0.056294655568737584,
+    "full_oos_gross_return": 0.1048474746432786,
+    "fee_cost": 0.03747399395086814,
+    "slippage_cost": 0.007494798790173628,
+    "cost_drag": 0.04855281907454101
+  },
+  "replay_positions_equal": true,
+  "replay_net_equal": true,
+  "reference_max_probability_difference": 0.0,
+  "reference_max_net_difference": 0.0,
+  "environment_reference": {
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "sklearn": "1.9.0",
+    "scipy": "1.18.1"
+  }
+}

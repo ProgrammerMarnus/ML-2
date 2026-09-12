@@ -215,9 +215,42 @@ class TrialCounter:
 
 
 def family_id_for_search(dataset_hash: str, eval_fingerprint: str) -> str:
-    """B11: stable research-family identifier (output-directory independent)."""
-    raw = f"{dataset_hash}|{eval_fingerprint}"
+    """B11/E10: stable research-family identifier (output-dir independent).
+
+    E10: the key is a coarse lineage signature, NOT the exact dataset hash,
+    so tiny data revisions (type suffixes, patch rows, single-bar fixes) stay
+    in the same family while a wholesale dataset change starts a new one.
+    ``dataset_hash`` may be a bare hash (legacy) or a lineage string such as
+    "ohlcv:v3:<hash>" (run.py passes the latter).  The lineage coarse key
+    keeps kind+major-version; the fine key keeps the exact hash and is used
+    only for forensics.
+    """
+    lineage = _family_lineage(dataset_hash)
+    raw = f"{lineage}|{eval_fingerprint}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def family_lineage(dataset_version: str) -> str:
+    """Public E10 helper: coarse lineage key for a dataset version string."""
+    return _family_lineage(dataset_version)
+
+
+def _family_lineage(dataset_version: str) -> str:
+    text = str(dataset_version or "")
+    parts = text.split(":")
+    if len(parts) >= 3 and parts[0] in ("ohlcv", "market", "dataset"):
+        # kind + major schema/data version (trailing patch/hash ignored).
+        kind = parts[0]
+        ver = parts[1]
+        major = str(ver).lstrip("vV").split(".")[0]
+        return f"{kind}:v{major or ver}"
+    token = parts[0] if parts else text
+    # A 64/32/16-hex token is an exact digest: family by its lineage means
+    # "same snapshot pipeline" -- keep the token's stable prefix class out of
+    # the family so revisions stay grouped only when eval matches.  For bare
+    # legacy digests without kind/version, fall back to the full token (each
+    # distinct dataset is its own family -- the conservative prior behavior).
+    return token or "unknown"
 
 
 class SearchLedger:
@@ -246,14 +279,26 @@ class SearchLedger:
         if not self.path.exists():
             return []
         out: List[Dict[str, Any]] = []
+        errors: List[str] = []
         with open(self.path, "r", encoding="utf-8") as fh:
-            for line in fh:
+            for lineno, line in enumerate(fh, start=1):
                 line = line.strip()
                 if line:
                     try:
-                        out.append(json.loads(line))
-                    except json.JSONDecodeError:
+                        entry = json.loads(line)
+                    except json.JSONDecodeError as exc:
+                        # E13: a corrupt row must fail visibly, never vanish.
+                        errors.append(f"line {lineno}: {exc}")
                         continue
+                    if not isinstance(entry, dict) or "family_id" not in entry:
+                        errors.append(f"line {lineno}: not a ledger entry")
+                        continue
+                    out.append(entry)
+        if errors:
+            raise DataValidationError(
+                f"search ledger {self.path} has {len(errors)} corrupt row(s) "
+                f"({'; '.join(errors[:3])}); refusing to compute trial history "
+                f"from a partially-read ledger")
         return out
 
     def _append(self, entry: Dict[str, Any]) -> None:

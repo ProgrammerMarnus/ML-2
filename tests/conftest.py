@@ -87,22 +87,46 @@ def tmp_output(tmp_path):
 
 # B18: Verify no project data directories are polluted by tests
 @pytest.fixture(autouse=True)
-def _assert_no_project_data_pollution(request):
+def _assert_no_project_data_pollution(request, monkeypatch):
     """Assert that test runs don't write to the project's data directories.
 
     This catches test isolation issues where tests might write snapshots
     or other data files outside their temporary output fixtures.
+
+    E23: the check is content-based (sha256 over file bytes), not
+    existence-based, so a passing run can neither create NOR modify files
+    under the project data directories.  Every test also gets an isolated
+    shared-ledger directory via QUANT_RESEARCH_LEDGER_DIR unless it sets its
+    own (the full-pipeline test does).
     """
     # Skip this check for tests that explicitly need to test snapshot writing
     if getattr(request.node, "allow_data_dir_writes", False):
         yield
         return
 
+    import hashlib as _hashlib
+    import os as _os
+
+    # E23: isolate the shared research ledger for every test by default.
+    if "QUANT_RESEARCH_LEDGER_DIR" not in _os.environ:
+        _ledger_tmp = request.config._tmp_path_factory.mktemp(
+            f"ledgers-{request.node.name}", numbered=True)
+        monkeypatch.setenv("QUANT_RESEARCH_LEDGER_DIR", str(_ledger_tmp))
+
+    def _snapshot(d):
+        if not d.exists() or not d.is_dir():
+            return {}
+        out = {}
+        for f in sorted(d.rglob("*")):
+            if f.is_file():
+                try:
+                    out[f] = _hashlib.sha256(f.read_bytes()).hexdigest()
+                except OSError:
+                    out[f] = "<unreadable>"
+        return out
+
     # Record state before test
-    dirs_before = {}
-    for d in PROJECT_DATA_DIRS:
-        if d.exists():
-            dirs_before[d] = set(d.rglob("*")) if d.is_dir() else set()
+    dirs_before = {d: _snapshot(d) for d in PROJECT_DATA_DIRS}
 
     yield
 
@@ -110,15 +134,20 @@ def _assert_no_project_data_pollution(request):
     for d in PROJECT_DATA_DIRS:
         if not d.exists():
             continue
-        files_after = set(d.rglob("*")) if d.is_dir() else set()
-        files_before = dirs_before.get(d, set())
-        new_files = files_after - files_before
-        if new_files:
-            # Allow temporary files that pytest creates
-            temp_files = [f for f in new_files if ".pytest" in str(f) or ".tmp" in str(f)]
-            if temp_files:
-                continue
+        files_after = _snapshot(d)
+        files_before = dirs_before.get(d, {})
+        new_files = set(files_after) - set(files_before)
+        # Allow temporary files that pytest creates
+        new_files = [f for f in new_files
+                     if ".pytest" not in str(f) and ".tmp" not in str(f)]
+        changed = sorted(
+            f for f in set(files_after) & set(files_before)
+            if files_after[f] != files_before[f]
+            and ".pytest" not in str(f) and ".tmp" not in str(f))
+        if new_files or changed:
             pytest.fail(
                 f"Test {request.node.name} wrote files to project data directory {d}:\n"
                 + "\n".join(str(f) for f in sorted(new_files))
+                + ("".join(f"\nMODIFIED: {f}" for f in changed)
+                   if changed else "")
             )
