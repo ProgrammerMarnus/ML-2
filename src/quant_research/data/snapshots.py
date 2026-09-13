@@ -73,7 +73,11 @@ def save_snapshot(ohlcv: pd.DataFrame, snapshot_dir: str | Path, name: str = "ma
         ohlcv.to_parquet(pq_path, index=False)
         path = pq_path
     except (ImportError, OSError):
-        ohlcv.to_csv(csv_path, index=False, compression="gzip")
+        # The snapshot hash canonicalizes numeric values to ten decimal places.
+        # Persist CSV snapshots at that same precision so a CSV round-trip has
+        # the identical identity rather than changing a last binary digit during
+        # text parsing and crossing a decimal rounding boundary.
+        ohlcv.to_csv(csv_path, index=False, compression="gzip", float_format="%.10f")
         path = csv_path
     meta = {
         "snapshot_id": base,
@@ -95,8 +99,8 @@ def load_snapshot(path: str | Path) -> pd.DataFrame:
     if path.suffix == ".parquet":
         return pd.read_parquet(path)
     if path.suffix == ".gz":
-        return pd.read_csv(path, compression="gzip")
-    return pd.read_csv(path)
+        return pd.read_csv(path, compression="gzip", float_precision="round_trip")
+    return pd.read_csv(path, float_precision="round_trip")
 
 
 def create_run_manifest(

@@ -117,14 +117,21 @@ def backtest(
     idx = fwd_returns.index
     if not idx.is_unique:
         raise ValueError("fwd_returns index must be unique (no overlapping bars)")
-    # E21: missing/non-finite realized returns are rejected at the public
-    # boundary.  The engine must never silently zero an infinite print (a
-    # fabricated or broken feed) into an infinite/net-zero P&L bar, nor
-    # silently flatten exposure through a NaN bar without telling the caller.
+    # Missing/non-finite realized returns are rejected at the public boundary.
+    # The one exception is a NaN at either *dataset boundary*: a forward-return
+    # series naturally has one at its final bar and a close-to-close series has
+    # one at its first bar.  Those bars have no complete return interval and are
+    # explicitly flattened below.  Interior gaps and every infinity remain a
+    # data-integrity error.
     vals = pd.to_numeric(fwd_returns, errors="coerce").to_numpy(dtype=float)
     bad = ~np.isfinite(vals)
-    if bool(bad.any()):
-        bad_pos = np.flatnonzero(bad).tolist()
+    allowed_boundary_nan = np.zeros(len(vals), dtype=bool)
+    if len(vals):
+        allowed_boundary_nan[0] = np.isnan(vals[0])
+        allowed_boundary_nan[-1] = np.isnan(vals[-1])
+    invalid = bad & ~allowed_boundary_nan
+    if bool(invalid.any()):
+        bad_pos = np.flatnonzero(invalid).tolist()
         kinds = sorted({("inf" if np.isinf(vals[i]) else "nan") for i in bad_pos})
         raise ValueError(
             f"fwd_returns has non-finite values ({'/'.join(kinds)}) at "

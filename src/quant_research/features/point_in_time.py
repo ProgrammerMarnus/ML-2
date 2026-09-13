@@ -109,6 +109,11 @@ def validate_events(events: pd.DataFrame) -> pd.DataFrame:
         raise DataValidationError(f"event frame missing required columns: {missing}")
 
     out = events.copy()
+    # ``revision`` is optional in the external event contract.  Downstream
+    # point-in-time resolution always operates on an explicit numeric revision,
+    # so ordinary one-version events receive the canonical base revision.
+    if "revision" not in out.columns:
+        out["revision"] = 0
     for col in TIME_COLUMNS:
         out[col] = _to_utc(out[col], col)
 

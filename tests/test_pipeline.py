@@ -274,17 +274,20 @@ def test_locked_test_survives_across_pipeline_runs(small_config, tmp_output):
 
 
 def _reconstruct_pipeline_inputs(cfg):
-    """Replicate the pipeline's exact stage-1/3 inputs (price/volume +
-    information features) so an independent run_walk_forward reproduces the
+    """Replicate the pipeline's exact stage-1/3 inputs (price/volume,
+    signal extensions, and information features) so an independent run_walk_forward reproduces the
     baseline, then the risk report can be checked against the true ledger."""
-    from quant_research.data.loaders import generate_synthetic_ohlcv, to_panels
+    from quant_research.data.loaders import generate_synthetic_ohlcv, to_panels, to_price_panels
+    from quant_research.features.price_volume import build_signal_extensions
 
     ohlcv = generate_synthetic_ohlcv(cfg.data.assets, cfg.data.start, cfg.data.end, seed=42)
     close, volume = to_panels(ohlcv)
     price = build_price_volume_features(close, volume, cfg.data.target)
+    open_, high, low, close_, volume_ = to_price_panels(ohlcv)
+    extensions = build_signal_extensions(open_, high, low, close_, volume_, cfg.data.target)
     events = generate_synthetic_events(close.index, cfg.data.target)
     info = build_information_features(close.index, events, cfg.data.target)
-    feats = price.join(info, how="left")
+    feats = price.join(extensions, how="left").join(info, how="left")
     y = (close[cfg.data.target].shift(-1) > close[cfg.data.target]).astype(float)
     y[close[cfg.data.target].shift(-1).isna()] = np.nan
     fwd = close[cfg.data.target].shift(-1) / close[cfg.data.target] - 1.0

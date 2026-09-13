@@ -82,6 +82,66 @@ pipeline, then set `research.protocol_path` in the configuration. The protocol
 binds the hypothesis, mechanism, features, data split, trial budget, and config
 fingerprint. It is immutable and is recorded with the experiment.
 
+### Automated experiment plans
+
+Create a small, preregistered set of model variations without running them:
+
+```bash
+python -m quant_research.experiments.automation \
+  --config configs/baseline.yaml --output artifacts/automation
+```
+
+The command creates immutable protocol and config files plus an experiment
+plan. Add `--run` only when you intend to consume the declared trial budget and
+execute each full walk-forward/robustness/placebo test. Generated results still
+default to `RESEARCH_ONLY` unless every promotion gate passes.
+
+### Overnight campaign runner
+
+Run a six-hour, validation-only candidate search followed by exactly one
+locked final confirmation. Candidates are ranked only on their rolling
+train/validation windows; the final OOS test window is not read until the
+winner has been selected and its protocol/config have been frozen:
+
+```bash
+nohup .venv/bin/python -m quant_research.experiments.overnight \
+  --config configs/real_spy.yaml \
+  --output artifacts/overnight \
+  --max-hours 6 > artifacts/overnight.log 2>&1 &
+```
+
+Install the real-data dependency once with
+`.venv/bin/python -m pip install -e '.[market,dev]'`.
+Each invocation creates a timestamped campaign directory with a frozen
+`catalogue_manifest.json`, `development_results.json`, and
+`confirmation_results.json`. The runner starts another candidate whenever one
+finishes before the deadline, drawing from a deterministic 1,960-candidate
+catalogue of regularization, model-capacity, and holding-period variations.
+It never reads OOS returns, labels, probabilities, or metrics while ranking
+candidates. The selected candidate is then evaluated once on the final fold,
+with cost and delay stress diagnostics, and remains `RESEARCH_ONLY`: this
+single confirmation does not auto-promote a strategy. A matching raw-dataset
+and final-test slice is guarded against reuse by another campaign. Synthetic
+runs require the explicit `--allow-synthetic` flag and are offline smoke
+evidence only.
+
+### Campaign preflight and status
+
+Before an overnight run, validate the local setup without downloading market
+data or consuming any development/confirmation evidence:
+
+```bash
+.venv/bin/python -m quant_research.experiments.operations preflight \
+  --config configs/real_spy.yaml --output artifacts/overnight --max-hours 6
+```
+
+Afterward, read the latest campaign summary without modifying it:
+
+```bash
+.venv/bin/python -m quant_research.experiments.operations status \
+  --output artifacts/overnight
+```
+
 ---
 
 ## Data contract

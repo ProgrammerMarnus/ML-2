@@ -31,6 +31,18 @@ from quant_research.features.price_volume import build_price_volume_features
 from quant_research.strategies.baseline import run_walk_forward, summarize_experiment
 
 
+def _assert_same_fitted_model(left, right) -> None:
+    """Compare replayed model state without assuming a linear classifier."""
+    if hasattr(left, "coef_"):
+        np.testing.assert_array_equal(left.coef_, right.coef_)
+        np.testing.assert_array_equal(left.intercept_, right.intercept_)
+    else:
+        np.testing.assert_array_equal(left.feature_importances_, right.feature_importances_)
+        assert left.n_estimators == right.n_estimators
+        assert left.max_depth == right.max_depth
+        assert left.learning_rate == right.learning_rate
+
+
 @pytest.fixture(scope="module")
 def setup():
     cfg = AppConfig(
@@ -96,8 +108,7 @@ def test_delay_stress_changes_timing_not_model(setup):
     for fid in base.fitted_models:
         m0 = base.fitted_models[fid].named_steps["model"]
         m1 = replay1.fitted_models[fid].named_steps["model"]
-        np.testing.assert_array_equal(m0.coef_, m1.coef_)
-        np.testing.assert_array_equal(m0.intercept_, m1.intercept_)
+        _assert_same_fitted_model(m0, m1)
     # timing changed -> the executed return stream differs
     d0 = table[table["delay_bars"] == 0].iloc[0]
     d1 = table[table["delay_bars"] == 1].iloc[0]
@@ -119,9 +130,10 @@ def test_stress_never_reselects_on_test_data(setup):
         replay.folds["threshold"].reset_index(drop=True),
         base.folds["threshold"].reset_index(drop=True))
     for fid in base.fitted_models:
-        np.testing.assert_array_equal(
-            replay.fitted_models[fid].named_steps["model"].coef_,
-            base.fitted_models[fid].named_steps["model"].coef_)
+        _assert_same_fitted_model(
+            replay.fitted_models[fid].named_steps["model"],
+            base.fitted_models[fid].named_steps["model"],
+        )
     # the evaluation itself reflects the mutated test data (as it should)
     assert not np.allclose(replay.oos_returns.to_numpy(), base.oos_returns.to_numpy())
 
