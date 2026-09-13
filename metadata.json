@@ -1,0 +1,8 @@
+{
+  "name": "Institutional Quant Research Engine",
+  "description": "A point-in-time, leakage-safe, walk-forward quantitative research platform and audit dashboard with strategy discovery, stress testing, placebo empirical nulls, and promotion gates.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

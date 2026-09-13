@@ -1,5 +1,0 @@
-2026-09-10: rg unavailable (exit 127); used find and Python instead. Legacy skill target prompt.txt absent; current repository uses modular engine and pytest. No pipeline edits; validation executed from byte-identical isolated source/test copy to protect shared research state.
-Initial isolated pytest setup failed: generic data exclusion also omitted quant_research/data package. Restored package bytes; rerunning suite. This was audit-harness setup, not a product failure.
-Audit probe serialization failed on Timestamp dictionary keys; converted evidence keys to strings and reran. Product exception results remain distinct from audit-harness errors.
-Fresh full pytest: 280 passed, 1918 warnings, one teardown error (shared ledger pollution), exit 1. Repeating the single test with the existing ledger returned exit 0 while appending two history rows.
-Jupyter kernel could not start: PermissionError opening local socket. Saved notebook outputs were cleared. Exact source cells are being executed sequentially in a fresh Python process; this is explicitly distinguished from a kernel-backed run.

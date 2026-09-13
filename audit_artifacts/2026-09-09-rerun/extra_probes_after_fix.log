@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/tmp/ml2-phase1.P5AEKY/extra_probes.py", line 26, in <module>
-    assert us.info_attention.iloc[0] == 0 and ns.info_attention.iloc[0] > 0
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError
