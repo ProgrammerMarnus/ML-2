@@ -1,0 +1,39 @@
+{"task_id": "t00", "tag": "seed44", "status": "fail", "rc": 2, "result": "NO-RESULT-LINE", "secs": 0.1, "ts": "2026-09-12T19:28:05.492272+00:00"}
+{"task_id": "t01", "tag": "abl_overnight_gap", "status": "fail", "rc": 2, "result": "NO-RESULT-LINE", "secs": 0.1, "ts": "2026-09-12T19:28:05.587413+00:00"}
+{"task_id": "t02", "tag": "seed45", "status": "fail", "rc": 2, "result": "NO-RESULT-LINE", "secs": 0.1, "ts": "2026-09-12T19:28:05.692310+00:00"}
+{"task_id": "t03", "tag": "abl_intraday_return", "status": "fail", "rc": 2, "result": "NO-RESULT-LINE", "secs": 0.1, "ts": "2026-09-12T19:28:05.791339+00:00"}
+{"task_id": "t04", "tag": "seed46", "status": "fail", "rc": 2, "result": "NO-RESULT-LINE", "secs": 0.1, "ts": "2026-09-12T19:28:05.866200+00:00"}
+{"task_id": "t05", "tag": "abl_day_range_position", "status": "fail", "rc": 2, "result": "NO-RESULT-LINE", "secs": 0.1, "ts": "2026-09-12T19:28:05.940294+00:00"}
+{"task_id": "t06", "tag": "abl_rsi_14", "status": "fail", "rc": 2, "result": "NO-RESULT-LINE", "secs": 0.1, "ts": "2026-09-12T19:28:06.015983+00:00"}
+{"task_id": "t07", "tag": "abl_bollinger_position_20", "status": "fail", "rc": 2, "result": "NO-RESULT-LINE", "secs": 0.1, "ts": "2026-09-12T19:28:06.095384+00:00"}
+{"task_id": "t08", "tag": "abl_fifty_two_week_position", "status": "fail", "rc": 2, "result": "NO-RESULT-LINE", "secs": 0.1, "ts": "2026-09-12T19:28:06.179976+00:00"}
+{"task_id": "t09", "tag": "abl_vol_of_vol_20", "status": "fail", "rc": 2, "result": "NO-RESULT-LINE", "secs": 0.1, "ts": "2026-09-12T19:28:06.257557+00:00"}
+{"task_id": "t00", "tag": "seed44", "status": "fail", "rc": -15, "result": "rc=-15 | a|cline-free/deepseek-v4-flash|act|1/1 // a|cline-free/glm-5.3-flash|act|1/1 // a|cline-free/solar-pro4|act|1/1", "model": "a/cline-free/solar-pro4", "secs": 282.1, "ts": "2026-09-12T19:52:13.382305+00:00"}
+{"task_id": "t01", "tag": "abl_overnight_gap", "status": "fail", "rc": -15, "result": "rc=-15 | b|cline-free/deepseek-v4-flash|act|1/1 // b|cline-free/glm-5.3-flash|act|1/1 // b|cline-free/solar-pro4|act|1/1", "model": "b/cline-free/solar-pro4", "secs": 1289.1, "ts": "2026-09-12T20:13:42.467599+00:00"}
+{"task_id": "t02", "tag": "seed45", "status": "fail", "rc": -15, "result": "rc=-15 | a|cline-free/deepseek-v4-flash|act|1/1 // a|cline-free/glm-5.3-flash|act|1/1 // a|cline-free/solar-pro4|act|1/1", "model": "a/cline-free/solar-pro4", "secs": 177.7, "ts": "2026-09-12T20:16:40.175518+00:00"}
+{"task_id": "seed44", "status": "fail", "phase": "A", "rc": -15, "tail": "a|cline-free/glm-5.3-flash|act|1/1|a|cline-free/solar-pro4|act|1/1"}
+{"task_id": "seed45", "status": "fail", "phase": "A", "rc": 0, "tail": "|Done: 1/1 runs ok (3 failovers)."}
+{"task_id": "seed46", "status": "fail", "phase": "A", "rc": -15, "tail": "b|cline-free/glm-5.3-flash|act|1/1|b|cline-free/solar-pro4|act|1/1"}
+{"task_id": "abl_overnight_gap", "status": "fail", "phase": "A", "rc": 0, "tail": "|Done: 1/1 runs ok (3 failovers)."}
+{"task_id": "seed44", "status": "error", "error": "'seed'"}
+{"task_id": "seed45", "status": "error", "error": "'seed'"}
+{"task_id": "seed46", "status": "error", "error": "'seed'"}
+{"task_id": "seed44", "status": "error", "error": "'seed'"}
+{"task_id": "seed45", "status": "error", "error": "'seed'"}
+{"task_id": "seed46", "status": "error", "error": "'seed'"}
+{"task_id": "seed44", "status": "fail", "phase": "analyze", "result": "NO-RESULT"}
+{"task_id": "seed44", "status": "fail", "phase": "analyze", "result": "NO-RESULT"}
+{"task_id": "seed45", "status": "fail", "phase": "analyze", "result": "NO-RESULT"}
+{"task_id": "seed46", "status": "fail", "phase": "analyze", "result": "AGENT-TIMEOUT"}
+{"task_id": "abl_overnight_gap", "status": "fail", "phase": "pipeline"}
+{"task_id": "abl_intraday_return", "status": "fail", "phase": "pipeline"}
+{"task_id": "abl_day_range_position", "status": "fail", "phase": "pipeline"}
+{"task_id": "abl_rsi_14", "status": "fail", "phase": "pipeline"}
+{"task_id": "abl_bollinger_position_20", "status": "fail", "phase": "pipeline"}
+{"task_id": "abl_fifty_two_week_position", "status": "fail", "phase": "pipeline"}
+{"task_id": "abl_vol_of_vol_20", "status": "fail", "phase": "pipeline"}
+{"task_id": "seed44", "status": "fail", "phase": "analyze", "result": "NO-RESULT rc=0 tail=a|cline-free/muse-spark-1.3-contributor|act|1/1\n\nDone: 1/1 runs ok (0 failovers).\n", "tag": "seed44"}
+{"task_id": "seed44", "status": "fail", "phase": "analyze", "result": "NO-RESULT rc=3 tail=--> auth fail: skip rest of 'a'.\nb|cline-free/muse-spark-1.3-contributor|act|1/1\nb|cline-free/deepseek-v4-flash|act|1/1\nb|cline-free/glm-5.3-flash|act|1/1\nb|cline-free/solar-pro4|act|1/1\n--> auth fail: skip rest of 'b'.\nc|cline-free/muse-spark-1.3-contributor|act|1/1\n--> auth fail: skip rest of 'c'.\nd|cline-free/muse-spark-1.3-contributor|act|1/1\n--> auth fail: skip rest of 'd'.\nmain|cline-free/muse-spark-1.3-contributor|act|1/1\n--> auth fail: skip rest of 'main'.\n\n\nALL COMBOS EXHAUSTED at run 1/1 [main].", "tag": "seed44"}
+{"task_id": "seed44", "status": "fail", "phase": "analyze", "result": "NO-RESULT"}
+{"task_id": "seed44", "status": "fail", "phase": "analyze", "result": "NO-RESULT rc=3 tail=b|cline-free/muse-spark-1.3-contributor|act|1/1\nb|cline-free/deepseek-v4-flash|act|1/1\nb|cline-free/glm-5.3-flash|act|1/1\nb|cline-free/solar-pro4|act|1/1\nb|cline-free/longcat-2.0|act|1/1\nb|cline-free/laguna-s-2.1|act|1/1\nc|cline-free/muse-spark-1.3-contributor|act|1/1\n--> auth fail: skip rest of 'c'.\nd|cline-free/muse-spark-1.3-contributor|act|1/1\n--> auth fail: skip rest of 'd'.\nmain|cline-free/muse-spark-1.3-contributor|act|1/1\n--> auth fail: skip rest of 'main'.\n\n\nALL COMBOS EXHAUSTED at run 1/1 [main].", "tag": "seed44"}
+{"task_id": "seed44", "status": "fail", "phase": "pipeline", "tag": "seed44"}

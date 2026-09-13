@@ -252,6 +252,26 @@ def discover_and_evaluate_oos(
     ranking report); this function is the evaluation that must be used for
     any OOS evidence.
     """
+    # D04: anchor the fold clock on declared observations (feature rows with
+    # any usable input) BEFORE inspecting labels/outcomes, identically to
+    # _validation_sharpe.  Missing labels/returns never move fold membership;
+    # they are rejected per-fold below.
+    common = features.dropna(how="all").index
+    X = features.loc[common]
+    yy = y.loc[common]
+    ff = fwd.loc[common]
+    folds = walk_forward_splits(X.index, cfg.evaluation)
+
+    # E09: verify the supplied lock BEFORE evaluating candidates so a forged
+    # or re-cut test layout cannot consume trials/fits.  A None lock skips
+    # verification (direct-call path); run.py always supplies the pipeline lock.
+    if locked_test is not None:
+        locked_test.verify(folds)
+
+    # The test geometry is now verified before *any* candidate fit or
+    # validation backtest.  In particular, a persisted lock that rejects a
+    # recut layout must leave no model fits, threshold searches, or trial
+    # accounting side effects behind.
     model_types = ["logistic", "gradient_boosting"]
     grid = list(itertools.product(feature_sets.keys(), model_types,
                                   cfg.research.hold_candidates))
@@ -271,21 +291,6 @@ def discover_and_evaluate_oos(
             "per_fold_score": dict(pfscores), "per_fold_dd": dict(pfdds),
             "validation_sharpe": vsharpe, "validation_max_dd": vdd,
         }
-    # D04: anchor the fold clock on declared observations (feature rows with
-    # any usable input) BEFORE inspecting labels/outcomes, identically to
-    # _validation_sharpe.  Missing labels/returns never move fold membership;
-    # they are rejected per-fold below.
-    common = features.dropna(how="all").index
-    X = features.loc[common]
-    yy = y.loc[common]
-    ff = fwd.loc[common]
-    folds = walk_forward_splits(X.index, cfg.evaluation)
-
-    # E09: verify the supplied lock BEFORE evaluating candidates so a forged
-    # or re-cut test layout cannot consume trials/fits.  A None lock skips
-    # verification (direct-call path); run.py always supplies the pipeline lock.
-    if locked_test is not None:
-        locked_test.verify(folds)
 
     # E11: record the discovery search attempt on the shared research-family
     # ledger BEFORE candidate evaluation (output-location-independent) so

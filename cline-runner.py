@@ -202,8 +202,14 @@ def run_capture(provider, model, cfg, mode, thinking, prompt, extra_args):
         proc = subprocess.run(cmd, capture_output=True, text=True)
     except FileNotFoundError:
         return AttemptResult(False, "fatal", "cline binary missing", 127, "")
-    return classify_output(proc.returncode,
-                          (proc.stdout or "") + "\n" + (proc.stderr or ""))
+    _full = (proc.stdout or "") + "\n" + (proc.stderr or "")
+    _res = classify_output(proc.returncode, _full)
+    if _res.ok:
+        sys.stdout.write("\n--- AGENT OUTPUT BEGIN ---\n")
+        sys.stdout.write(proc.stdout or "")
+        sys.stdout.write("\n--- AGENT OUTPUT END ---\n")
+        sys.stdout.flush()
+    return _res
 
 
 def parse_args(argv=None):

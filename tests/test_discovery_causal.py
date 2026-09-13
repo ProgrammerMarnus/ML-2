@@ -19,6 +19,8 @@ import pandas as pd
 import pytest
 
 from quant_research.config import AppConfig, DataConfig, EvaluationConfig, ResearchConfig
+from quant_research.evaluation.robustness import replay_oos
+from quant_research.evaluation.walk_forward import LockedTestViolation
 from quant_research.strategies.discovery import discover_and_evaluate_oos
 
 FLIP = 300  # regime boundary bar
@@ -149,3 +151,59 @@ def test_nested_discovery_costs_reconcile_on_merged_ledger():
         ledger_turn * cfg.execution.fee_bps / 1e4)
     assert res.slippage_costs == pytest.approx(
         ledger_turn * cfg.execution.slippage_bps / 1e4)
+
+
+def test_nested_discovery_no_override_replay_is_cost_identical():
+    """A discovery replay must preserve the merged boundary-cost ledger.
+
+    This is the E08 acceptance criterion: a replay which changes nothing must
+    reproduce positions, gross/net returns, and fees rather than reintroduce
+    fold-local turnover accounting.
+    """
+    X, y, fwd = _regime_stream()
+    cfg = _discovery_cfg(X.index)
+    base = discover_and_evaluate_oos(X, _feature_sets(), y, fwd, cfg)
+    replay = replay_oos(X, y, fwd, cfg, base, locked_test=None)
+
+    pd.testing.assert_series_equal(replay.oos_positions, base.oos_positions)
+    pd.testing.assert_series_equal(replay.oos_gross_returns,
+                                  base.oos_gross_returns)
+    pd.testing.assert_series_equal(replay.oos_returns, base.oos_returns)
+    assert replay.fee_costs == pytest.approx(base.fee_costs, abs=1e-12)
+    assert replay.slippage_costs == pytest.approx(base.slippage_costs,
+                                                   abs=1e-12)
+    assert replay.folds["oos_turnover"].sum() == pytest.approx(
+        base.folds["oos_turnover"].sum(), abs=1e-12)
+
+
+def test_nested_discovery_rejects_a_bad_lock_before_candidate_fits(monkeypatch):
+    """A rejected locked layout must not consume a discovery candidate fit.
+
+    This guards the actual E09 failure mode: verifying the lock after the
+    global candidate-validation loop still exposed the supposedly protected
+    test geometry to a costly search before eventually raising.
+    """
+    X, y, fwd = _regime_stream()
+    cfg = _discovery_cfg(X.index)
+
+    class RejectingLock:
+        def __init__(self):
+            self.calls = 0
+
+        def verify(self, folds):
+            self.calls += 1
+            raise LockedTestViolation("test lock intentionally rejects layout")
+
+    lock = RejectingLock()
+
+    def candidate_fit_must_not_run(*args, **kwargs):
+        raise AssertionError("candidate validation ran before locked-test verification")
+
+    monkeypatch.setattr(
+        "quant_research.strategies.discovery._validation_sharpe",
+        candidate_fit_must_not_run,
+    )
+    with pytest.raises(LockedTestViolation, match="intentionally rejects"):
+        discover_and_evaluate_oos(X, _feature_sets(), y, fwd, cfg,
+                                  locked_test=lock)
+    assert lock.calls == 1
