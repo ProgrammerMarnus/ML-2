@@ -1,0 +1,115 @@
+FUTURE STEPS — INSTITUTIONAL QUANT RESEARCH ENGINE
+As reviewed: 2026-09-13
+
+PROJECT READ
+The research platform has substantial point-in-time, walk-forward, cost and
+experiment-history controls. Its current pv-2.2.0 strategy evidence is
+promising but not sufficient for promotion. DISCOVERY_ANALYSIS.txt records
+eight fresh-download runs: the predeclared placebo-separation gate failed in
+all eight, while a historical CANDIDATE result has not been reproduced. The
+same-seed results also move with refreshed market data. Keep the current
+strategy at RESEARCH_ONLY. Do not keep changing seeds or relax gates to obtain
+a pass.
+
+IMPLEMENTATION STATUS — 2026-09-13
+V2.1.4 implements and regression-tests configurable fill latency,
+cross-symbol pending-cash reservation, fill-time cash/exposure validation,
+conflicting order-ID rejection, reduce-only emergency exits, unique processed
+session counting, research-record binding, and observed-paper evidence gates.
+These engineering fixes do not change the current strategy's RESEARCH_ONLY
+status.
+
+RECOMMENDED ORDER
+
+1. Close the current strategy search line and preserve its evidence.
+   Keep the original experiment records, raw snapshots, configs, and the
+   composite comparison together. Record pv-2.2.0 as a completed research
+   result with its unresolved placebo failure. Treat the historical seed-42
+   CANDIDATE as an unreplicated result, not the current status.
+   Done when: the registry/report clearly identifies the frozen strategy,
+   exact dataset hashes, gate outcomes, and the decision not to promote.
+
+2. Require a new, testable hypothesis before the next strategy experiment.
+   State the mechanism, expected effect, features, target, costs, and one
+   primary success criterion before running it. Separate hypothesis
+   development data from a genuinely untouched evaluation period or asset
+   set. Count every attempted variant in the existing research-family
+   accounting. Do not select a hypothesis by repeatedly inspecting the same
+   OOS period.
+   Done when: a short preregistration and frozen config exist before results
+   are generated, and evaluation data cannot be used for candidate selection.
+   Implementation: `quant_research.experiments.protocol.ResearchProtocol`
+   creates a write-once, digest-verified protocol that is optionally attached
+   through `research.protocol_path`. A future trading hypothesis still needs
+   to be chosen and supplied by the researcher.
+
+3. Reconcile the latest formal audit findings against the current code, then
+   fix any still-open P1 items before using discovery or paper evidence.
+   DEEP_AUDIT_2026-09-11.md found serious issues in nested-discovery replay
+   costs and locked-test enforcement, paper-session promotion, safety/breach
+   evidence, kill-switch handling, liquidation, pending-order exposure,
+   latency, and order-ID retries. That audit covered an earlier commit, so
+   first verify each counterexample against the current branch rather than
+   assuming every finding is still present. Fix the remaining issues in this
+   order: (a) discovery cost reconciliation and locked-test enforcement;
+   (b) paper execution ledger and emergency controls; (c) paper-validation
+   evidence and promotion gates.
+   Done when: each applicable audit counterexample has a regression test and
+   a no-override nested replay matches positions, turnover, costs, and net
+   returns; paper validation cannot advance from repeated function calls.
+
+4. Establish a trustworthy current test baseline.
+   The 2026-09-11 audit reported 308 passing tests, 6 failures, one teardown
+   error, and shared research-state pollution. Rerun the suite on the current
+   branch in an isolated temporary copy or isolated state directory. Repair
+   any remaining stale assertions, estimator-specific assumptions, and
+   shared-ledger contamination before using the suite as release evidence.
+   Done when: the full suite passes repeatably without modifying project
+   artifacts or leaking state between tests, and the run log is retained.
+
+5. Improve data-version reproducibility before comparing future results.
+   Recent analysis shows refreshed yfinance data can change results for the
+   same seed and config. Use saved, hash-verified snapshots for controlled
+   comparisons; report snapshot hashes alongside metrics; test provider
+   refresh sensitivity as a separate robustness question. Keep code/config
+   identity and all search attempts attached to each result.
+   Done when: a replay from a saved snapshot reproduces the recorded ledger,
+   and a refresh comparison is clearly distinguished from a seed comparison.
+
+6. Defer paper trading until research and execution evidence are credible.
+   The 2026-09-11 audit found that paper readiness could be overstated and
+   that key order-flow controls were incomplete. First make fills causal and
+   idempotent, maintain cash/position reconciliation, validate fresh marks,
+   and ensure emergency liquidation works. Then require unique real or
+   explicitly simulated trading sessions, event-derived breach counts, and
+   durable audit evidence. Do not treat the current simulator as evidence of
+   live operational readiness.
+   Done when: failure/restart, kill-switch, liquidation, partial-fill,
+   duplicate-request, stale-price, and session-duration scenarios pass in
+   end-to-end tests, with no live adapter implied by simulator results.
+
+7. Only after these foundations, investigate the signal's placebo failure.
+   Use the current placebo method and thresholds as predeclared. Ask whether
+   the signal has a defensible economic mechanism and whether the null is
+   appropriate for the feature/target dependence structure. If the hypothesis
+   changes, create a new version and account for it as a new search family;
+   do not tune features or gates against the existing OOS results.
+   Done when: a new hypothesis beats the predeclared null and all cost,
+   delay, bootstrap, fold-dominance, integrity, and trial-accounting gates on
+   untouched evidence.
+
+NOT RECOMMENDED NOW
+More seed-only reruns of pv-2.2.0, promoting from the historical anchor,
+changing acceptance thresholds to fit observed results, or starting paper
+trading before the paper-execution and validation defects are resolved.
+
+SOURCE NOTES
+- README.md and configs/real_spy_seed7.yaml: platform purpose and evaluation
+  setup.
+- DISCOVERY_ANALYSIS.txt: current Phase B composite and explicit conclusion
+  to stop seed-chasing without a new signal hypothesis.
+- DEEP_AUDIT_2026-09-11.md: reproducibility evidence and prioritized
+  engineering findings; confirm against current HEAD before acting because
+  that audit names an earlier audited commit.
+- PAPER_TRADING_PLAN.txt: earlier proposed paper-trading work; the newer
+  2026-09-11 audit identifies additional reasons to defer readiness claims.

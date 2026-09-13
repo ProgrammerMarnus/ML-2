@@ -62,6 +62,11 @@ class PaperOrder:
     expected_price: Optional[float] = None
     slippage_bps: float = 0.0
     latency_bars: int = 1
+    # Explicit execution-clock metadata.  A submitted order is not eligible
+    # to fill until ``eligible_bar`` has been observed by ``process_bar``.
+    reduce_only: bool = False
+    submitted_bar: Optional[int] = None
+    eligible_bar: Optional[int] = None
     fill_events: List[Dict] = field(default_factory=list)
 
     def __post_init__(self) -> None:
@@ -199,6 +204,13 @@ class PaperBroker:
         # REJECTED/CANCELLED id is also forbidden (history must never be overwritten).
         existing = self.orders.get(order.order_id)
         if existing is not None:
+            if self._request_key(existing) != self._request_key(order):
+                self._audit(current_time, "ORDER_ID_CONFLICT", order.order_id,
+                            order.symbol,
+                            "order_id is already bound to a different request")
+                raise ValueError(
+                    f"order_id {order.order_id} is already bound to a different request"
+                )
             self._audit(current_time, "ORDER_DUPLICATE_REJECTED", order.order_id,
                         order.symbol,
                         f"duplicate order_id {order.order_id} rejected; "
@@ -210,11 +222,12 @@ class PaperBroker:
         if not math.isfinite(current_price) or current_price <= 0:
             return self._reject(order, current_time,
                 f"current_price must be finite and positive; got {current_price}")
-        # E03: kill switch blocks ALL order submission, including pending re-submits.
-        if self.safeguards.kill_switch_active:
+        # A tripped kill switch blocks risk-increasing flow.  Explicit
+        # reduce-only orders are the audited emergency-exit exception.
+        if self.safeguards.kill_switch_active and not order.reduce_only:
             self._audit(current_time, "SUBMIT_REJECTED", order.order_id, order.symbol,
                 "kill switch active")
-            return self._reject(order, current_time, "kill switch active; no orders accepted")
+            return self._reject(order, current_time, "kill_switch active; no orders accepted")
         validation_error = self._validate_order(order, current_price)
         if validation_error:
             return self._reject(order, current_time, validation_error)
@@ -225,6 +238,9 @@ class PaperBroker:
         order.status = OrderStatus.SUBMITTED
         order.submitted_at = current_time
         order.expected_price = current_price
+        order.submitted_bar = self._bar_counter
+        order.latency_bars = max(1, int(self.latency_bars))
+        order.eligible_bar = self._bar_counter + order.latency_bars
         self.orders[order.order_id] = order
         self.pending_orders.append(order.order_id)
         self._audit(current_time, "ORDER_SUBMITTED", order.order_id,
@@ -234,8 +250,15 @@ class PaperBroker:
         # at submission and fill on a later process_bar.
         if order.order_type == OrderType.MARKET:
             order.slippage_bps = self.slippage_bps
-            order.latency_bars = self.latency_bars
         return order
+
+    @staticmethod
+    def _request_key(order: PaperOrder) -> tuple:
+        """Fields that define the immutable content of a broker request."""
+        return (
+            order.symbol, order.side, float(order.quantity), order.order_type,
+            order.limit_price, bool(order.reduce_only),
+        )
 
     def _reject(self, order: PaperOrder, ts: pd.Timestamp, reason: str) -> PaperOrder:
         order.status = OrderStatus.REJECTED
@@ -253,6 +276,8 @@ class PaperBroker:
         if order.order_type == OrderType.LIMIT:
             if order.limit_price is None or order.limit_price <= 0:
                 return f"invalid limit_price: {order.limit_price}"
+        if order.reduce_only and not self._reduces_exposure(order, order.quantity):
+            return "reduce_only order would not reduce the current position"
         if not np.isfinite(current_price) or current_price <= 0:
             return f"invalid market price: {current_price}"
         return None
@@ -261,7 +286,7 @@ class PaperBroker:
                          current_time: pd.Timestamp) -> List[SafeguardResult]:
         failures: List[SafeguardResult] = []
         ks = self.safeguards.check_kill_switch()
-        if not ks.passed:
+        if not ks.passed and not order.reduce_only:
             failures.append(ks)
             return failures
 
@@ -290,31 +315,98 @@ class PaperBroker:
             pos_check = self.safeguards.check_position(position_weight)
             if not pos_check.passed:
                 failures.append(pos_check)
-        # Cash covers the order plus pending same-side notional (E05); sells
-        # that reduce a long (or cover a short) need no cash.
+        # Reserve all pending buys, across the whole portfolio.  A per-symbol
+        # check lets several individually valid orders spend the same cash.
         if order.side == OrderSide.BUY:
-            pending_buy_notional = 0.0
-            for oid in self.pending_orders:
-                po = self.orders.get(oid)
-                if po is None or po.symbol != order.symbol:
-                    continue
-                if po.side == OrderSide.BUY:
-                    pending_buy_notional += po.remaining_quantity * current_price
-            required = order.remaining_quantity * current_price + pending_buy_notional
-            if self.cash < required and current_qty >= 0:
+            required = self._reserved_buy_cash(current_price, include_order=order)
+            if self.cash + 1e-12 < required:
                 failures.append(SafeguardResult(
                     "cash", False,
-                    f"insufficient cash {self.cash:.2f} for {required:.2f}"))
+                    f"insufficient cash {self.cash:.2f} for reserved buys {required:.2f}"))
 
-        dl_check = self.safeguards.check_daily_loss(self.daily_return)
-        if not dl_check.passed:
-            failures.append(dl_check)
+        if not order.reduce_only:
+            dl_check = self.safeguards.check_daily_loss(self.daily_return)
+            if not dl_check.passed:
+                failures.append(dl_check)
 
-        dd = self._current_drawdown()
-        dd_check = self.safeguards.check_drawdown(dd)
-        if not dd_check.passed:
-            failures.append(dd_check)
+            dd = self._current_drawdown()
+            dd_check = self.safeguards.check_drawdown(dd)
+            if not dd_check.passed:
+                failures.append(dd_check)
         return failures
+
+    def _reserved_buy_cash(self, current_price: float,
+                           include_order: Optional[PaperOrder] = None,
+                           exclude_order_id: Optional[str] = None) -> float:
+        """Worst-case cash reservation for all submitted buy orders and fees."""
+        buys: List[PaperOrder] = []
+        for oid in self.pending_orders:
+            if oid == exclude_order_id:
+                continue
+            candidate = self.orders.get(oid)
+            if candidate is not None and candidate.side == OrderSide.BUY:
+                buys.append(candidate)
+        if include_order is not None and include_order.side == OrderSide.BUY:
+            buys.append(include_order)
+        total = 0.0
+        for candidate in buys:
+            if candidate is include_order:
+                price = current_price
+            elif candidate.order_type == OrderType.LIMIT:
+                price = float(candidate.limit_price)
+            else:
+                price = float(candidate.expected_price or current_price)
+            total += candidate.remaining_quantity * price * (1.0 + self.fee_bps / 10000.0)
+        return total
+
+    def _reduces_exposure(self, order: PaperOrder, quantity: float) -> bool:
+        current = self.positions.get(order.symbol, Position(order.symbol)).quantity
+        signed = quantity if order.side == OrderSide.BUY else -quantity
+        after = current + signed
+        # A reduce-only exit can flatten, but cannot reverse the position.
+        return (
+            abs(current) > 1e-12
+            and abs(after) < abs(current) - 1e-12
+            and current * after >= -1e-12
+        )
+
+    def _fill_is_permitted(self, order: PaperOrder, fill_price: float,
+                           fill_qty: float) -> Optional[str]:
+        """Recheck cash and exposure at the executable price and bar."""
+        if not math.isfinite(fill_price) or fill_price <= 0:
+            return "invalid fill price"
+        if self.safeguards.kill_switch_active and not order.reduce_only:
+            return "kill switch active"
+        if order.reduce_only and not self._reduces_exposure(order, fill_qty):
+            return "reduce_only order no longer reduces exposure"
+
+        current = self.positions.get(order.symbol, Position(order.symbol)).quantity
+        signed = fill_qty if order.side == OrderSide.BUY else -fill_qty
+        pending_other = 0.0
+        for oid in self.pending_orders:
+            if oid == order.order_id:
+                continue
+            pending = self.orders.get(oid)
+            if pending is not None and pending.symbol == order.symbol:
+                pending_other += (pending.remaining_quantity
+                                  if pending.side == OrderSide.BUY
+                                  else -pending.remaining_quantity)
+        projected = current + signed + pending_other
+        if abs(projected) > abs(current):
+            weight = abs(projected * fill_price) / max(self.current_value, 1.0)
+            if weight > self.safeguards.max_position + 1e-12:
+                return f"position limit exceeded at fill ({weight:.4f})"
+        if order.side == OrderSide.BUY:
+            remaining_after = max(order.remaining_quantity - fill_qty, 0.0)
+            reserve = self._reserved_buy_cash(
+                fill_price, exclude_order_id=order.order_id
+            )
+            reserve += (fill_qty + remaining_after) * fill_price * (
+                1.0 + self.fee_bps / 10000.0
+            )
+            if self.cash + 1e-12 < reserve:
+                return f"insufficient cash at fill ({self.cash:.2f} < {reserve:.2f})"
+        return None
 
     def _try_fill_market(self, order: PaperOrder, current_price: float,
                            current_time: pd.Timestamp) -> None:
@@ -342,6 +434,15 @@ class PaperBroker:
 
     def _execute_fill(self, order: PaperOrder, fill_price: float,
                        fill_qty: float, fill_time: pd.Timestamp) -> None:
+        reason = self._fill_is_permitted(order, fill_price, fill_qty)
+        if reason:
+            order.status = OrderStatus.CANCELLED
+            order.cancel_reason = reason
+            if order.order_id in self.pending_orders:
+                self.pending_orders.remove(order.order_id)
+            self._audit(fill_time, "ORDER_CANCELLED", order.order_id, order.symbol,
+                        f"fill prevented: {reason}")
+            return
         order.filled_quantity += fill_qty
         order.remaining_quantity -= fill_qty
         order.filled_price = fill_price
@@ -419,20 +520,24 @@ class PaperBroker:
         return cancelled
 
     def process_bar(self, timestamp: pd.Timestamp, prices: Dict[str, float]) -> List[PaperOrder]:
+        if not isinstance(timestamp, pd.Timestamp) or timestamp.tzinfo is None:
+            raise ValueError("timestamp must be a timezone-aware pd.Timestamp")
+        if self._current_bar is not None and timestamp <= self._current_bar:
+            raise ValueError("bar timestamps must be strictly increasing")
         self._current_bar = timestamp
         self._bar_counter += 1
-        # E03: a tripped kill switch freezes pending flow: cancel resting
-        # orders so they can never fill after the trip.
+        # Cancel exposure-increasing resting orders after a kill switch trip,
+        # while preserving explicitly reduce-only exits for emergency flattening.
         if self.safeguards.kill_switch_active:
             for order_id in list(self.pending_orders):
                 order = self.orders[order_id]
+                if order.reduce_only:
+                    continue
                 order.status = OrderStatus.CANCELLED
                 order.cancel_reason = "kill_switch_active"
                 self.pending_orders.remove(order_id)
                 self._audit(timestamp, "ORDER_CANCELLED", order_id, order.symbol,
                             "cancelled: kill_switch_active")
-            self._update_portfolio_value(prices)
-            return []
         # E19: seed last-valid marks before any valuation/fill logic.
         for symbol, px in prices.items():
             try:
@@ -462,6 +567,8 @@ class PaperBroker:
                 continue
             if not math.isfinite(opx) or opx <= 0:
                 continue
+            if order.eligible_bar is not None and self._bar_counter < order.eligible_bar:
+                continue
             if order.order_type == OrderType.LIMIT:
                 self._try_fill_limit(order, opx, timestamp)
             elif order.order_type == OrderType.MARKET:
@@ -471,7 +578,6 @@ class PaperBroker:
                 else:
                     fill_price = opx * (1.0 - slippage_factor)
                 order.slippage_bps = self.slippage_bps
-                order.latency_bars = self.latency_bars
                 self._execute_fill(order, fill_price, order.remaining_quantity, timestamp)
             if order.status in (OrderStatus.FILLED, OrderStatus.PARTIAL_FILL):
                 filled_orders.append(order)

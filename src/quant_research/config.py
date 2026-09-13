@@ -173,6 +173,9 @@ class ResearchConfig:
         default_factory=lambda: [0.65, 0.70, 0.75, 0.80, 0.85, 0.90]
     )
     hold_candidates: List[int] = field(default_factory=lambda: [10, 15, 20, 30])
+    # Optional immutable preregistration document for a new hypothesis.  When
+    # supplied it must bind to this exact config fingerprint and trial budget.
+    protocol_path: Optional[str] = None
 
     def __post_init__(self) -> None:
         if self.max_trials <= 0:

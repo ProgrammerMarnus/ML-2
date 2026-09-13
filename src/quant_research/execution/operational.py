@@ -166,22 +166,22 @@ class ManualOverride:
         pos = self.broker.get_position(symbol)
         if abs(pos.quantity) < 1e-9:
             return None
-        # E04: liquidation bypasses nothing via submit guards (reducing orders
-        # are allowed), but flatten must not depend on them: cancel blockers,
-        # lift a tripped kill switch for the exit only, fill immediately, and
-        # restore the prior kill-switch state.
+        # An emergency exit remains subject to broker accounting, but is marked
+        # reduce-only so it can pass an active kill switch without temporarily
+        # disabling that protection or permitting a reversal.
         self.broker.cancel_all(symbol=symbol, reason="flatten_blocker")
-        was_tripped = self.broker.safeguards.kill_switch_active
-        if was_tripped:
-            self.broker.safeguards.reset_kill_switch()
         side = OrderSide.SELL if pos.quantity > 0 else OrderSide.BUY
-        order = PaperOrder(symbol=symbol, side=side, quantity=abs(pos.quantity))
+        order = PaperOrder(symbol=symbol, side=side, quantity=abs(pos.quantity),
+                           reduce_only=True)
         result = self.broker.submit(order, current_price=current_price,
                                     current_time=pd.Timestamp.now(tz="UTC"))
         if result.status == OrderStatus.SUBMITTED:
-            self.broker.process_bar(pd.Timestamp.now(tz="UTC"), {symbol: current_price})
-        if was_tripped:
-            self.broker.safeguards.trip_kill_switch("flatten_restore")
+            # A process bar is the explicit simulated execution clock.  Its
+            # first later bar satisfies the broker's minimum one-bar latency.
+            self.broker.process_bar(
+                result.submitted_at + pd.Timedelta("1ns"),
+                {symbol: current_price},
+            )
         return result
 
     def flatten_all(self, prices: Dict[str, float]) -> List[PaperOrder]:
@@ -237,7 +237,19 @@ class HealthCheck:
         return self.broker.cash >= 0
 
     def _check_audit_trail_intact(self) -> bool:
-        return len(self.broker.audit_trail) >= 0
+        # Each event must identify its order and use a timezone-aware time;
+        # event time must not move backward within an order's lifecycle.
+        last_by_order: Dict[str, pd.Timestamp] = {}
+        for event in self.broker.audit_trail:
+            if not event.order_id or not event.symbol:
+                return False
+            if not isinstance(event.timestamp, pd.Timestamp) or event.timestamp.tzinfo is None:
+                return False
+            previous = last_by_order.get(event.order_id)
+            if previous is not None and event.timestamp < previous:
+                return False
+            last_by_order[event.order_id] = event.timestamp
+        return True
 
 
 class FailureRestartTest:

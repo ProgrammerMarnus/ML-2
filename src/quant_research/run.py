@@ -92,6 +92,19 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
     out = Path(output_dir or cfg.output_dir)
     out.mkdir(parents=True, exist_ok=True)
     report: Dict = {"config_fingerprint": cfg.fingerprint()}
+    if cfg.research.protocol_path:
+        from .experiments.protocol import ResearchProtocol
+
+        protocol = ResearchProtocol.load(cfg.research.protocol_path)
+        protocol.assert_matches_config(cfg.fingerprint(), cfg.research.max_trials)
+        report["research_protocol"] = {
+            "path": str(Path(cfg.research.protocol_path).resolve()),
+            "digest": protocol.digest,
+            "hypothesis_id": protocol.hypothesis_id,
+            "primary_metric": protocol.primary_metric,
+        }
+    else:
+        report["research_protocol"] = None
 
     # --- 1. data -------------------------------------------------------------
     ohlcv, data_meta = load_market_data(cfg.data)
@@ -431,6 +444,7 @@ def _register_and_decide(cfg, out, report, baseline, summary, robustness, boot,
         "search_family_id": family_id,
         "search_ledger": str(ledger.path) if ledger else None,
         "search_correction_method": cfg.promotion.selection_correction,
+        "research_protocol": report.get("research_protocol"),
         "evidence_status": "SYNTHETIC_OFFLINE" if cfg.data.mode == "synthetic" else "REAL_DATA",
     }
     registry = ExperimentRegistry(Path(out) / "experiment_registry.jsonl")

@@ -331,7 +331,15 @@ def test_paper_validation_basic_run(tmp_path):
         min_paper_days_validated=2,
         min_paper_days_live_eligible=5,
     )
-    runner = PaperValidationRunner(cfg, validation_config=val_cfg)
+    research_record = {
+        "experiment_id": "approved-research-001",
+        "config_fingerprint": cfg.fingerprint(),
+        "promotion_state": "ROBUST_OOS",
+    }
+    runner = PaperValidationRunner(
+        cfg, validation_config=val_cfg, research_record=research_record,
+        strategy_id="test-strategy", evidence_source="observed_paper",
+    )
 
     # Simulate 3 days of paper execution
     for day in range(3):
@@ -340,10 +348,10 @@ def test_paper_validation_basic_run(tmp_path):
         order = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=1)
         runner.broker.submit(order, current_price=prices["SPY"], current_time=ts)
         runner.broker.process_bar(ts, prices)
-        runner.record_step(runner.broker, prices)
+        runner.record_step(runner.broker, prices, current_time=ts)
 
     runner.test_kill_switch()
-    report = runner.finalize(experiment_id="test-exp-001")
+    report = runner.finalize(experiment_id="approved-research-001")
 
     assert report.n_days_executed == 3
     assert report.n_orders_submitted >= 3
@@ -375,7 +383,8 @@ def test_paper_validation_kill_switch_gate(tmp_path):
     ts = pd.Timestamp("2024-01-02", tz="UTC")
     order = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=1)
     runner.broker.submit(order, current_price=100.0, current_time=ts)
-    runner.record_step(runner.broker, {"SPY": 100.0})
+    runner.broker.process_bar(ts, {"SPY": 100.0})
+    runner.record_step(runner.broker, {"SPY": 100.0}, current_time=ts)
 
     # Don't test kill switch - gate should fail
     report = runner.finalize(experiment_id="test-exp-002")
@@ -395,7 +404,8 @@ def test_paper_validation_reconciliation(tmp_path):
     ts = pd.Timestamp("2024-01-02", tz="UTC")
     order = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=1)
     runner.broker.submit(order, current_price=100.0, current_time=ts)
-    runner.record_step(runner.broker, {"SPY": 100.0})
+    runner.broker.process_bar(ts, {"SPY": 100.0})
+    runner.record_step(runner.broker, {"SPY": 100.0}, current_time=ts)
 
     report = runner.finalize(experiment_id="test-exp-003")
     assert report.final_reconciliation_consistent
@@ -413,7 +423,8 @@ def test_paper_validation_report_serialization(tmp_path):
     ts = pd.Timestamp("2024-01-02", tz="UTC")
     order = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=1)
     runner.broker.submit(order, current_price=100.0, current_time=ts)
-    runner.record_step(runner.broker, {"SPY": 100.0})
+    runner.broker.process_bar(ts, {"SPY": 100.0})
+    runner.record_step(runner.broker, {"SPY": 100.0}, current_time=ts)
 
     report = runner.finalize(experiment_id="test-exp-004")
     path = runner.save_report(tmp_path)

@@ -5,6 +5,6 @@ Raw data -> PIT data -> features -> walk-forward -> robustness -> ablation
 -> discovery -> portfolio/risk -> experiment registry.
 """
 
-__version__ = "2.1.3"
+__version__ = "2.1.4"
 
-CODE_VERSION = "V2.1.3"
+CODE_VERSION = "V2.1.4"

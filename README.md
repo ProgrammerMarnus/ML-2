@@ -1,4 +1,4 @@
-# Institutional Quant Research Engine V2.1.3
+# Institutional Quant Research Engine V2.1.4
 
 A point-in-time, leakage-safe, walk-forward quantitative research platform.
 
@@ -24,9 +24,9 @@ src/quant_research/
   strategies/               baseline, discovery
   portfolio/                construction, risk
   experiments/              registry, leaderboard, promotion
-  execution/                paper, safeguards
+  execution/                paper simulator, safeguards, operational controls
   run.py                    one-command research pipeline (CLI)
-tests/                      pytest suite (~152 tests)
+tests/                      pytest suite (322 collected tests)
 configs/                    baseline.yaml (synthetic), real_spy.yaml (yfinance)
 Institutional_Quant_Research_Engine_V2.1.ipynb   thin orchestration notebook
 ```
@@ -57,6 +57,12 @@ Each run produces, under the output directory:
 - `<experiment_id>_folds.csv` - per-fold OOS diagnostics
 - `<experiment_id>_results.json` - full structured results
 - `trial_counter.json` (+ `.highwater`) - persistent global trial count
+
+For a new strategy hypothesis, create and freeze a
+`quant_research.experiments.protocol.ResearchProtocol` before running the
+pipeline, then set `research.protocol_path` in the configuration. The protocol
+binds the hypothesis, mechanism, features, data split, trial budget, and config
+fingerprint. It is immutable and is recorded with the experiment.
 
 ---
 
@@ -141,6 +147,17 @@ Layout per fold (bar counts):
   x direction(signal at `t-1-delay`)
 - costs: (fee_bps + slippage_bps) charged on absolute position change
 - gross -> costs -> slippage -> net is always kept distinct in metrics
+
+## Paper simulator boundary
+
+The paper broker is a simulator, not a live-broker adapter. Orders have an
+explicit bar-based eligibility time; pending buys reserve cash across symbols;
+cash and exposure are checked again at fill time; and a tripped kill switch
+cancels exposure-increasing pending orders. Explicit `reduce_only` orders may
+flatten a position during a kill switch but cannot reverse it. Paper-validation
+promotion requires unique processed sessions from an `observed_paper` source,
+a compatible approved research record, reconciliation, and a tested kill
+switch. Simulated replay evidence remains `PAPER_READY`.
 
 ---
 
