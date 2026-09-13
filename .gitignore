@@ -12,6 +12,7 @@ __pycache__/
 # Dependencies
 .venv/
 venv/
+node_modules/
 .env
 .env.local
 .env.*
@@ -40,6 +41,8 @@ data/
 # package also has a data module. Keep source adapters (for example the
 # exchange-calendar integration) visible to Git.
 !src/
+!src/data/
+!src/data/*.ts
 !src/quant_research/
 !src/quant_research/data/
 !src/quant_research/data/*.py

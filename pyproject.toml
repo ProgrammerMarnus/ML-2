@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quant-research"
-version = "2.1.3"
+version = "2.1.5"
 description = "Institutional Quant Research Engine V2.1 - point-in-time, leakage-safe walk-forward research platform"
 requires-python = ">=3.10"
 dependencies = [
