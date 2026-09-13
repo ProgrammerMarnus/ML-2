@@ -12,10 +12,13 @@ Order lifecycle:
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -90,7 +93,7 @@ class Position:
             self.unrealized_pnl = 0.0
 
 
-@dataclass
+@dataclass(frozen=True)
 class AuditEvent:
     """Immutable audit trail entry."""
     timestamp: pd.Timestamp
@@ -99,6 +102,8 @@ class AuditEvent:
     symbol: str
     detail: str
     data: Dict = field(default_factory=dict)
+    previous_hash: str = ""
+    event_hash: str = ""
 
 
 @dataclass
@@ -646,8 +651,144 @@ class PaperBroker:
 
     def _audit(self, timestamp: pd.Timestamp, event_type: str, order_id: str,
                symbol: str, detail: str, data: Optional[Dict] = None) -> None:
-        self.audit_trail.append(AuditEvent(timestamp=timestamp, event_type=event_type,
-            order_id=order_id, symbol=symbol, detail=detail, data=data or {}))
+        payload = {
+            "timestamp": timestamp.isoformat(), "event_type": event_type,
+            "order_id": order_id, "symbol": symbol, "detail": detail,
+            "data": data or {},
+        }
+        previous_hash = self.audit_trail[-1].event_hash if self.audit_trail else ""
+        raw = json.dumps(
+            {"previous_hash": previous_hash, **payload}, sort_keys=True, default=str,
+            separators=(",", ":"),
+        )
+        event_hash = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+        self.audit_trail.append(AuditEvent(
+            timestamp=timestamp, event_type=event_type, order_id=order_id,
+            symbol=symbol, detail=detail, data=data or {},
+            previous_hash=previous_hash, event_hash=event_hash,
+        ))
+
+    def verify_audit_trail(self) -> bool:
+        """Verify the append-only hash chain and per-order event chronology."""
+        previous_hash = ""
+        last_by_order: Dict[str, pd.Timestamp] = {}
+        for event in self.audit_trail:
+            if (not event.order_id or not event.symbol or not event.event_hash
+                    or event.previous_hash != previous_hash
+                    or not isinstance(event.timestamp, pd.Timestamp)
+                    or event.timestamp.tzinfo is None):
+                return False
+            previous_time = last_by_order.get(event.order_id)
+            if previous_time is not None and event.timestamp < previous_time:
+                return False
+            payload = {
+                "timestamp": event.timestamp.isoformat(), "event_type": event.event_type,
+                "order_id": event.order_id, "symbol": event.symbol,
+                "detail": event.detail, "data": event.data,
+            }
+            raw = json.dumps(
+                {"previous_hash": previous_hash, **payload}, sort_keys=True,
+                default=str, separators=(",", ":"),
+            )
+            if hashlib.sha256(raw.encode("utf-8")).hexdigest() != event.event_hash:
+                return False
+            previous_hash = event.event_hash
+            last_by_order[event.order_id] = event.timestamp
+        return True
+
+    @staticmethod
+    def _encode(value):
+        if isinstance(value, pd.Timestamp):
+            return value.isoformat()
+        if isinstance(value, Enum):
+            return value.value
+        if isinstance(value, dict):
+            return {str(k): PaperBroker._encode(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [PaperBroker._encode(v) for v in value]
+        return value
+
+    @staticmethod
+    def _timestamp(value):
+        return pd.Timestamp(value) if value is not None else None
+
+    def save_state(self, path: str | Path) -> Path:
+        """Persist enough state to resume paper simulation without reordering it."""
+        target = Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists():
+            raise FileExistsError(f"refusing to overwrite broker state: {target}")
+        document = {
+            "schema_version": 1,
+            "fee_bps": self.fee_bps, "slippage_bps": self.slippage_bps,
+            "initial_cash": self.initial_cash, "cash": self.cash,
+            "latency_bars": self.latency_bars, "peak_value": self.peak_value,
+            "current_value": self.current_value, "daily_return": self.daily_return,
+            "bar_counter": self._bar_counter, "current_bar": self._encode(self._current_bar),
+            "last_marks": self._last_marks, "pending_orders": self.pending_orders,
+            "orders": [self._encode(asdict(order)) for order in self.orders.values()],
+            "positions": [asdict(position) for position in self.positions.values()],
+            "audit_trail": [self._encode(asdict(event)) for event in self.audit_trail],
+            "safeguards": {
+                "max_position": self.safeguards.max_position,
+                "max_daily_loss": self.safeguards.max_daily_loss,
+                "max_portfolio_drawdown": self.safeguards.max_portfolio_drawdown,
+                "max_data_age_bars": self.safeguards.max_data_age_bars,
+                "kill_switch_active": self.safeguards.kill_switch_active,
+                "kill_reason": self.safeguards._kill_reason,
+            },
+        }
+        target.write_text(json.dumps(document, sort_keys=True, default=str), encoding="utf-8")
+        return target
+
+    @classmethod
+    def load_state(cls, path: str | Path) -> "PaperBroker":
+        """Restore a verified broker snapshot; corrupted evidence is rejected."""
+        document = json.loads(Path(path).read_text(encoding="utf-8"))
+        if document.get("schema_version") != 1:
+            raise ValueError("unsupported broker-state schema")
+        safeguards_data = document["safeguards"]
+        safeguards = Safeguards(
+            max_position=safeguards_data["max_position"],
+            max_daily_loss=safeguards_data["max_daily_loss"],
+            max_portfolio_drawdown=safeguards_data["max_portfolio_drawdown"],
+            max_data_age_bars=safeguards_data["max_data_age_bars"],
+        )
+        safeguards.kill_switch_active = bool(safeguards_data["kill_switch_active"])
+        safeguards._kill_reason = safeguards_data.get("kill_reason")
+        broker = cls(document["fee_bps"], document["slippage_bps"],
+                     document["initial_cash"], safeguards, document["latency_bars"])
+        broker.cash, broker.peak_value = document["cash"], document["peak_value"]
+        broker.current_value, broker.daily_return = document["current_value"], document["daily_return"]
+        broker._bar_counter = document["bar_counter"]
+        broker._current_bar = cls._timestamp(document.get("current_bar"))
+        broker._last_marks = {k: float(v) for k, v in document.get("last_marks", {}).items()}
+        for raw in document["orders"]:
+            raw["side"] = OrderSide(raw["side"])
+            raw["order_type"] = OrderType(raw["order_type"])
+            raw["status"] = OrderStatus(raw["status"])
+            for key in ("created_at", "submitted_at", "filled_at", "rejected_at"):
+                raw[key] = cls._timestamp(raw[key])
+            raw["fill_events"] = [
+                {**event, "time": cls._timestamp(event["time"])}
+                for event in raw.get("fill_events", [])
+            ]
+            order = PaperOrder(**raw)
+            broker.orders[order.order_id] = order
+        broker.pending_orders = list(document["pending_orders"])
+        broker.positions = {raw["symbol"]: Position(**raw) for raw in document["positions"]}
+        broker.audit_trail = [
+            AuditEvent(
+                timestamp=cls._timestamp(raw["timestamp"]), event_type=raw["event_type"],
+                order_id=raw["order_id"], symbol=raw["symbol"], detail=raw["detail"],
+                data=raw.get("data", {}), previous_hash=raw.get("previous_hash", ""),
+                event_hash=raw.get("event_hash", ""),
+            )
+            for raw in document["audit_trail"]
+        ]
+        if not broker.verify_audit_trail() or not broker.reconcile()["consistent"]:
+            raise ValueError("broker state failed audit or reconciliation verification")
+        return broker
 
     def reconcile(self) -> Dict:
         """Reconcile positions against filled orders."""

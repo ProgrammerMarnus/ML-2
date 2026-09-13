@@ -237,19 +237,7 @@ class HealthCheck:
         return self.broker.cash >= 0
 
     def _check_audit_trail_intact(self) -> bool:
-        # Each event must identify its order and use a timezone-aware time;
-        # event time must not move backward within an order's lifecycle.
-        last_by_order: Dict[str, pd.Timestamp] = {}
-        for event in self.broker.audit_trail:
-            if not event.order_id or not event.symbol:
-                return False
-            if not isinstance(event.timestamp, pd.Timestamp) or event.timestamp.tzinfo is None:
-                return False
-            previous = last_by_order.get(event.order_id)
-            if previous is not None and event.timestamp < previous:
-                return False
-            last_by_order[event.order_id] = event.timestamp
-        return True
+        return self.broker.verify_audit_trail()
 
 
 class FailureRestartTest:

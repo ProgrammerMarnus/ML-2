@@ -110,3 +110,30 @@ def test_validation_counts_unique_processed_sessions_and_requires_research_bindi
     assert report.observed_sessions == [stamp.normalize().isoformat()]
     assert not report.gate_results["research_binding"]
     assert report.state == "PAPER_READY"
+
+
+def test_broker_state_restores_pending_order_and_verifies_audit_chain(tmp_path):
+    broker = PaperBroker(initial_cash=10_000, fee_bps=0.0, slippage_bps=0.0,
+                         latency_bars=2)
+    order = PaperOrder("SPY", OrderSide.BUY, 1)
+    broker.submit(order, 100.0, _ts(2))
+    broker.process_bar(_ts(3), {"SPY": 100.0})
+    assert order.status == OrderStatus.SUBMITTED
+
+    path = broker.save_state(tmp_path / "broker-state.json")
+    resumed = PaperBroker.load_state(path)
+    resumed.process_bar(_ts(4), {"SPY": 100.0})
+    assert resumed.get_order(order.order_id).status == OrderStatus.FILLED
+    assert resumed.reconcile()["consistent"]
+    assert resumed.verify_audit_trail()
+
+
+def test_broker_state_rejects_a_tampered_audit_trail(tmp_path):
+    broker = PaperBroker(fee_bps=0.0, slippage_bps=0.0)
+    broker.submit(PaperOrder("SPY", OrderSide.BUY, 1), 100.0, _ts(2))
+    path = broker.save_state(tmp_path / "broker-state.json")
+    text = path.read_text(encoding="utf-8")
+    path.write_text(text.replace("ORDER_SUBMITTED", "ORDER_MUTATED", 1), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="audit"):
+        PaperBroker.load_state(path)

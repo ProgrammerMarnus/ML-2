@@ -12,10 +12,12 @@ strategy at RESEARCH_ONLY. Do not keep changing seeds or relax gates to obtain
 a pass.
 
 IMPLEMENTATION STATUS — 2026-09-13
-V2.1.4 implements and regression-tests configurable fill latency,
+V2.1.5 implements and regression-tests configurable fill latency,
 cross-symbol pending-cash reservation, fill-time cash/exposure validation,
 conflicting order-ID rejection, reduce-only emergency exits, unique processed
 session counting, research-record binding, and observed-paper evidence gates.
+It also persists verified broker snapshots and rejects a restored state with a
+tampered audit chain or unreconciled positions.
 These engineering fixes do not change the current strategy's RESEARCH_ONLY
 status.
 

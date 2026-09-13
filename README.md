@@ -1,4 +1,4 @@
-# Institutional Quant Research Engine V2.1.4
+# Institutional Quant Research Engine V2.1.5
 
 A point-in-time, leakage-safe, walk-forward quantitative research platform.
 
@@ -158,6 +158,11 @@ flatten a position during a kill switch but cannot reverse it. Paper-validation
 promotion requires unique processed sessions from an `observed_paper` source,
 a compatible approved research record, reconciliation, and a tested kill
 switch. Simulated replay evidence remains `PAPER_READY`.
+
+`PaperBroker.save_state()` writes a non-overwriting recovery snapshot; loading
+it rechecks both position reconciliation and a hash-chained audit trail before
+orders can resume. This is simulator recovery evidence, not proof of a live
+broker's recovery behavior.
 
 ---
 
