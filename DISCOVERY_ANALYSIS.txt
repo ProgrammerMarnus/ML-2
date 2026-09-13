@@ -1594,3 +1594,140 @@ VERDICT (PHASE B seed 44 fourth download):
 
 ================================================================================
 ================================================================================
+================================================================================
+PHASE B (LOCAL): Seed 44 FIFTH DOWNLOAD - ANALYSIS SUMMARY (vs 42/43/7)
+================================================================================
+
+Run: 20260913T085249Z_d0de6c334b771f06 | dataset 1b5250a01db45bba
+Snapshot: 20260913T083935Z_yfinance_ohlcv_1b5250a01db45bba | 7040 rows
+  (2012-01-03..2025-12-31, 3520 obs/symbol, 0 missing sessions per
+  data_integrity_report; SPY+QQQ; auto_adjust=True corporate-action basis)
+Config: configs/real_spy.yaml (seed 44 override); thresholds [0.65..0.90],
+  holds [10,15,20,30], GBM n_est=200 lr=0.05, max_trials=48 -> 42 used
+  (trials_this_experiment=42, n_trials_global=42); configs/quick_test.yaml
+  (synthetic, max_trials=12) reference only - NOT used;
+  src/quant_research/run.py + config.py + features/price_volume.py unchanged
+  (pv-2.2.0 extensions, feature_version 0cacdf8c0553a5e5, 20 features)
+Code: V2.1.3, strategy baseline-2.2.0, config_fingerprint 123903fc0ffbe991,
+  git 7cba3f0f2a2e24b839fcaf76c81ced84fbc22c7c
+Family: fe281965ab86bc1e (n_trials_global=42, within cap;
+  ledger /tmp/ledgers/s44/search_ledger.jsonl; selection_correction=none)
+NO gate edits made - RESEARCH ONLY per HARD RULES.
+Note: artifacts_seed44/ holds TWO seed-44 runs; the EARLIER 075742Z
+  (dataset 561d11de, 13/14, net +0.4727) was already analyzed in the
+  preceding section. THIS section covers ONLY the NEW 085249Z run
+  (dataset 1b5250a0, fifth seed-44 download).
+
+RESULT: 11/14 gates, state=RESEARCH_ONLY
+  FAILED (3): cost_stress_survives (10bps +0.0130 passes but 20bps -0.2195
+    < 0; gate requires ALL fee>=10bps > 0) + placebo_separates (pct=0.55,
+    adj_p=0.4762 vs req >=0.95 / <=0.10) + not_single_fold (share 0.6083
+    > 0.60 cap by 0.0083)
+  PASSED (11): median_oos_sharpe_positive, mean_oos_sharpe_positive,
+    worst_dd_within_limit, delay_stress_survives, bootstrap_positive_prob,
+    placebo_sample_adequate, turnover_plausible, data_integrity,
+    lookahead_resolved, trial_accounting_consistent, family_search_within_cap
+
+HEADLINE METRICS:
+  Full net Sharpe:   +0.1294 (gross +0.2687, drag 0.0440)
+  Full net return:   +0.0328 (gross +0.0768; fee 0.0348 + slip 0.0070)
+  Mean OOS Sharpe:   +0.2120 | Median: +0.0064 | AUC 0.4894 | Brier 0.2628
+  Max DD (full path): -0.1116 | Worst fold DD: -0.1048 (F5) | Trades 309 |
+    Turnover 9.931 | Pos folds 4/7
+  Single-fold share 0.6083 (> 0.60 cap FAIL by 0.0083) |
+    Bootstrap P(>0)=0.684 (n=500, seed 44, obs +0.1294, mean +0.1610,
+    CI [-0.5415, +0.8750])
+  Placebo null (shuffle_features, n=20): null_mean +0.2260, null_med +0.1856,
+    null_std 0.4307, null_p95 0.9159, observed +0.2120 -> pct 0.55,
+    adj_p 0.4762, MC SE 0.1112 (permute_target pct 0.55 adj_p 0.4762
+    null_mean +0.1827; block_permute pct 0.45 adj_p 0.5714 null_mean +0.3680
+    - fails on all 3 modes; predeclared shuffle_features mode governs)
+
+FOLDS (seed 44 fifth download, thr selected on validation):
+  F1 (2018-19): -0.0181 thr=0.65 84tr to=16.94 auc=0.504 net=-0.0026
+  F2 (2019-20): +0.0064 thr=0.70 18tr to=4.06  auc=0.482 net=-0.0001
+  F3 (2020-21): +1.0848 thr=0.65 44tr to=8.58  auc=0.460 net=+0.0491
+  F4 (2021-22): +1.9502 thr=0.65 34tr to=11.34 auc=0.489 net=+0.0765
+  F5 (2022-23): -1.2669 thr=0.65 96tr to=14.51 auc=0.476 net=-0.0768
+  F6 (2023-24): +0.1649 thr=0.70 24tr to=9.22  auc=0.515 net=+0.0051
+  F7 (2024-25): -0.4371 thr=0.70  9tr to=4.87  auc=0.500 net=-0.0118
+  Note: F2/F3/F4 byte-match the 44d4 run at identical thresholds (GBM
+  deterministic core subsample=1.0 reproduces where regime/data overlap);
+  F1 (-0.02 vs -0.55 on 44d4, same thr=0.65) is pure refresh effect. F5/F6/F7
+  threshold flips vs 44d4 (0.65 vs 0.70 / 0.70 vs 0.65 / same 0.70) drive the
+  sign flips: F5 +0.77->-1.27, F6 +0.24->+0.16 (holds +), F7 +0.50->-0.44.
+  F7 is median-adjacent (sorted middle of 7); its flip collapses median
+  +0.4974 -> +0.0064. Only F1 has auc>0.50 ex-F7-at-0.5000; F6 (+0.16) is
+  the only fold with auc>0.50 and positive Sharpe.
+
+STRESS:
+  Cost: 0bps +0.2455 / 2.5 +0.1875 / 5 +0.1294 / 10 +0.0130 / 20bps -0.2195
+    (GATE FAIL - 10bps passes marginally, 20bps fails; same failure mode as
+    43/7/44r/45/44d3, unlike 44d4 +0.152 and 46 +0.004 outright passers)
+  Delay: 0b +0.1294 / 1b +0.1305 (GATE PASS) / 2b +0.1420 / 3b +0.4069 (all +)
+  Slippage: 0bps +0.1526 / 1 +0.1294 / 2 +0.1061 / 5 +0.0363 / 10 -0.0801
+    (holds to 5bps)
+  Param perturbation 0.5x +0.4677 / 0.8x +0.3164 / 1.25x +0.3565 / 2.0x
+    +0.1333 (all positive); missing-data (10%) +0.0872 (weakest of the
+    seed-44 family: 44d4 was +0.2758); regime: high_vol 0 +0.731 (874 bars)
+    vs 1 -0.257 (890 bars, ONLY negative regime split of the seed-44 pair);
+    drawdown_deep 0 +0.107 (1323) vs 1 +0.182 (441, both +); ablation
+    (price_volume source): mean +0.3844 / median +0.4885 (informative).
+
+COMPOSITE vs 42/43/7 (fresh-download cluster, 42=anchor for context only):
+  Seed  Dataset    NetS   Mean   Med    BootP  Placebo  Cost20bps  Delay3b  Gates  State
+  42*   4d48473a   0.718  0.750  n/a    0.992   0.95 PASS +0.397    +0.631   14/14  CANDIDATE
+  43    e4d35aff   0.250  0.278  0.006  0.808   0.40 FAIL -0.082    +0.674   12/14  RESEARCH_ONLY
+  7     883de66b   0.197  0.348  0.006  0.696   0.70 FAIL -0.162    +0.52    12/14  RESEARCH_ONLY
+  44d5  1b5250a0   0.129  0.212  0.006  0.684   0.55 FAIL -0.220    +0.407   11/14  RESEARCH_ONLY
+  (* = historical anchor - do NOT report as current; rest = fresh downloads;
+   44d5 = this run, fifth seed-44 download)
+
+VS ANALYSIS (44d5 vs 42/43/7):
+- 44d5 net +0.1294 sits at the BOTTOM of the fresh-download cluster (prior
+  range +0.11..+0.47 over 8 fresh runs; now +0.11..+0.47 over 9, 44d5 second
+  weakest above 45 +0.113). ~0.59 below the historical anchor (+0.718) -
+  CANDIDATE remains unreplicated. Gate definition unchanged - no edits made.
+- Mean +0.2120 is the LOWEST of the seed-44 family (0.353/0.359/0.292/0.571
+  before) and median +0.0064 re-joins the fragile-median group (43/7/45 at
+  ~0.006) after 44d4 broke it at +0.4974 - median fragility REPRODUCES here
+  because only 4/7 folds are positive (vs 6/7 on 44d4) and the median-adjacent
+  F7 flips +0.50 -> -0.44 at the SAME thr=0.70 (pure refresh effect).
+- 4/7 positive folds is the weakest hit rate of the seed-44 family (5/7, 4/7,
+  4/7, 6/7 before) and ties the weakest fresh runs. Single-fold share 0.6083
+  FAILS by 0.0083 - the FIRST not_single_fold failure of the seed-44 line
+  (prior shares 0.393/0.52/0.50/0.429 all passed): with mean +0.212 the
+  positive pool is small so F4 (+1.95) dominates it mechanically.
+- Cost robustness: FAILS outright (-0.220 at 20bps, weakest seed-44 margin
+  alongside 45 -0.246); only 10bps survives (+0.0130, thinnest 10bps margin
+  of any run). Turnover 9.93 (highest of seed-44 family vs 8.93 on 44d4) is
+  the mechanical driver - fee drag scales with turnover.
+- placebo_separates fails 9/9 on fresh downloads
+  (0.40/0.70/0.70/0.60/0.50/0.90/0.60/0.85/0.55) vs 0.95 anchor: CONFIRMED
+  binding constraint. Null mean (+0.226) sits above zero; observed +0.212
+  lands BELOW the null mean at pct 0.55 (MC SE ~0.11) - deepest inside the
+  null of the seed-44 family. Predeclared shuffle_features mode governs.
+- Bootstrap P(>0)=0.684 is the THINNEST pass margin of any run (prior min 45
+  at 0.644 still lower absolute, but 44d5 CI [-0.541, +0.875] is the widest
+  straddle of the seed-44 family). Delay robustness STABLE 10/10 (3-bar all
+  positive). AUC 0.4894 below 0.50 with positive Sharpe again: ranking metric
+  decoupled from positioned return.
+- Seed-44 self-comparison (185d05e0 -> af3db0ba -> a377eb31 -> 561d11de ->
+  1b5250a0, same seed/config): net 0.353 -> 0.314 -> 0.301 -> 0.473 -> 0.129;
+  gates 13/14 -> 12/14 -> 12/14 -> 13/14 -> 11/14 SOLELY via cost flip and
+  F5/F7 flips at IDENTICAL-or-neighbor thresholds (F5 thr 0.70->0.65 with
+  sign flip; F7 same thr=0.70 with sign flip). Download-version sensitivity
+  exceeds seed sensitivity (GBM core deterministic, subsample=1.0).
+
+VERDICT (PHASE B seed 44 fifth download):
+- RESEARCH_ONLY confirmed. Do NOT promote. No gate edits made (per HARD RULES).
+- pv-2.2.0 signal = real-but-small: net Sharpe +0.11..+0.47 on fresh downloads
+  (9 points, median ~+0.30), delay-robust 10/10, turnover-plausible,
+  bootstrap-pass 10/10, cost-fragile (44d5 fails even 20bps by -0.22, passes
+  10bps by only +0.013), concentration-fragile (first not_single_fold fail
+  of the line), placebo-inseparable 9/9. Historical CANDIDATE remains an
+  unreplicated outlier.
+- Close this line: no further seed-chasing without a new signal hypothesis.
+
+================================================================================
+================================================================================
