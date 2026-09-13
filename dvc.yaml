@@ -1,0 +1,23 @@
+stages:
+  research-baseline:
+    cmd: python -m quant_research.run --config configs/baseline.yaml --output artifacts
+    deps:
+      - src/quant_research
+      - configs/baseline.yaml
+    params:
+      - configs/baseline.yaml:
+          - data
+          - evaluation
+          - execution
+          - model
+          - research
+          - promotion
+    outs:
+      - artifacts:
+          cache: true
+    metrics:
+      - artifacts/experiment_registry.jsonl:
+          cache: false
+
+# This stage is intentionally synthetic/offline. Real provider data must first
+# be captured as a raw immutable snapshot and tracked separately with `dvc add`.

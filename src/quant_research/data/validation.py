@@ -8,11 +8,10 @@ fabricated or forward-filled in this layer.
 
 from __future__ import annotations
 
-from datetime import date, timedelta
-
 import numpy as np
 import pandas as pd
 
+from .calendar import expected_sessions as _calendar_expected_sessions, is_session
 from .schemas import FLOAT_COLUMNS, OHLCV_COLUMNS, PRICE_COLUMNS, DataValidationError, DataQualityWarning
 
 
@@ -130,6 +129,9 @@ def validate_ohlcv(df: pd.DataFrame, require_volume: bool = True) -> pd.DataFram
     if require_volume and (out["volume"] == 0).all():
         raise DataValidationError("all volumes are zero; volume data looks invalid")
 
+    # Validate the normalized result with the declarative schema only after the
+    # engine has emitted its intentionally precise policy errors above.
+    _validate_ohlcv_schema(out)
     return out.reset_index(drop=True)
 
 
@@ -165,96 +167,33 @@ def validate_wide_panel(close: pd.DataFrame, name: str = "close",
     return close.sort_index()
 
 
-def _easter_sunday(year: int) -> date:
-    """Gregorian Easter Sunday (anonymous/Meeus-Jones-Butcher algorithm)."""
-    a = year % 19
-    b, c = divmod(year, 100)
-    d, e = divmod(b, 4)
-    f = (b + 8) // 25
-    g = (b - f + 1) // 3
-    h = (19 * a + b - d - g + 15) % 30
-    i, k = divmod(c, 4)
-    l = (32 + 2 * e + 2 * i - h - k) % 7
-    m = (a + 11 * h + 22 * l) // 451
-    month = (h + l - 7 * m + 114) // 31
-    day = ((h + l - 7 * m + 114) % 31) + 1
-    return date(year, month, day)
+def _validate_ohlcv_schema(df: pd.DataFrame) -> None:
+    """Apply a declarative Pandera schema before domain-specific validation.
 
-
-def _nth_weekday(year: int, month: int, weekday: int, n: int) -> date:
-    """The ``n``-th ``weekday`` (Mon=0) of a month."""
-    d = date(year, month, 1)
-    offset = (weekday - d.weekday()) % 7
-    return d + timedelta(days=offset + 7 * (n - 1))
-
-
-def _last_weekday(year: int, month: int, weekday: int) -> date:
-    """The last ``weekday`` (Mon=0) of a month."""
-    end = date(year, 12, 31) if month == 12 else date(year, month + 1, 1) - timedelta(days=1)
-    return end - timedelta(days=(end.weekday() - weekday) % 7)
-
-
-# Known ad-hoc NYSE closures that no regular rule produces.  These are real
-# exchange closures, so they are excluded from expected sessions (and any bar
-# on such a day would be an off-calendar observation).
-_NYSE_SPECIAL_CLOSURES = {
-    date(2012, 10, 29),  # Hurricane Sandy
-    date(2012, 10, 30),  # Hurricane Sandy
-    date(2018, 12, 5),   # national mourning - G.H.W. Bush
-    date(2025, 1, 9),    # national mourning - J. Carter
-}
-
-
-def _observed(d: date, new_year: bool = False) -> date:
-    """NYSE weekend-observance rule: Saturday holidays are observed the prior
-    Friday and Sunday holidays the following Monday -- except New Year's Day,
-    for which the prior Friday (in the previous calendar year) is NOT observed
-    (e.g. NYSE stayed open on 2021-12-31 for Sat 2022-01-01)."""
-    if d.weekday() == 5:  # Saturday
-        return d if new_year else d - timedelta(days=1)
-    if d.weekday() == 6:  # Sunday
-        return d + timedelta(days=1)
-    return d
-
-
-def nyse_holidays(first: pd.Timestamp, last: pd.Timestamp) -> set:
-    """NYSE regular holiday schedule between two tz-aware timestamps (inclusive).
-
-    Rule-based (no external calendar package):
-      - New Year's Day (Jan 1; Sun -> Mon after; Sat -> NOT observed prior Fri)
-      - Martin Luther King Jr. Day (3rd Monday January)
-      - Washington's Birthday (3rd Monday February)
-      - Good Friday (Easter Sunday - 2; never shifted)
-      - Memorial Day (last Monday May)
-      - Juneteenth (Jun 19, observed from 2022; Sat -> prior Fri, Sun -> Mon)
-      - Independence Day (Jul 4; Sat -> prior Fri, Sun -> Mon after)
-      - Labor Day (1st Monday September)
-      - Thanksgiving (4th Thursday November)
-      - Christmas Day (Dec 25; Sat -> prior Fri, Sun -> Mon after)
-      - plus known ad-hoc closures (``_NYSE_SPECIAL_CLOSURES``).
+    Pandera is intentionally only the structural layer.  The causal, calendar,
+    session-uniqueness and no-repair rules below remain owned by this engine.
     """
-    y0, y1 = first.year, last.year
-    lo, hi = first.date(), last.date()
-    out: set = set()
-
-    def add(d: date) -> None:
-        if lo <= d <= hi:
-            out.add(d)
-
-    for y in range(y0, y1 + 1):
-        add(_observed(date(y, 1, 1), new_year=True))          # New Year's Day
-        add(_nth_weekday(y, 1, 0, 3))                          # MLK Day
-        add(_nth_weekday(y, 2, 0, 3))                          # Presidents' Day
-        add(_easter_sunday(y) - timedelta(days=2))             # Good Friday
-        add(_last_weekday(y, 5, 0))                            # Memorial Day
-        if y >= 2022:                                          # Juneteenth (2022+)
-            add(_observed(date(y, 6, 19)))
-        add(_observed(date(y, 7, 4)))                          # Independence Day
-        add(_nth_weekday(y, 9, 0, 1))                          # Labor Day
-        add(_nth_weekday(y, 11, 3, 4))                         # Thanksgiving
-        add(_observed(date(y, 12, 25)))                        # Christmas Day
-    out |= {d for d in _NYSE_SPECIAL_CLOSURES if lo <= d <= hi}
-    return out
+    try:
+        import pandera.pandas as pa
+    except ImportError as exc:  # pragma: no cover - dependency declared in project
+        raise DataValidationError("pandera is required for OHLCV schema validation") from exc
+    try:
+        schema = pa.DataFrameSchema(
+            {
+                "timestamp": pa.Column(nullable=False),
+                "symbol": pa.Column(nullable=False),
+                "open": pa.Column(float, nullable=True, coerce=True),
+                "high": pa.Column(float, nullable=True, coerce=True),
+                "low": pa.Column(float, nullable=True, coerce=True),
+                "close": pa.Column(float, nullable=True, coerce=True),
+                "volume": pa.Column(float, nullable=True, coerce=True),
+            },
+            strict=False,
+            coerce=False,
+        )
+        schema.validate(df, lazy=True)
+    except pa.errors.SchemaErrors as exc:
+        raise DataValidationError(f"OHLCV dataframe schema violation: {exc}") from exc
 
 
 def expected_sessions(
@@ -265,23 +204,11 @@ def expected_sessions(
 ) -> pd.DatetimeIndex:
     """Exchange trading sessions between two timestamps (inclusive of first/last dates).
 
-    Uses the NYSE exchange calendar (see :func:`nyse_holidays`): weekends and
-    valid exchange holidays are excluded, so the returned sessions are the
-    sessions the exchange was actually open.  Returns a timezone-aware
-    DatetimeIndex of session opens at midnight UTC.  Only ``exchange="US"``
-    is supported.
+    Delegates schedule knowledge to ``exchange_calendars``.  ``US`` remains a
+    backwards-compatible alias for ``XNYS``.  Any calendar code supported by
+    that package (for example ``XJSE``) is accepted.
     """
-    if exchange != "US":
-        raise DataValidationError(f"unsupported exchange calendar {exchange!r}")
-    f = pd.Timestamp(first)
-    l = pd.Timestamp(last)
-    if f.tzinfo is None or l.tzinfo is None:
-        raise DataValidationError("expected_sessions requires timezone-aware boundaries")
-    holidays = pd.DatetimeIndex(sorted(nyse_holidays(f, l)))
-    bdays = pd.bdate_range(f.tz_localize(None).normalize(), l.tz_localize(None).normalize(),
-                           freq="B")
-    sessions = bdays.difference(holidays)
-    return sessions.tz_localize(tz).sort_values()
+    return _calendar_expected_sessions(first, last, exchange=exchange, tz=tz)
 
 
 def missing_data_report(ohlcv: pd.DataFrame, exchange: str = "US") -> pd.DataFrame:
@@ -313,9 +240,10 @@ def missing_data_report(ohlcv: pd.DataFrame, exchange: str = "US") -> pd.DataFra
         exp = pd.DatetimeIndex(pd.to_datetime(expected.date))
         missing = exp.difference(have)            # exchange open, no bar
         closures_observed = have.difference(exp)  # bar on closed day
-        holidays = nyse_holidays(first, last)
         weekend_bars = int((have.weekday >= 5).sum())
-        holiday_bars = int(sum(d.date() in holidays for d in have))
+        holiday_bars = int(sum(d.weekday() < 5 and not is_session(
+            pd.Timestamp(d).tz_localize("UTC"), exchange=exchange
+        ) for d in have))
         reports.append(
             {
                 "symbol": str(symbol),

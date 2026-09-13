@@ -3,6 +3,8 @@ pandas>=2.2
 scikit-learn>=1.4
 scipy>=1.11
 PyYAML>=6.0
+exchange-calendars>=4.7
+pandera[pandas]>=0.24
 
 [dev]
 pytest>=8.0
@@ -12,3 +14,16 @@ jupyter_core
 
 [market]
 yfinance>=0.2
+
+[metric-oracle]
+fincore>=0.1
+
+[nlp]
+transformers>=4.45
+torch>=2.4
+
+[portfolio]
+skfolio>=0.20
+
+[reproducibility]
+dvc>=3.60

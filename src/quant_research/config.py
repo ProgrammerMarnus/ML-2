@@ -30,6 +30,7 @@ class DataConfig:
     start: str = "2012-01-01"
     end: str = "2026-01-01"
     frequency: str = "1d"
+    exchange_calendar: str = "XNYS"
     csv_path: Optional[str] = None
     raw_snapshot_dir: str = "data/raw_snapshots"
 
@@ -42,6 +43,8 @@ class DataConfig:
             raise ConfigError(f"target {self.target!r} must be in assets")
         if self.frequency != "1d":
             raise ConfigError("only frequency '1d' is supported (documented limitation)")
+        if not isinstance(self.exchange_calendar, str) or not self.exchange_calendar.strip():
+            raise ConfigError("data.exchange_calendar must be a non-empty exchange_calendars code")
 
 
 @dataclass(frozen=True)

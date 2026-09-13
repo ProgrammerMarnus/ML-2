@@ -13,14 +13,24 @@ dependencies = [
     "scikit-learn>=1.4",
     "scipy>=1.11",
     "PyYAML>=6.0",
+    "exchange-calendars>=4.7",
+    "pandera[pandas]>=0.24",
 ]
 
 [project.optional-dependencies]
 market = ["yfinance>=0.2"]
 dev = ["pytest>=8.0", "nbformat>=5.9", "nbclient>=0.10", "jupyter_core"]
+# These integrations are intentionally opt-in: none is allowed to make an
+# unpinned network request from a research run.  Model/data revisions are
+# recorded by the adapters before their output enters the PIT feature store.
+portfolio = ["skfolio>=0.20"]
+nlp = ["transformers>=4.45", "torch>=2.4"]
+metric-oracle = ["fincore>=0.1"]
+reproducibility = ["dvc>=3.60"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["quant_research*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

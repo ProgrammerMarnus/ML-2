@@ -58,6 +58,24 @@ Each run produces, under the output directory:
 - `<experiment_id>_results.json` - full structured results
 - `trial_counter.json` (+ `.highwater`) - persistent global trial count
 
+### Reused, pinned infrastructure
+
+- **Exchange sessions:** `exchange_calendars` provides authoritative schedules
+  (default `XNYS`; configure `data.exchange_calendar`). The engine still owns
+  its strict missing-bar policy.
+- **Data contracts:** Pandera validates the normalized OHLCV DataFrame after
+  the engine's domain-specific checks have supplied precise errors.
+- **Reproducibility:** `dvc.yaml` describes the offline baseline replay. See
+  [the DVC workflow](docs/REPRODUCIBILITY.md) before tracking real snapshots.
+- **Optional portfolio allocation:** `pip install -e '.[portfolio]'` enables
+  the constrained, training-only Skfolio adapter; it is not silently used by
+  the baseline strategy.
+- **Optional finance NLP:** `pip install -e '.[nlp]'` enables local FinBERT
+  scoring only from an immutable Hugging Face commit already in the local
+  cache. Original event availability timestamps are preserved.
+- **Metric oracle:** `pip install -e '.[metric-oracle]'` enables Fincore
+  comparison tests; promotion metrics remain the engine's own implementation.
+
 For a new strategy hypothesis, create and freeze a
 `quant_research.experiments.protocol.ResearchProtocol` before running the
 pipeline, then set `research.protocol_path` in the configuration. The protocol

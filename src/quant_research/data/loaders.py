@@ -15,6 +15,7 @@ import pandas as pd
 
 from ..config import DataConfig
 from .schemas import DataValidationError, DataQualityWarning, OHLCV_COLUMNS
+from .calendar import library_version as calendar_library_version
 from .validation import expected_sessions, validate_ohlcv
 
 
@@ -23,17 +24,18 @@ def generate_synthetic_ohlcv(
     start: str = "2012-01-01",
     end: str = "2026-01-01",
     seed: int = 42,
+    exchange_calendar: str = "XNYS",
 ) -> pd.DataFrame:
     """Deterministic synthetic OHLCV in the normalized long schema (UTC).
 
     Includes deterministic crisis/regime components so stress tests are
-    meaningful.  Bars are generated on a real US exchange calendar (weekends
-    and US market holidays excluded), timezone-aware UTC timestamps.  Output is
-    complete (no genuine missing sessions).
+    meaningful. Bars are generated on the configured exchange calendar,
+    timezone-aware UTC timestamps. Output is complete (no genuine missing
+    sessions).
     """
     rng = np.random.default_rng(seed)
     idx = expected_sessions(
-        pd.Timestamp(start, tz="UTC"), pd.Timestamp(end, tz="UTC"), "US"
+        pd.Timestamp(start, tz="UTC"), pd.Timestamp(end, tz="UTC"), exchange_calendar
     )
     idx = idx[(idx >= pd.Timestamp(start, tz="UTC")) & (idx < pd.Timestamp(end, tz="UTC"))]
     common = rng.normal(0, 0.0004, len(idx))
@@ -251,7 +253,10 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
     history are now explicitly detected.
     """
     if cfg.mode == "synthetic":
-        ohlcv = generate_synthetic_ohlcv(cfg.assets, cfg.start, cfg.end, seed=42)
+        ohlcv = generate_synthetic_ohlcv(
+            cfg.assets, cfg.start, cfg.end, seed=42,
+            exchange_calendar=cfg.exchange_calendar,
+        )
         assumption = "synthetic data; NOT market evidence"
     elif cfg.mode == "csv":
         ohlcv = load_csv_ohlcv(cfg.csv_path, cfg.assets)  # type: ignore[arg-type]
@@ -308,7 +313,7 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
             # the requested start (data generation uses expected_sessions + exclusive
             # end cut).  Verify the leading edge; the trailing edge is bounded by the
             # end-ts exclusive cut applied above.
-            expected_first = expected_sessions(start_ts, end_ts, exchange="US")[0]
+            expected_first = expected_sessions(start_ts, end_ts, exchange=cfg.exchange_calendar)[0]
             if first_date != expected_first:
                 raise DataValidationError(
                     f"asset {symbol}: synthetic data starts {first_date.date()} but "
@@ -319,7 +324,7 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
             # Real data: the first observed session should be the first expected
             # session on/after start, and the last should be the last expected
             # session strictly before end (the data is cut with < end_ts above).
-            expected_all = expected_sessions(start_ts, end_ts, exchange="US")
+            expected_all = expected_sessions(start_ts, end_ts, exchange=cfg.exchange_calendar)
             if len(expected_all) == 0:
                 raise DataValidationError(
                     f"asset {symbol}: no expected exchange sessions between "
@@ -338,7 +343,7 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
                 # Count sessions strictly between start and the first observed bar;
                 # a single missing session can be a listing-date gap, more than one
                 # indicates truncation or a non-existent asset history.
-                missing_leading = expected_sessions(start_ts, first_date, exchange="US")
+                missing_leading = expected_sessions(start_ts, first_date, exchange=cfg.exchange_calendar)
                 # Exclude the first observed bar itself from the missing count
                 n_missing = len(missing_leading) - 1 if len(missing_leading) > 0 else 0
                 if n_missing > 0:  # D08 fix: reject ANY missing boundary session
@@ -350,7 +355,7 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
                         f"or data is truncated"
                     )
             if last_date != expected_last:
-                n_missing = len(expected_sessions(last_date, end_ts, exchange="US")) - 1 \
+                n_missing = len(expected_sessions(last_date, end_ts, exchange=cfg.exchange_calendar)) - 1 \
                     if last_date < end_ts else 0
                 if n_missing > 0:  # D08 fix: reject ANY missing boundary session
                     raise DataValidationError(
@@ -359,7 +364,7 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
                         f"{n_missing} trailing sessions missing — data is truncated"
                     )
         # For all modes, verify we have a reasonable amount of data
-        expected_min = len(expected_sessions(start_ts, end_ts, exchange="US")) // 10
+        expected_min = len(expected_sessions(start_ts, end_ts, exchange=cfg.exchange_calendar)) // 10
         if len(sym_data) < expected_min:
             raise DataValidationError(
                 f"asset {symbol}: only {len(sym_data)} observations, expected at least "
@@ -375,6 +380,8 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
         "start": cfg.start,
         "end": cfg.end,
         "frequency": cfg.frequency,
+        "exchange_calendar": cfg.exchange_calendar,
+        "exchange_calendar_library_version": calendar_library_version(),
         "dataset_hash": dataset_hash(ohlcv),
         "assumptions": assumption,
         "n_observed_symbols": len(observed_symbols),

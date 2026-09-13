@@ -1,0 +1,7 @@
+# DVC tracks declared datasets and artifact directories. Never cache secrets,
+# temporary state, or mutable provider credentials.
+.env*
+__pycache__/
+*.pyc
+*.lock
+strategy-runs.jsonl

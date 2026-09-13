@@ -109,7 +109,7 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
     # --- 1. data -------------------------------------------------------------
     ohlcv, data_meta = load_market_data(cfg.data)
     validate_ohlcv(ohlcv)
-    missing = missing_data_report(ohlcv)  # exchange-calendar aware
+    missing = missing_data_report(ohlcv, exchange=cfg.data.exchange_calendar)
     integrity_ok = bool(
         (missing["n_missing_sessions"] == 0).all()
         and (missing["n_observed_closures"] == 0).all()

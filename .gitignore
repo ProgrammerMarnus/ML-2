@@ -36,5 +36,12 @@ artifacts_real_v3/
 artifacts_real_v4/
 artifacts_v2/
 data/
+# The root-level data directory contains generated snapshots, but the source
+# package also has a data module. Keep source adapters (for example the
+# exchange-calendar integration) visible to Git.
+!src/
+!src/quant_research/
+!src/quant_research/data/
+!src/quant_research/data/*.py
 repomix-output.xml
 ```
