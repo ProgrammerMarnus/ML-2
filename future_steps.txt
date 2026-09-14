@@ -10,8 +10,7 @@ available to the scalar single-asset runner. The runtime correctly refuses
 generic price/volume proxy executions.
 
 Engineering defects E01-E10 are fixed and regression-tested. The latest full
-suite passed 360 tests with no failures or teardown errors; three PaperBroker
-tests added afterward also pass, and the repository now collects 363 tests.
+suite passed all 372 collected tests with no failures or teardown errors.
 PaperBroker hardening phase 4.1 is complete, including order lifecycle,
 safeguards, persistence/restart integrity, and a 250-order load smoke test.
 This simulator evidence is not paper-market or live-broker evidence.
@@ -30,10 +29,10 @@ PRIORITY ORDER
      identity, and placebo output together.
    - Do not tune the hypothesis against the observed confirmation period.
 
-3. Complete paper execution accounting (phase 4.2/4.3).
-   - Verify realized and unrealized P&L attribution, buying power/margin rules,
-     reconciliation, exchange-hours behavior, stale-mark handling, alerts, and
-     operator controls in end-to-end scenarios.
+3. Complete external operational integration (phase 6). Local accounting,
+   monitoring, alerts, settlement evidence, and emergency controls exist.
+   - Add approved market/broker connectivity, external alert delivery, named
+     operators, credential checks, and deployment-specific limit approval.
 
 4. Build observed paper-validation evidence only after a strategy reaches the
    required research state.
@@ -43,7 +42,7 @@ PRIORITY ORDER
    - Simulator calls alone cannot promote a strategy.
 
 5. Establish repeatable CI evidence.
-   - Run the current 363-test collection in isolated state.
+   - Keep the current 372-test collection green in isolated local and hosted CI.
    - Retain machine-readable results and separate expected synthetic-window
      warnings from actionable warnings.
 

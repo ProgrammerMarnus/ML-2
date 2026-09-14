@@ -31,7 +31,7 @@ src/quant_research/
   experiments/              registry, leaderboard, promotion
   execution/                paper simulator, safeguards, operational controls
   run.py                    one-command research pipeline (CLI)
-tests/                      pytest suite (363 collected tests)
+tests/                      pytest suite (372 passing tests)
 configs/                    baseline.yaml (synthetic), real_spy.yaml (yfinance)
 Institutional_Quant_Research_Engine_V2.1.ipynb   thin orchestration notebook
 ```
@@ -237,7 +237,10 @@ The paper broker is a simulator, not a live-broker adapter. Orders have an
 explicit bar-based eligibility time; pending buys reserve cash across symbols;
 cash and exposure are checked again at fill time; and a tripped kill switch
 cancels exposure-increasing pending orders. Explicit `reduce_only` orders may
-flatten a position during a kill switch but cannot reverse it. Paper-validation
+flatten a position during a kill switch but cannot reverse it. Per-fill fees,
+slippage, and spread are attributed separately; portfolio gross exposure,
+short margin, cash, and positions are reconciled. Daily settlement reports are
+write-once and hash-chained. Paper-validation
 promotion requires unique processed sessions from an `observed_paper` source,
 a compatible approved research record, reconciliation, and a tested kill
 switch. Simulated replay evidence remains `PAPER_READY`.
@@ -246,6 +249,11 @@ switch. Simulated replay evidence remains `PAPER_READY`.
 it rechecks both position reconciliation and a hash-chained audit trail before
 orders can resume. This is simulator recovery evidence, not proof of a live
 broker's recovery behavior.
+
+Local monitoring exposes positions, P&L, order events, data age, process
+resources, and acknowledged alert history. Kill-switch resets require a
+different approving operator from the requester. Operational procedures are in
+[docs/PAPER_OPERATIONS_RUNBOOK.md](docs/PAPER_OPERATIONS_RUNBOOK.md).
 
 ---
 

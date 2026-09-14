@@ -4,6 +4,12 @@
 **Date Created:** 2026-09-13  
 **Required Before:** Any code changes or experiments
 
+**Current use (2026-09-14):** Also freeze the exact point-in-time data schema,
+universe/portfolio evaluator, dataset-family identity, and runtime eligibility
+contract. A proxy dataset or scalar substitute must receive a new hypothesis
+and research-family identity; it cannot be executed under an incompatible
+preregistration.
+
 ---
 
 ## Section 1: Economic Mechanism

@@ -18,6 +18,7 @@ from quant_research.experiments.paper_validation import (
     PaperValidationConfig,
     PaperValidationRunner,
 )
+from quant_research.execution.operational import DailySettlementReporter
 
 
 def _ts(day: int) -> pd.Timestamp:
@@ -322,3 +323,126 @@ def test_batch_order_load_preserves_execution_ledger():
     assert all(order.status == OrderStatus.FILLED for order in orders)
     assert broker.reconcile()["consistent"]
     assert broker.verify_audit_trail()
+
+
+def test_execution_costs_are_attributed_and_reconcile_to_equity():
+    broker = PaperBroker(
+        initial_cash=10_000,
+        fee_bps=10.0,
+        slippage_bps=5.0,
+        spread_bps=3.0,
+    )
+    order = PaperOrder("SPY", OrderSide.BUY, 10)
+    assert broker.submit(order, 100.0, _ts(2)).status == OrderStatus.SUBMITTED
+    broker.process_bar(_ts(3), {"SPY": 100.0})
+
+    assert order.filled_price == pytest.approx(100.08)
+    assert broker.get_position("SPY").unrealized_pnl == pytest.approx(-0.8)
+    costs = broker.cost_attribution()
+    assert costs["fees"] == pytest.approx(1.0008)
+    assert costs["slippage"] == pytest.approx(0.5)
+    assert costs["spread"] == pytest.approx(0.3)
+    assert costs["total"] == pytest.approx(1.8008)
+    assert broker.current_value - broker.initial_cash == pytest.approx(-1.8008)
+    assert broker.reconcile()["cash_consistent"]
+
+
+def test_cash_reconciliation_detects_ledger_drift():
+    broker = PaperBroker(initial_cash=10_000, fee_bps=0.0, slippage_bps=0.0)
+    order = PaperOrder("SPY", OrderSide.BUY, 10)
+    broker.submit(order, 100.0, _ts(2))
+    broker.process_bar(_ts(3), {"SPY": 100.0})
+    assert broker.reconcile()["consistent"]
+
+    broker.cash += 1.0
+    result = broker.reconcile()
+    assert not result["consistent"]
+    assert not result["cash_consistent"]
+    assert result["cash_difference"] == pytest.approx(1.0)
+
+
+def test_portfolio_gross_exposure_includes_pending_orders_across_symbols():
+    broker = PaperBroker(
+        initial_cash=10_000,
+        fee_bps=0.0,
+        slippage_bps=0.0,
+        max_gross_exposure=0.5,
+    )
+    first = PaperOrder("SPY", OrderSide.BUY, 30)
+    second = PaperOrder("QQQ", OrderSide.BUY, 30)
+    assert broker.submit(first, 100.0, _ts(2)).status == OrderStatus.SUBMITTED
+    rejected = broker.submit(second, 100.0, _ts(2))
+    assert rejected.status == OrderStatus.REJECTED
+    assert "gross exposure" in (rejected.cancel_reason or "")
+
+
+def test_short_margin_is_checked_before_submission():
+    broker = PaperBroker(
+        initial_cash=10_000,
+        fee_bps=0.0,
+        slippage_bps=0.0,
+        max_gross_exposure=1.0,
+        short_margin_ratio=1.5,
+    )
+    rejected = broker.submit(
+        PaperOrder("SPY", OrderSide.SELL, 70), 100.0, _ts(2),
+    )
+    assert rejected.status == OrderStatus.REJECTED
+    assert "short margin" in (rejected.cancel_reason or "")
+
+
+def test_daily_settlement_is_hash_chained_write_once_evidence(tmp_path):
+    broker = PaperBroker(
+        initial_cash=10_000,
+        fee_bps=10.0,
+        slippage_bps=5.0,
+        spread_bps=3.0,
+    )
+    broker.submit(PaperOrder("SPY", OrderSide.BUY, 10), 100.0, _ts(2))
+    broker.process_bar(_ts(3), {"SPY": 100.0})
+
+    reporter = DailySettlementReporter()
+    first = reporter.generate(broker, _ts(3))
+    assert first.accounting_identity_valid
+    assert first.reconciliation["consistent"]
+    assert first.audit_trail_valid
+    assert first.spread_cost == pytest.approx(0.3)
+    assert DailySettlementReporter.verify(first)
+    path = reporter.save(first, tmp_path)
+    assert path.exists()
+    with pytest.raises(FileExistsError):
+        reporter.save(first, tmp_path)
+
+    second = reporter.generate(broker, _ts(4))
+    assert second.previous_report_hash == first.report_hash
+    assert DailySettlementReporter.verify(second)
+    assert DailySettlementReporter.verify_chain([first, second])
+    tampered = second.to_dict()
+    tampered["ending_cash"] += 1.0
+    assert not DailySettlementReporter.verify(tampered)
+    assert not DailySettlementReporter.verify_chain([first, tampered])
+
+
+def test_new_accounting_policy_survives_verified_restart(tmp_path):
+    broker = PaperBroker(
+        initial_cash=10_000,
+        fee_bps=2.0,
+        slippage_bps=1.0,
+        spread_bps=4.0,
+        max_gross_exposure=0.8,
+        short_margin_ratio=1.25,
+    )
+    broker.submit(PaperOrder("SPY", OrderSide.BUY, 10), 100.0, _ts(2))
+    broker.process_bar(_ts(3), {"SPY": 100.0})
+    expiry = pd.Timestamp.now(tz="UTC") + pd.Timedelta(days=1)
+    broker.safeguards.set_temporary_position_limit(1.2, expiry)
+    resumed = PaperBroker.load_state(broker.save_state(tmp_path / "accounting-state.json"))
+
+    assert resumed.spread_bps == pytest.approx(4.0)
+    assert resumed.max_gross_exposure == pytest.approx(0.8)
+    assert resumed.short_margin_ratio == pytest.approx(1.25)
+    assert resumed.safeguards.max_position == pytest.approx(1.2)
+    assert resumed.safeguards._baseline_max_position == pytest.approx(1.0)
+    assert resumed.safeguards._temporary_limit_expires_at == expiry
+    assert resumed.cost_attribution() == pytest.approx(broker.cost_attribution())
+    assert resumed.reconcile()["consistent"]

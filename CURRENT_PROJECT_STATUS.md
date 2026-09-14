@@ -30,14 +30,29 @@ historical metrics and findings are not current readiness claims.
 
 - All ten P1 findings E01–E10 from the 2026-09-11 audit are fixed and covered
   by behavioral regressions.
-- The latest complete suite run collected 360 tests and exited successfully
-  with no failure or teardown error. Three subsequent PaperBroker tests also
-  pass; the repository now collects 363 tests.
+- The latest complete suite run collected 372 tests and exited successfully
+  with no failure or teardown error. It includes the new execution-accounting
+  and operational-control regressions.
 - PaperBroker hardening 4.1 is complete: lifecycle, latency, cash/exposure
   reservations, idempotency, reduce-only emergency exits, kill-switch pending
   cancellation, verified persistence, reconciliation, audit-chain validation,
   an end-to-end emergency flow, and a 250-order batch test are covered.
+- The paper-validation framework enforces unique exchange sessions,
+  research-record/evidence-source binding, breach and reconciliation gates,
+  and structured reports. No observed paper sessions have been accepted.
+- Local execution accounting now includes per-fill fee/slippage/spread
+  attribution, portfolio gross-exposure and short-margin checks, cash-inclusive
+  reconciliation, and write-once hash-chained daily settlement reports.
+- Local operational controls include order/data/resource monitoring, deduplicated
+  alerts with acknowledgment evidence, a two-person kill-switch reset, and an
+  audited emergency shutdown. Temporary position-cap changes require independent
+  approval, expire automatically, and restore the baseline limit. External
+  alert delivery, authenticated operator identity/roles, real feeds, named
+  operators, and observed-paper evidence remain open.
 - This local evidence does not establish an external CI result.
+- A least-privilege GitHub Actions workflow is configured to run the full suite
+  on Python 3.13 and retain JUnit evidence. It has not yet produced a hosted run
+  for this working tree.
 
 ## Remaining blockers
 

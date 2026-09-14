@@ -220,5 +220,6 @@ Future efforts must start from first principles: identify a market inefficiency 
 ---
 
 **Report Prepared By:** Automated Research System  
-**Review Status:** Pending human review  
-**Next Action:** Begin new hypothesis development per PHASE1_STRATEGY_RESET.md
+**Historical review status at archiving:** Pending human review
+**Current record:** Closure is accepted; successor status is maintained in the
+repository-root `CURRENT_PROJECT_STATUS.md`.

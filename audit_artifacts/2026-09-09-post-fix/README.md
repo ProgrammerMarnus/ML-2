@@ -10,10 +10,10 @@ These are audit artifacts, not product fixes. Existing source/test/configuration
 
 | Artifact | Purpose |
 |---|---|
-| `audit_probes.py`, `probe-results.json`, `probes.log` | 22 intended-contract checks: 16 FAIL, 6 PASS, zero ERROR on audited source. A FAIL is a reproduced contract defect; these are deliberately outside the ordinary test suite. |
-| `pipeline_probes.py`, `pipeline-probe-results.json`, `pipeline-probes.log` | Three completed synthetic pipeline runs; changed output location and test geometry; manifest contents; real loader with only its download stubbed; one failed nonzero-delay full pipeline. |
-| `followup_probes.py`, `followup-results.json`, `followup-probes.log` | Legacy contamination/accounting, all 16 timestamp-unit combinations, invalid-return and negative-sizing cases, and positive statistical/replay controls. |
-| `market_evidence.py`, `market-replay-analysis.json`, `market-replay.log` | Previous audit's market harness, reused against current source and isolated new output. Full pipeline over saved verified SPY/QQQ snapshot, replacing only loader/snapshot-write I/O. |
+| `audit_probes.py`, `probe-results.json` | 22 intended-contract checks: 16 FAIL, 6 PASS, zero ERROR on audited source. A FAIL is a reproduced contract defect; these are deliberately outside the ordinary test suite. |
+| `pipeline_probes.py`, `pipeline-probe-results.json` | Three completed synthetic pipeline runs; changed output location and test geometry; manifest contents; real loader with only its download stubbed; one failed nonzero-delay full pipeline. |
+| `followup_probes.py`, `followup-results.json` | Legacy contamination/accounting, all 16 timestamp-unit combinations, invalid-return and negative-sizing cases, and positive statistical/replay controls. |
+| `market_evidence.py`, `market-replay-analysis.json` | Previous audit's market harness, reused against current source and isolated new output. Full pipeline over saved verified SPY/QQQ snapshot, replacing only loader/snapshot-write I/O. |
 | `market-executed-ledger.csv` | Current market replay's indexed net/gross returns, positions, and turnover. |
 | `market_snapshot_run/` | Full fresh market pipeline outputs and manifest, including stress and null tables. |
 | `run-diff.json` | Comparison against `2026-09-09-rerun`: same 1,764 timestamps, maximum absolute ledger delta 0.0. |

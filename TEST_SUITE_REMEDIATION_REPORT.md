@@ -1,9 +1,9 @@
 # Test Suite Remediation Report
 
 **Date:** 2026-09-14  
-**Result:** `PASS` — the latest complete run collected 360 tests and exited 0
-with no failures or teardown errors. Three subsequently added PaperBroker
-tests pass in their focused suite; the repository now collects 363 tests.
+**Result:** `PASS` — the latest complete run collected 372 tests and exited 0
+with no failures or teardown errors. This includes nine new execution-
+accounting and operational-control tests added after the prior 363-test state.
 
 ## Command
 

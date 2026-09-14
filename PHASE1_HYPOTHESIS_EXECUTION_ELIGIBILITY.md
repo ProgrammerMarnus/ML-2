@@ -22,8 +22,9 @@ selected correctly yet still fail to represent the preregistered hypothesis.
 
 ## Consequences
 
-- The existing H-001/H-002 results remain invalid because they used the wrong
-  feature panel.
+- The early proxy H-001/H-002 results remain invalid because they used the
+  wrong feature panel. H-001's later corrected confirmation is valid rejecting
+  evidence.
 - The corrected feature-selection path must not be used to relabel an
   implementation mismatch as valid evidence.
 - H-001's originally reported 2010–2020 candidate result is superseded: its
@@ -32,10 +33,11 @@ selected correctly yet still fail to represent the preregistered hypothesis.
 - Synthetic data can exercise software only. It cannot satisfy any of the
   market-data preregistrations above or produce promotable strategy evidence.
 
-## Required before any re-execution
+## Required before H-002/H-003 execution or a new research family
 
-1. Choose, for each hypothesis, whether to implement its existing
-   preregistration or replace it with a materially revised hypothesis.
+1. Choose, for each blocked hypothesis, whether to implement its existing
+   preregistration or replace it with a materially revised hypothesis. H-001 is
+   closed as rejected and must not be rerun against its observed test window.
 2. Freeze a new `ResearchProtocol` that names the exact registered columns,
    universe, target/portfolio construction, dataset versions, walk-forward
    specification, and trial budget. A revision must be assigned a new research

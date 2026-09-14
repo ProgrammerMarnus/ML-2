@@ -13,7 +13,7 @@ from quant_research.evaluation.metrics import beta
 from quant_research.evaluation.walk_forward import LockedTestProtocol
 from quant_research.experiments.leaderboard import build_leaderboard
 from quant_research.experiments.registry import ExperimentRegistry, TrialCounter
-from quant_research.execution.paper import PaperBroker, PaperOrder
+from quant_research.execution.paper import OrderSide, PaperBroker, PaperOrder
 from quant_research.execution.safeguards import Safeguards
 from quant_research.features.information import build_information_features
 from quant_research.features.price_volume import build_price_volume_features
@@ -461,6 +461,24 @@ def test_operational_config_validation():
     assert len(errors2) > 0
     assert any("initial_cash" in e for e in errors2)
 
+    assert any(
+        "max_gross_exposure" in error
+        for error in OperationalConfig(max_gross_exposure=0.0).validate()
+    )
+    assert any(
+        "short_margin_ratio" in error
+        for error in OperationalConfig(short_margin_ratio=0.5).validate()
+    )
+
+    configured = OperationalConfig(
+        spread_bps=2.0, max_gross_exposure=0.75, short_margin_ratio=1.25,
+    ).build_broker()
+    assert configured.spread_bps == pytest.approx(2.0)
+    assert configured.max_gross_exposure == pytest.approx(0.75)
+    assert configured.short_margin_ratio == pytest.approx(1.25)
+    with pytest.raises(ValueError, match="invalid operational configuration"):
+        OperationalConfig(max_gross_exposure=0.0).build_broker()
+
 
 def test_monitoring_dashboard():
     """Test that monitoring dashboard captures snapshots."""
@@ -476,11 +494,15 @@ def test_monitoring_dashboard():
     broker.submit(order, current_price=100.0, current_time=ts)
     broker.process_bar(ts, {"SPY": 100.0})
 
-    snap = dashboard.snapshot()
+    snap = dashboard.snapshot(now=ts)
     assert snap.portfolio_value > 0
     assert snap.n_open_positions == 1
     assert snap.n_filled_today == 1
     assert "SPY" in snap.positions
+    assert snap.order_counts["FILLED"] == 1
+    assert snap.recent_order_events[-1]["event_type"] == "ORDER_FILLED"
+    assert snap.data_feed_health["healthy"]
+    assert snap.system_resources["max_rss_kb"] > 0
 
 
 def test_monitoring_format_status():
@@ -562,9 +584,100 @@ def test_manual_override_kill_switch():
     override.trip_kill_switch("test")
     assert broker.safeguards.kill_switch_active
 
-    # Reset
-    override.reset_kill_switch()
+    # A second operator is required to approve reset.
+    request_id = override.request_kill_switch_reset(
+        requested_by="operator-a", reason="incident resolved",
+    )
+    with pytest.raises(ValueError, match="second operator"):
+        override.reset_kill_switch(request_id, approved_by="operator-a")
+    override.reset_kill_switch(request_id, approved_by="operator-b")
     assert not broker.safeguards.kill_switch_active
+    assert broker.audit_trail[-1].event_type == "KILL_SWITCH_RESET_APPROVED"
+
+
+def test_temporary_position_limit_requires_approval_and_expires():
+    from quant_research.execution.operational import ManualOverride
+
+    broker = PaperBroker(initial_cash=100_000, fee_bps=0.0, slippage_bps=0.0)
+    override = ManualOverride(broker)
+    expiry = pd.Timestamp.now(tz="UTC") + pd.Timedelta(days=1)
+    request_id = override.request_position_limit_change(
+        new_limit=1.5,
+        expires_at=expiry,
+        requested_by="operator-a",
+        reason="approved rebalance window",
+    )
+    with pytest.raises(ValueError, match="second operator"):
+        override.approve_position_limit_change(request_id, approved_by="operator-a")
+    override.approve_position_limit_change(request_id, approved_by="operator-b")
+    assert broker.safeguards.max_position == pytest.approx(1.5)
+
+    order = PaperOrder("SPY", OrderSide.BUY, 1)
+    broker.submit(order, 100.0, expiry + pd.Timedelta(seconds=1))
+    assert broker.safeguards.max_position == pytest.approx(1.0)
+    assert broker.safeguards._temporary_limit_expires_at is None
+    assert any(
+        event.event_type == "POSITION_LIMIT_OVERRIDE_EXPIRED"
+        for event in broker.audit_trail
+    )
+    assert broker.verify_audit_trail()
+
+
+def test_alert_manager_records_delivers_deduplicates_and_acknowledges(tmp_path):
+    """Local alerts cover safeguard, rejection, stale data, P&L and health."""
+    from quant_research.execution.operational import AlertManager, FileAlertChannel
+
+    channel = FileAlertChannel(tmp_path / "alerts.jsonl")
+    manager = AlertManager([channel])
+    broker = PaperBroker(initial_cash=10_000)
+    broker.safeguards.trip_kill_switch("test breach")
+    rejected = PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=1)
+    broker.submit(rejected, current_price=100.0,
+                  current_time=pd.Timestamp("2024-01-02", tz="UTC"))
+    broker.current_value = 9_000
+
+    created = manager.evaluate_broker(
+        broker, now=pd.Timestamp("2024-01-10", tz="UTC"),
+        max_data_age=pd.Timedelta(days=1),
+    )
+    categories = {alert.category for alert in created}
+    assert {"SAFEGUARD_BREACH", "ORDER_REJECTION", "DATA_STALENESS", "PNL_THRESHOLD"} <= categories
+    assert all(alert.delivery["local_jsonl"] for alert in created)
+    assert len((tmp_path / "alerts.jsonl").read_text().splitlines()) == len(created)
+
+    # Re-evaluation does not flood the operator with duplicate active alerts.
+    manager.evaluate_broker(
+        broker, now=pd.Timestamp("2024-01-10", tz="UTC"),
+        max_data_age=pd.Timedelta(days=1),
+    )
+    assert len(manager.alerts) == len(created)
+    target = created[0]
+    manager.acknowledge(target.alert_id, actor="operator-b", note="investigated")
+    assert target.acknowledged_by == "operator-b"
+    records = [json.loads(line) for line in (tmp_path / "alerts.jsonl").read_text().splitlines()]
+    assert records[-1]["event_type"] == "ALERT_ACKNOWLEDGED"
+    assert records[-1]["alert"]["acknowledged_by"] == "operator-b"
+
+
+def test_emergency_shutdown_is_audited_and_flattens_positions():
+    from quant_research.execution.operational import ManualOverride
+
+    broker = PaperBroker(initial_cash=100_000, fee_bps=0.0, slippage_bps=0.0)
+    broker.submit(
+        PaperOrder(symbol="SPY", side=OrderSide.BUY, quantity=10),
+        current_price=100.0,
+        current_time=pd.Timestamp("2024-01-02", tz="UTC"),
+    )
+    broker.process_bar(pd.Timestamp("2024-01-03", tz="UTC"), {"SPY": 100.0})
+    result = ManualOverride(broker).emergency_shutdown(
+        {"SPY": 99.0}, actor="operator-a", reason="feed divergence",
+    )
+
+    assert broker.safeguards.kill_switch_active
+    assert broker.get_position("SPY").quantity == pytest.approx(0.0)
+    assert result["reconciliation"]["consistent"]
+    assert result["audit_trail_valid"]
+    assert any(event.event_type == "EMERGENCY_SHUTDOWN" for event in broker.audit_trail)
 
 
 def test_health_check():

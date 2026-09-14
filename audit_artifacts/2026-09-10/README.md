@@ -10,11 +10,11 @@ The main report is [DEEP_AUDIT_2026-09-10.md](/home/marnus/VS-Code/ML-2/DEEP_AUD
 |---|---|
 | `audit-metadata.json` | Audited Git commit, initially clean status, dependency/runtime versions and isolation information. |
 | `preservation-before.json`, `preservation-check.json` | Hashes and final comparison protecting original code, tests, configs, notebook, data and historical artifacts. |
-| `pytest.log`, `pytest-results.xml` | Full fresh-state suite: 280 passed, 1 teardown error, 1,918 warnings, exit 1. |
-| `isolation-repeat.log`, `isolation-repeat-results.json` | Existing shared-ledger mutation escapes the guard; same test exits 0. |
-| `audit_probes.py`, `probe-results.json`, `probes.log` | Fourteen independent probe groups. An expected product exception is recorded with its traceback, not called a passing regression. |
+| `pytest-results.xml` | Retained JUnit result for the full fresh-state suite: 280 passed, 1 teardown error, 1,918 warnings, exit 1. The console log is not present in this checkout. |
+| `isolation-repeat-results.json` | Existing shared-ledger mutation escapes the guard; same test exits 0. |
+| `audit_probes.py`, `probe-results.json` | Fourteen independent probe groups. An expected product exception is recorded with its traceback, not called a passing regression. |
 | `pipeline_checks.py`, `pipeline-check-results.json` | Four full synthetic runs: first, separate output with the same family, changed geometry in the same output, and configured delay 5. |
-| `market-replay-results.json`, `market-executed-ledger.csv`, `market-replay.log` | Full saved-market pipeline and independent accounting, benchmark, cost, calibration and bootstrap readout. |
+| `market-replay-results.json`, `market-executed-ledger.csv` | Retained full saved-market results and executed ledger. The console log is not present in this checkout. |
 | `run-diff.json` | Comparison with prior audit folds. Fold metrics, memberships, thresholds and NaN patterns are unchanged. |
 | `followup_probes.py`, `static-check-results.json`, `submicrosecond-results.json` | Source compilation, regression-test inspection, manifest inspection and nanosecond boundary probe. |
 | `notebook_check.py`, `notebook-check-results.json`, `notebook-executed.ipynb` | Fresh source-cell execution after a local-socket restriction prevented Jupyter kernel startup. Saved outputs were cleared before source execution. |
@@ -22,7 +22,9 @@ The main report is [DEEP_AUDIT_2026-09-10.md](/home/marnus/VS-Code/ML-2/DEEP_AUD
 | `pytest-shared-ledger.jsonl`, `integration-shared-ledger.jsonl` | Copies of histories created in isolated trees, including attempts from these audit runs. |
 | `findings-index.json` | D01–D15 priorities, OPEN status, evidence locations and acceptance criteria. |
 | `report-validation.json` | Report links, source locations, count and preservation checks. |
-| `audit-operations.log` | Audit-harness setup/serialization issues and their resolutions, distinguished from product findings. |
+
+Console `.log` files named in the original audit process were not retained in
+this checkout; the structured JSON/XML/CSV evidence listed above is present.
 
 The suite used `/tmp/ml2-deep-audit-20260910`, a byte-identical copy of `src/quant_research`, `tests`, `configs` and project metadata. It intentionally began without historical research data so that tests could not consume or alter the real research ledger. Integration/notebook runs used a separate byte-identical package copy at `/tmp/ml2-deep-audit-integration-20260910`. The original repository was initially clean and all protected file hashes were checked afterward. These `/tmp` copies are execution workspaces and may be ephemeral; this directory preserves the result evidence and harnesses.
 

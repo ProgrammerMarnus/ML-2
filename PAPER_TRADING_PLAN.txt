@@ -7,9 +7,9 @@ CURRENT STATE
 -------------
 Promotion state: RESEARCH_ONLY
 Research evidence: H-001 rejected; H-002 and H-003 blocked before valid trial
-Test baseline: 360-test full run passed; 3 later PaperBroker tests pass;
-               363 tests currently collect
+Test baseline: all 372 collected tests pass in the latest complete run
 PaperBroker: hardened local simulator (phase 4.1 complete)
+Validation framework: implemented; no accepted observed-paper evidence
 Live adapter: none
 Observed paper sessions: none accepted as promotion evidence
 
@@ -39,11 +39,13 @@ GATE 2 — PAPER EXECUTION ACCOUNTING
 [x] Safeguards and persistent kill-switch behavior.
 [x] Restart integrity, broker snapshots, and tamper detection.
 [x] 250-order simulator load smoke.
-[ ] End-to-end realized/unrealized P&L attribution.
-[ ] Buying-power and margin policy for the intended strategy/universe.
+[x] End-to-end realized/unrealized P&L and execution-cost attribution.
+[x] Generic gross-exposure and short-margin enforcement in the simulator.
+[ ] Final buying-power and margin thresholds for the intended strategy/universe.
 [ ] Exchange-session and stale-market-data integration tests.
-[ ] Alert delivery and operator acknowledgement workflow.
-[ ] Manual cancel-all, flatten, and controlled reset procedure.
+[x] Local append-only alert delivery and audited operator acknowledgment.
+[ ] Approved external alert channels and authenticated operator identities.
+[x] Audited cancel-all, reduce-only flatten, and two-person reset controls.
 
 GATE 3 — OBSERVED PAPER VALIDATION
 ----------------------------------
@@ -61,7 +63,8 @@ GATE 4 — LIVE OPERATIONAL READINESS
 -----------------------------------
 [ ] Approved broker and market-data providers.
 [ ] Credential/key-management design with no secrets in project artifacts.
-[ ] Monitoring, alerting, ownership, incident response, and rollback.
+[x] Local monitoring, alerting, incident procedure, and emergency controls.
+[ ] Deployment observability, external delivery, named ownership, and rollback.
 [ ] Position/capital limits independently configured and reviewed.
 [ ] Extended observed-paper period completed without unresolved breaches.
 [ ] Human go/no-go review documented.

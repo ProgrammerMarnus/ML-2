@@ -127,8 +127,8 @@ Status: COMPLETE - all 10 P1 findings fixed with behavioral regressions
 ================================================================================
 PHASE 3: TEST SUITE REMEDIATION
 ================================================================================
-Current: latest complete 360-test run passed with no failures or teardown
-errors; 3 subsequent PaperBroker tests pass and 363 tests are now collected.
+Current: latest complete 372-test run passed with no failures or teardown
+errors. It includes execution-accounting and operational-control regressions.
 See TEST_SUITE_REMEDIATION_REPORT.md.
 
 [x] 3.1 Identify and fix 6 failing tests
@@ -143,12 +143,19 @@ See TEST_SUITE_REMEDIATION_REPORT.md.
     [x] Add teardown verification
     [x] Ensure deterministic ordering
 
-[ ] 3.3 Achieve 100% pass rate
+[x] 3.3 Achieve 100% local pass rate
     [x] All unit tests pass
     [x] All integration tests pass
     [x] All end-to-end tests pass
     [x] No teardown errors
-    [ ] CI/CD pipeline green
+    Note: external CI is a separate open item; it was not part of the local run.
+
+[ ] 3.4 Establish external CI evidence
+    [x] GitHub Actions CI/CD pipeline configured
+    [ ] Current test collection green in hosted CI
+    [ ] Hosted machine-readable result retained
+    Config: .github/workflows/tests.yml (least-privilege, Python 3.13,
+    single-thread BLAS, JUnit artifact retained on success or failure)
 
 ================================================================================
 PHASE 4: PAPER TRADING INFRASTRUCTURE
@@ -167,28 +174,32 @@ PHASE 4: PAPER TRADING INFRASTRUCTURE
     [x] Error recovery scenarios validated (pending and cancelled order restart,
         corrupt audit rejection, active kill-switch restoration)
 
-[ ] 4.2 Wire safeguards into order flow
-    [ ] Kill switch blocks ALL order types
-    [ ] Pre-trade checks before submission
-    [ ] Post-trade reconciliation
-    [ ] Real-time exposure monitoring
-    [ ] Automatic position flattening on breach
+[x] 4.2 Wire safeguards into local simulator order flow
+    [x] Kill switch blocks risk-increasing orders; audited reduce-only exits remain allowed
+    [x] Pre-trade checks before submission
+    [x] Post-trade and restart reconciliation
+    [x] Fill-time exposure and cash monitoring
+    [x] Cancel-risk and reduce-only emergency-flatten path
 
-[ ] 4.3 Build complete execution accounting
-    [ ] Real-time P&L calculation
-    [ ] Cost attribution (fees, slippage, spread)
-    [ ] Position reconciliation engine
-    [ ] Audit trail with tamper-evidence
-    [ ] Daily settlement reports
+[x] 4.3 Build complete local simulator execution accounting
+    [x] Simulator realized/unrealized P&L calculation
+    [x] Per-fill fee, slippage, and spread attribution
+    [x] Position reconciliation engine
+    [x] Cash reconciliation against immutable fill events
+    [x] Audit trail with tamper-evidence
+    [x] Portfolio gross-exposure and short-margin policy at submit and fill
+    [x] Write-once, hash-chained daily settlement reports
+    Note: final thresholds still require approval for a qualifying strategy.
 
-[ ] 4.4 Implement paper validation framework
-    [ ] Minimum 5 days continuous operation (configurable to 60)
-    [ ] Zero safeguard breaches required
-    [ ] Position reconciliation holds throughout
-    [ ] Kill switch tested in production-like environment
-    [ ] P&L attribution matches expected values
-    [ ] Failure/restart scenarios pass
-    [ ] Generate validation report for promotion decision
+[x] 4.4 Implement paper validation evidence framework
+    [x] Unique exchange sessions counted (5/60-day thresholds configurable)
+    [x] Zero-breach and reconciliation gates enforced
+    [x] Research-record and observed-evidence-source binding enforced
+    [x] Kill-switch test outcome included in gates
+    [x] P&L, fees, drawdown, order counts, and open positions reported
+    [x] Failure/restart behavior covered by simulator regression tests
+    [x] Validation report generated for promotion decision
+    Note: framework completion is not observed paper validation; Phase 7 is open.
 
 ================================================================================
 PHASE 5: LIVE BROKER INTEGRATION (CRITICAL GAP - NOT IMPLEMENTED)
@@ -239,44 +250,52 @@ CURRENT STATE: Only PaperBroker exists. NO live broker capability.
 PHASE 6: OPERATIONAL READINESS
 ================================================================================
 
-[ ] 6.1 Monitoring dashboard
-    [ ] Real-time positions and P&L
-    [ ] Safeguard status (kill switch, limits)
-    [ ] Order flow visualization
-    [ ] Data feed health
-    [ ] System resource usage
-    [ ] Alert history and acknowledgment
+[x] 6.1 Local monitoring surface
+    [x] Local text snapshots for positions and P&L
+    [x] Local kill-switch status
+    [x] Recent order-flow event and status view
+    [x] Last-bar age and local data-health state
+    [x] Process memory and CPU usage
+    [x] Alert history and acknowledgment state
+    Note: deployment-grade UI and external observability are not implemented.
 
 [ ] 6.2 Alerting system
-    [ ] Safeguard breach alerts (immediate)
-    [ ] Order rejection alerts
-    [ ] Data staleness detection
-    [ ] P&L threshold alerts
-    [ ] Position limit warnings
-    [ ] System health alerts
+    [x] Local safeguard breach alerts
+    [x] Local order rejection alerts
+    [x] Data staleness detection
+    [x] P&L threshold alerts
+    [x] Position limit warnings
+    [x] System health alerts
+    [x] Deduplication and operator acknowledgment audit
+    [x] Append-only local JSONL channel and pluggable channel interface
     [ ] Multi-channel delivery (email, SMS, Slack)
 
 [ ] 6.3 Manual override capability
-    [ ] Flatten all positions
-    [ ] Cancel all open orders
-    [ ] Reset kill switch (with approval workflow)
-    [ ] Adjust position limits temporarily
-    [ ] Emergency shutdown procedure
+    [x] Simulator flatten all positions
+    [x] Simulator cancel all open orders
+    [x] Simulator kill-switch reset method
+    [x] Two-person reset approval workflow with distinct operator identifiers
+        and authorization audit
+    [x] Time-limited position-cap changes with two-person approval, persistence,
+        automatic expiry, and fail-back to the configured baseline
+    [x] Audited emergency shutdown procedure
+    [ ] External operator authentication/identity-provider enforcement
 
 [ ] 6.4 Configuration validation
-    [ ] Pre-launch config checker
-    [ ] Parameter bounds validation
+    [x] Local operational config checker
+    [x] Parameter bounds validation
     [ ] Broker credentials verification
     [ ] Data feed connectivity test
-    [ ] Safeguard thresholds review
+    [x] Safeguard, gross-exposure, margin, and cost parameter validation
 
 [ ] 6.5 Tamper-evident audit trail
-    [ ] All orders logged with timestamps
-    [ ] All fills reconciled
-    [ ] All safeguard events recorded
-    [ ] Cryptographic hashing of logs
-    [ ] Immutable storage
-    [ ] Regular audit verification
+    [x] Simulator orders logged with timestamps
+    [x] Simulator fills reconciled
+    [x] Simulator safeguard/order-control events recorded
+    [x] Cryptographic hash chain and verification
+    [x] Local write-once broker snapshots and settlement reports
+    [ ] Externally enforced immutable/WORM storage
+    [x] Local audit-chain verification method and restart check
 
 [ ] 6.6 Data feed integration
     [ ] Real market data subscription
@@ -287,12 +306,14 @@ PHASE 6: OPERATIONAL READINESS
     [ ] Survivorship bias checks
 
 [ ] 6.7 Operational procedures
-    [ ] Pre-market checklist
-    [ ] Intraday monitoring procedures
-    [ ] Post-market reconciliation
-    [ ] Incident response playbook
-    [ ] Escalation matrix
+    [x] Pre-market checklist documented
+    [x] Intraday monitoring procedures documented
+    [x] Post-market reconciliation documented
+    [x] Incident response playbook documented
+    [x] Role-based escalation matrix template documented
+    [ ] Named escalation owners and contact channels assigned
     [ ] Backup operator training
+    Evidence: docs/PAPER_OPERATIONS_RUNBOOK.md
 
 ================================================================================
 PHASE 7: PAPER TRADING VALIDATION (MINIMUM 60 DAYS)
@@ -371,17 +392,11 @@ DEPENDENT WORK (After Blockers):
   5. Operational readiness (Phase 6) - Can proceed in parallel
   6. Live launch (Phase 8) - Requires all prior phases
 
-ESTIMATED TIMELINE:
-  - Phase 1 (Strategy): 4-8 weeks (if hypotheses succeed)
-  - Phase 2 (Audit): 2-4 weeks
-  - Phase 3 (Tests): 1-2 weeks
-  - Phase 4 (Paper Infra): 2-4 weeks
-  - Phase 5 (Live Broker): 4-8 weeks
-  - Phase 6 (Ops): 2-4 weeks (parallel)
-  - Phase 7 (Paper Validation): 8-12 weeks (calendar time)
-  - Phase 8 (Launch): 1 week
-
-  TOTAL: 6-12 months MINIMUM (assuming strategy success)
+SCHEDULING NOTE:
+  No delivery date is currently defensible. Phase 2 and the local Phase 3
+  baseline are complete, while Phase 1 has no qualifying strategy and the
+  H-002/H-003 data decision is unresolved. Observed paper validation itself
+  requires at least the configured session period after research qualification.
 
 RISK FACTORS:
   - Strategy may never achieve ROBUST_OOS (most likely outcome)
@@ -419,10 +434,10 @@ PHASE 1 UPDATE - STEP 5 BLOCKER (Added 2026-09-14)
     Required: Select an approved data source and implement the exact H-002 or
     H-003 point-in-time data/evaluation path, or freeze a genuinely new family.
     
-[x] RE-EXECUTE H-001 Trials 1-2 with correct cross_asset_spillover features
+[x] EXECUTE CORRECTED H-001 PATH AND INDEPENDENT CONFIRMATION
     Status: COMPLETE — corrected Trial 1 is superseded diagnostic evidence;
     frozen 2021-2026 independent confirmation failed placebo separation.
-    Decision: H-001 REJECTED; Trials 3-10 abandoned under the stopping rule.
+    Decision: H-001 REJECTED; remaining trial budget retired.
     
 [ ] RE-EXECUTE H-002 Trials 1-2 with correct liquidity_reversal features  
     Status: BLOCKED BEFORE TRIAL — existing synthetic single-target results are

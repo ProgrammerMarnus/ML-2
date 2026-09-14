@@ -1,5 +1,8 @@
 # Reproducible research workflow
 
+**Reviewed:** 2026-09-14. The current repository collects 372 tests and the
+latest complete run passed. This is validation context, not strategy evidence.
+
 The engine records data hashes and experiment metadata. DVC adds content-addressed
 storage and a replayable dependency graph around those artifacts; it does not
 replace the experiment registry, locked-test protocol, or promotion gates.
@@ -15,4 +18,6 @@ replace the experiment registry, locked-test protocol, or promotion gates.
 
 For actual market research, every run must still record the provider, retrieval
 time, raw snapshot hash, `exchange_calendars` version, model revision, and output
-manifest. A DVC cache hit is reproducibility evidence, not evidence of tradability.
+manifest. Stable research-family identity must survive harmless snapshot
+metadata changes, while each exact snapshot retains its own full content hash.
+A DVC cache hit is reproducibility evidence, not evidence of tradability.

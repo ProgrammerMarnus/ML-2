@@ -265,7 +265,8 @@ gates = {
 
 ### 5.2 Trial Accounting
 
-All trials will be recorded in `/workspace/experiment_registry.jsonl` with:
+All trials will be recorded in the project artifact registry (currently
+`artifacts/experiment_registry.jsonl`) with:
 ```json
 {
   "hypothesis_id": "H-001",
