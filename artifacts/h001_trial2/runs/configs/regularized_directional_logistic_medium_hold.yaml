@@ -1,0 +1,74 @@
+data:
+  mode: synthetic
+  assets:
+  - SPY
+  - QQQ
+  - AAPL
+  - MSFT
+  - JPM
+  - GLD
+  - TLT
+  target: SPY
+  start: '2012-01-01'
+  end: '2026-01-01'
+  frequency: 1d
+  exchange_calendar: XNYS
+  csv_path: null
+  raw_snapshot_dir: data/raw_snapshots
+evaluation:
+  train_window: 1260
+  validation_window: 252
+  test_window: 252
+  step_bars: 252
+  purge_bars: 5
+  embargo_bars: 5
+  expanding: true
+execution:
+  fee_bps: 5.0
+  slippage_bps: 1.0
+  signal_delay_bars: 0
+  target_vol: 0.1
+  max_position: 1.0
+model:
+  type: logistic
+  random_seed: 42
+  parameters:
+    C: 1.0
+    max_iter: 1000
+  logreg_C: 1.0
+  gb_learning_rate: null
+  gb_n_estimators: null
+  hold_bars: 5
+research:
+  max_trials: 10
+  bootstrap_samples: 50
+  placebo_runs: 20
+  threshold_candidates:
+  - 0.65
+  - 0.7
+  - 0.75
+  - 0.8
+  - 0.85
+  - 0.9
+  - 0.95
+  hold_candidates:
+  - 5
+  - 10
+  - 15
+  - 20
+  protocol_path: artifacts/h001_trial2/runs/protocols/regularized_directional_logistic_medium_hold.json
+promotion:
+  min_median_oos_sharpe: 0.0
+  min_mean_oos_sharpe: 0.0
+  max_oos_dd: -0.5
+  cost_stress_fee_bps: 10.0
+  delay_stress_bars: 1
+  min_bootstrap_positive_prob: 0.8
+  min_placebo_percentile: 0.95
+  max_single_fold_share: 0.6
+  max_annual_turnover: 60.0
+  min_placebo_runs: 20
+  max_placebo_adjusted_p: 0.1
+  selection_correction: none
+  max_family_searches: 1
+output_dir: artifacts/h001_trial2/runs/runs/regularized_directional_logistic_medium_hold
