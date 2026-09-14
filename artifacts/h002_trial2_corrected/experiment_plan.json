@@ -1,0 +1,12 @@
+{
+  "automation": "bounded_protocol_first_v1",
+  "experiments": [
+    {
+      "strategy_id": "regularized_directional_logistic_short_hold",
+      "protocol_path": "artifacts/h002_trial2_corrected/protocols/regularized_directional_logistic_short_hold.json",
+      "config_path": "artifacts/h002_trial2_corrected/configs/regularized_directional_logistic_short_hold.yaml",
+      "output_dir": "artifacts/h002_trial2_corrected/runs/regularized_directional_logistic_short_hold",
+      "config_fingerprint": "3a99ee34b7c61d52"
+    }
+  ]
+}

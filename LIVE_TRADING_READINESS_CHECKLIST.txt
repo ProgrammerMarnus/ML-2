@@ -385,3 +385,26 @@ RECOMMENDATION:
 ================================================================================
 END OF CHECKLIST
 ================================================================================
+
+================================================================================
+PHASE 1 UPDATE - STEP 5 BLOCKER (Added 2026-09-14)
+================================================================================
+
+[ ] FIX CRITICAL FRAMEWORK BUG - automation.py ignoring feature configs
+    Status: BLOCKING ALL HYPOTHESIS TESTING
+    Impact: 4 trials wasted, ZERO valid scientific results
+    Required: Modify automation.py to respect features.include_sources from YAML
+    Alternative: Create direct execution script bypassing automation module
+    
+[ ] RE-EXECUTE H-001 Trials 1-2 with correct cross_asset_spillover features
+    Status: PENDING framework fix
+    
+[ ] RE-EXECUTE H-002 Trials 1-2 with correct liquidity_reversal features  
+    Status: PENDING framework fix
+    
+[ ] EXECUTE H-003 Trials 1-5 with correct volatility_risk_premium features
+    Status: PENDING framework fix
+
+NOTE: All previous trial results (H-001 T1-2, H-002 T1-2) are INVALID due to 
+framework bug. Do not cite these results as scientific evidence.
+
