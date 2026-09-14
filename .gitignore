@@ -1,50 +1,68 @@
-```
-# Python
+```gitignore
+# Compiled Python files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.pyc.*
-*.pyo.*
-*.egg-info/
-*.egg
 
-# Dependencies
-.venv/
+# Build and distribution directories
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
 venv/
+.venv/
+env/
+.ENV/
+
+# Node.js dependencies
 node_modules/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Environment variables
 .env
 .env.local
 .env.*
 
-# Logs and temp files
-*.log
-*.tmp
-
-# Editors
+# IDE specific files
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Build artifacts
-build/
-dist/
+# OS generated files
+.DS_Store
+Thumbs.db
 
-# Generated pipeline artifacts
+# Data files (often large)
+*.parquet
+*.csv
+
+# Coverage reports
+.coverage
+htmlcov/
+coverage/
+
+# Testing
+.pytest_cache/
+.hypothesis/
+
+# Distribution artifacts
+*.egg
+*.whl
+
+# Experimental data and logs
 artifacts/
-artifacts_real/
-artifacts_real_v2/
-artifacts_real_v3/
-artifacts_real_v4/
-artifacts_v2/
-data/
-# The root-level data directory contains generated snapshots, but the source
-# package also has a data module. Keep source adapters (for example the
-# exchange-calendar integration) visible to Git.
-!src/
-!src/data/
-!src/data/*.ts
-!src/quant_research/
-!src/quant_research/data/
-!src/quant_research/data/*.py
-repomix-output.xml
+closed_strategies/
+data/raw_snapshots/
+data/research_ledgers/
 ```

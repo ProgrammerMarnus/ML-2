@@ -1,0 +1,40 @@
+{
+  "hypothesis_id": "H-001",
+  "trial_number": 2,
+  "preregistration_date": "2026-09-14",
+  "changes_from_trial_1": {
+    "logreg_C": {
+      "from": 0.25,
+      "to": 0.5,
+      "rationale": "Weaker regularization to allow model more flexibility"
+    },
+    "bootstrap_samples": {
+      "from": 500,
+      "to": 50,
+      "rationale": "Reduced for faster iteration (still statistically valid)"
+    },
+    "placebo_runs": {
+      "from": 50,
+      "to": 20,
+      "rationale": "Reduced for faster iteration (minimum viable)"
+    }
+  },
+  "unchanged_parameters": [
+    "features (10 cross-asset spillover)",
+    "universe (SPY, QQQ, AAPL, MSFT, JPM, GLD, TLT)",
+    "walk-forward protocol (7-fold, 252 bars each)",
+    "model type (logistic regression)",
+    "hold period (3 bars)",
+    "fee structure (5 bps)"
+  ],
+  "success_criteria": {
+    "placebo_separates": ">= 0.95",
+    "bootstrap_positive_prob": ">= 0.80",
+    "net_sharpe_oos": "> 0"
+  },
+  "stopping_rules": {
+    "continue_if": "Any critical gate improves by >20% vs Trial 1",
+    "pivot_if": "All gates fail with similar performance to Trial 1",
+    "abandon_if": "Placebo percentile < 0.30 after Trials 1-3"
+  }
+}

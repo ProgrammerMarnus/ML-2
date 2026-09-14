@@ -15,6 +15,9 @@ from typing import List
 from .information import INFO_FEATURE_VERSION
 from .parkinson import PARKINSON_FEATURE_VERSION
 from .price_volume import FEATURE_VERSION, SIGNAL_EXT_VERSION
+from .cross_asset_spillover import CROSS_ASSET_FEATURE_VERSION
+from .liquidity_reversal import LIQUIDITY_FEATURE_VERSION
+from .volatility_risk_premium import VOLATILITY_FEATURE_VERSION
 
 PRICE_VOLUME_SOURCE = "price_volume"
 INFORMATION_SOURCE = "information"
@@ -97,9 +100,31 @@ def signal_extension_feature_specs() -> List[FeatureSpec]:
     ]
 
 
+def cross_asset_spillover_feature_specs() -> List[FeatureSpec]:
+    """H-001: Cross-asset information diffusion features."""
+    from .cross_asset_spillover import get_feature_specs as get_spillover_specs
+    specs_dict = get_spillover_specs()
+    return [FeatureSpec(**spec) for spec in specs_dict]
+
+
+def liquidity_reversal_feature_specs() -> List[FeatureSpec]:
+    """H-002: Liquidity imbalance reversal features."""
+    from .liquidity_reversal import get_feature_specs as get_liquidity_specs
+    specs_dict = get_liquidity_specs()
+    return [FeatureSpec(**spec) for spec in specs_dict]
+
+
+def volatility_risk_premium_feature_specs() -> List[FeatureSpec]:
+    """H-003: Multi-asset volatility risk premium features."""
+    from .volatility_risk_premium import get_feature_specs as get_volatility_specs
+    specs_dict = get_volatility_specs()
+    return [FeatureSpec(**spec) for spec in specs_dict]
+
+
 def registry() -> List[FeatureSpec]:
     return (price_volume_feature_specs() + signal_extension_feature_specs()
-            + information_feature_specs())
+            + information_feature_specs() + cross_asset_spillover_feature_specs()
+            + liquidity_reversal_feature_specs() + volatility_risk_premium_feature_specs())
 
 
 def registry_hash(names: List[str]) -> str:

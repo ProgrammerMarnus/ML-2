@@ -1,0 +1,58 @@
+# Phase 1 Step 4 - Hypothesis Testing Configuration
+# Tests three preregistered hypotheses: H-001, H-002, H-003
+# Strict protocol enforcement with trial budgets
+
+data:
+  mode: synthetic          # synthetic | csv | yfinance
+  assets: [SPY, QQQ, AAPL, MSFT, JPM, GLD, TLT]
+  target: SPY
+  start: "2012-01-01"
+  end: "2026-01-01"
+  frequency: 1d
+  exchange_calendar: XNYS
+  csv_path: null
+  raw_snapshot_dir: data/raw_snapshots
+
+evaluation:
+  train_window: 1260       # bars (~5y) in rolling mode; minimum history in expanding mode
+  validation_window: 252
+  test_window: 252
+  step_bars: 252
+  purge_bars: 5
+  embargo_bars: 5
+  expanding: true
+
+execution:
+  fee_bps: 5.0
+  slippage_bps: 1.0
+  signal_delay_bars: 0
+  target_vol: 0.10
+  max_position: 1.0
+
+model:
+  type: gradient_boosting  # Will be overridden per hypothesis
+  random_seed: 42
+  parameters:
+    C: 1.0
+    max_iter: 1000
+  gb_n_estimators: 200
+  gb_learning_rate: 0.05
+  hold_bars: 5
+
+research:
+  max_trials: 10           # Strict budget per hypothesis
+  bootstrap_samples: 500
+  placebo_runs: 50         # Increased for better statistical power
+  threshold_candidates: [0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
+  hold_candidates: [5, 10, 15, 20]
+
+promotion:
+  min_median_oos_sharpe: 0.0
+  min_mean_oos_sharpe: 0.0
+  max_oos_dd: -0.50
+  cost_stress_fee_bps: 10.0
+  delay_stress_bars: 1
+  min_bootstrap_positive_prob: 0.80
+  min_placebo_percentile: 0.95
+  max_single_fold_share: 0.60
+  max_annual_turnover: 60.0

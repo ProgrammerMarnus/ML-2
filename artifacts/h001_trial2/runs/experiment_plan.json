@@ -1,0 +1,19 @@
+{
+  "automation": "bounded_protocol_first_v1",
+  "experiments": [
+    {
+      "strategy_id": "regularized_directional_logistic_short_hold",
+      "protocol_path": "artifacts/h001_trial2/runs/protocols/regularized_directional_logistic_short_hold.json",
+      "config_path": "artifacts/h001_trial2/runs/configs/regularized_directional_logistic_short_hold.yaml",
+      "output_dir": "artifacts/h001_trial2/runs/runs/regularized_directional_logistic_short_hold",
+      "config_fingerprint": "8407256a75ec047c"
+    },
+    {
+      "strategy_id": "regularized_directional_logistic_medium_hold",
+      "protocol_path": "artifacts/h001_trial2/runs/protocols/regularized_directional_logistic_medium_hold.json",
+      "config_path": "artifacts/h001_trial2/runs/configs/regularized_directional_logistic_medium_hold.yaml",
+      "output_dir": "artifacts/h001_trial2/runs/runs/regularized_directional_logistic_medium_hold",
+      "config_fingerprint": "bf4d79e84e10cf97"
+    }
+  ]
+}

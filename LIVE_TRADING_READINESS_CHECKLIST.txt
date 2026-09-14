@@ -1,0 +1,387 @@
+================================================================================
+                    LIVE TRADING READINESS CHECKLIST
+================================================================================
+Last Updated: 2026-09-14
+Current Status: RESEARCH_ONLY - No viable strategy, no live broker capability
+
+================================================================================
+PHASE 1: STRATEGY RESEARCH (CRITICAL BLOCKER)
+================================================================================
+Status: IN PROGRESS - Current strategy line (pv-2.2.0) FAILED all research gates
+
+[ ] 1.1 Close failed strategy line with documentation
+    [x] Created PV220_CLOSURE_REPORT.md
+    [x] Archived artifacts to closed_strategies/pv-2.2.0/
+    [x] Documented root causes and lessons learned
+
+[ ] 1.2 Develop new signal hypotheses with economic mechanisms
+    [x] H-001: Cross-Asset Spillover (SPY/QQQ information diffusion)
+    [x] H-002: Liquidity Reversal (small-cap liquidity provision)
+    [x] H-003: Volatility Risk Premium (multi-asset vol bearing)
+    [x] All hypotheses preregistered with locked protocols
+
+[ ] 1.3 Implement feature modules for all hypotheses
+    [x] cross_asset_spillover.py (10 features)
+    [x] liquidity_reversal.py (13 features)
+    [x] volatility_risk_premium.py (21 features)
+    [x] All features registered in central registry (73 total)
+
+[ ] 1.4 Execute research campaign (Trials 1-10 per hypothesis)
+    [x] H-001 Trial 1: EXECUTED - FAILED (Sharpe -0.41, Placebo 0.10)
+    [x] H-001 Trial 2: EXECUTED - FAILED (Sharpe -0.41, Placebo 0.10)
+    [ ] H-001 Trials 3-10: PENDING (or abandon after stopping rules)
+    [ ] H-002 Trials 1-10: NOT STARTED
+    [ ] H-003 Trials 1-10: NOT STARTED
+
+[ ] 1.5 Achieve ROBUST_OOS status on at least one hypothesis
+    CRITICAL GATES (all must pass):
+    [ ] median_oos_sharpe_positive (> 0)
+    [ ] mean_oos_sharpe_positive (> 0)
+    [ ] oos_drawdown_within_limit (>-20%)
+    [ ] oos_turnover_within_limit (<12x)
+    [ ] cost_stress_survives (10+ bps fees)
+    [ ] delay_stress_survives (latency tolerance)
+    [ ] slippage_stress_survives (adverse selection)
+    [ ] parameter_robustness (perturbation stable)
+    [ ] missing_data_robustness (gap tolerance)
+    [ ] bootstrap_positive_prob (≥80% P(SR>0))
+    [ ] placebo_separates (≥0.95 percentile vs noise)
+    [ ] not_single_fold (no concentration risk)
+    [ ] capacity_sufficient (>10x target AUM)
+    [ ] family_search_within_cap (within trial budget)
+
+    TARGET METRICS:
+    [ ] Net Sharpe ≥ 1.5 (OOS, untouched evidence)
+    [ ] Max Drawdown ≤ -15%
+    [ ] Annual Turnover ≤ 6x
+    [ ] Capacity ≥ $50M minimum
+
+================================================================================
+PHASE 2: AUDIT FIXES (P1 CRITICAL FINDINGS)
+================================================================================
+Source: DEEP_AUDIT_2026-09-11.md - 10 P1 findings must be resolved
+
+[ ] E01: Paper days count function calls (not real sessions)
+    Status: Partially addressed in V2.1.5
+    Action: Verify current implementation counts actual trading days
+    Test: Add regression test for session counting edge cases
+
+[ ] E02: Safety gates pass after real breaches
+    Status: Partially addressed
+    Action: Audit gate logic for race conditions
+    Test: Simulate breach during order submission
+
+[ ] E03: Pending orders fill after kill switch trips
+    Status: NOT VERIFIED
+    Action: Implement hard block on all pending fills when killed
+    Test: Trip kill switch with pending orders, verify cancellation
+
+[ ] E04: Position checks reject liquidation orders
+    Status: NOT VERIFIED
+    Action: Add emergency override for reduce-only liquidation
+    Test: Trigger max position breach, verify liquidation allowed
+
+[ ] E05: Pending orders bypass exposure/cash limits
+    Status: Partially addressed
+    Action: Verify reservation system catches all edge cases
+    Test: Submit conflicting orders simultaneously
+
+[ ] E06: Market orders fill immediately despite latency
+    Status: Partially addressed
+    Action: Add realistic fill delay simulation
+    Test: Measure actual fill latency in paper trading
+
+[ ] E07: Order-ID retries execute twice
+    Status: Partially addressed
+    Action: Verify idempotency in PaperBroker
+    Test: Retry same order ID, confirm single execution
+
+[ ] E08: Nested discovery replay omits fold-boundary costs
+    Status: NOT FIXED
+    Action: Fix cost accounting at fold boundaries
+    Test: Compare nested vs flat replay costs
+
+[ ] E09: Discovery ignores locked-test protocol
+    Status: NOT FIXED
+    Action: Enforce lock protocol in all discovery modes
+    Test: Attempt protocol violation, verify rejection
+
+[ ] E10: Tiny data revisions reset research family
+    Status: NOT FIXED
+    Action: Implement content-based hashing for family continuity
+    Test: Make minor data change, verify family preserved
+
+[ ] 2.11: All P1 fixes have regression tests
+    [ ] Test suite updated for each fix
+    [ ] No shared-state pollution between tests
+    [ ] All tests deterministic and reproducible
+
+================================================================================
+PHASE 3: TEST SUITE REMEDIATION
+================================================================================
+Current: 308 passed, 6 failed, 1 teardown error (Sept 11 audit)
+
+[ ] 3.1 Identify and fix 6 failing tests
+    [ ] Document failure root causes
+    [ ] Update stale assertions
+    [ ] Fix estimator-specific assumptions
+    [ ] Eliminate shared-state pollution
+
+[ ] 3.2 Clean test architecture
+    [ ] Isolate ledger state between tests
+    [ ] Use fixtures for reproducible setup
+    [ ] Add teardown verification
+    [ ] Ensure deterministic ordering
+
+[ ] 3.3 Achieve 100% pass rate
+    [ ] All unit tests pass
+    [ ] All integration tests pass
+    [ ] All end-to-end tests pass
+    [ ] No teardown errors
+    [ ] CI/CD pipeline green
+
+================================================================================
+PHASE 4: PAPER TRADING INFRASTRUCTURE
+================================================================================
+
+[ ] 4.1 Harden PaperBroker (V2.1.5 enhancements verified)
+    [x] Unique session counting implemented
+    [x] Cash/exposure reservation at fill time
+    [x] Conflicting order-ID rejection
+    [x] Reduce-only emergency exits
+    [x] Research-record binding
+    [ ] End-to-end integration testing COMPLETE
+    [ ] Performance under load tested
+    [ ] Error recovery scenarios validated
+
+[ ] 4.2 Wire safeguards into order flow
+    [ ] Kill switch blocks ALL order types
+    [ ] Pre-trade checks before submission
+    [ ] Post-trade reconciliation
+    [ ] Real-time exposure monitoring
+    [ ] Automatic position flattening on breach
+
+[ ] 4.3 Build complete execution accounting
+    [ ] Real-time P&L calculation
+    [ ] Cost attribution (fees, slippage, spread)
+    [ ] Position reconciliation engine
+    [ ] Audit trail with tamper-evidence
+    [ ] Daily settlement reports
+
+[ ] 4.4 Implement paper validation framework
+    [ ] Minimum 5 days continuous operation (configurable to 60)
+    [ ] Zero safeguard breaches required
+    [ ] Position reconciliation holds throughout
+    [ ] Kill switch tested in production-like environment
+    [ ] P&L attribution matches expected values
+    [ ] Failure/restart scenarios pass
+    [ ] Generate validation report for promotion decision
+
+================================================================================
+PHASE 5: LIVE BROKER INTEGRATION (CRITICAL GAP - NOT IMPLEMENTED)
+================================================================================
+CURRENT STATE: Only PaperBroker exists. NO live broker capability.
+
+[ ] 5.1 Select target broker/exchange
+    [ ] Evaluate API capabilities (orders, cancels, queries)
+    [ ] Review rate limits and authentication
+    [ ] Assess error handling and retry policies
+    [ ] Confirm regulatory compliance
+    [ ] Document integration requirements
+
+[ ] 5.2 Build live broker adapter
+    [ ] Implement IBrokerAdapter interface
+    [ ] Authentication and session management
+    [ ] Order submission (market, limit, stop)
+    [ ] Order cancellation and modification
+    [ ] Position queries and reconciliation
+    [ ] Account balance queries
+    [ ] Real-time fill notifications
+    [ ] Error handling and recovery
+    [ ] Rate limit management
+    [ ] Connection heartbeat and reconnection
+
+[ ] 5.3 Wire live broker into safeguards framework
+    [ ] Pre-trade checks apply to live orders
+    [ ] Kill switch propagates to live broker
+    [ ] Exposure limits enforced pre-submission
+    [ ] Cash reservation syncs with live account
+    [ ] Position limits checked against live holdings
+
+[ ] 5.4 Implement live execution accounting
+    [ ] Real-time sync with broker positions
+    [ ] Fill confirmation matching
+    [ ] Fee and commission tracking
+    [ ] Slippage measurement vs expectations
+    [ ] Daily reconciliation with broker statements
+
+[ ] 5.5 Live broker testing
+    [ ] Sandbox environment testing
+    [ ] Small notional live tests (<$100)
+    [ ] Error scenario testing (rejections, partial fills)
+    [ ] Latency measurement
+    [ ] Failover and recovery testing
+
+================================================================================
+PHASE 6: OPERATIONAL READINESS
+================================================================================
+
+[ ] 6.1 Monitoring dashboard
+    [ ] Real-time positions and P&L
+    [ ] Safeguard status (kill switch, limits)
+    [ ] Order flow visualization
+    [ ] Data feed health
+    [ ] System resource usage
+    [ ] Alert history and acknowledgment
+
+[ ] 6.2 Alerting system
+    [ ] Safeguard breach alerts (immediate)
+    [ ] Order rejection alerts
+    [ ] Data staleness detection
+    [ ] P&L threshold alerts
+    [ ] Position limit warnings
+    [ ] System health alerts
+    [ ] Multi-channel delivery (email, SMS, Slack)
+
+[ ] 6.3 Manual override capability
+    [ ] Flatten all positions
+    [ ] Cancel all open orders
+    [ ] Reset kill switch (with approval workflow)
+    [ ] Adjust position limits temporarily
+    [ ] Emergency shutdown procedure
+
+[ ] 6.4 Configuration validation
+    [ ] Pre-launch config checker
+    [ ] Parameter bounds validation
+    [ ] Broker credentials verification
+    [ ] Data feed connectivity test
+    [ ] Safeguard thresholds review
+
+[ ] 6.5 Tamper-evident audit trail
+    [ ] All orders logged with timestamps
+    [ ] All fills reconciled
+    [ ] All safeguard events recorded
+    [ ] Cryptographic hashing of logs
+    [ ] Immutable storage
+    [ ] Regular audit verification
+
+[ ] 6.6 Data feed integration
+    [ ] Real market data subscription
+    [ ] Redundant feed configuration
+    [ ] Latency monitoring
+    [ ] Gap detection and handling
+    [ ] Corporate actions processing
+    [ ] Survivorship bias checks
+
+[ ] 6.7 Operational procedures
+    [ ] Pre-market checklist
+    [ ] Intraday monitoring procedures
+    [ ] Post-market reconciliation
+    [ ] Incident response playbook
+    [ ] Escalation matrix
+    [ ] Backup operator training
+
+================================================================================
+PHASE 7: PAPER TRADING VALIDATION (MINIMUM 60 DAYS)
+================================================================================
+
+[ ] 7.1 Execute continuous paper trading
+    [ ] Minimum 60 calendar days
+    [ ] Minimum 40 trading days
+    [ ] Zero safeguard breaches
+    [ ] Zero unreconciled positions
+    [ ] Zero data integrity issues
+
+[ ] 7.2 Validate performance metrics
+    [ ] Paper Sharpe within 20% of research projection
+    [ ] Paper drawdown within research limits
+    [ ] Turnover matches expectations
+    [ ] Costs align with stress test assumptions
+
+[ ] 7.3 Test failure scenarios
+    [ ] Simulated data outage
+    [ ] Broker disconnection
+    [ ] Kill switch activation
+    [ ] System restart mid-day
+    [ ] Position reconciliation after gap
+
+[ ] 7.4 Generate validation report
+    [ ] Daily P&L summary
+    [ ] Trade-by-trade analysis
+    [ ] Safeguard event log
+    [ ] Reconciliation certificates
+    [ ] Go/No-Go recommendation
+
+================================================================================
+PHASE 8: LIVE TRADING LAUNCH
+================================================================================
+
+[ ] 8.1 Final go/no-go decision
+    [ ] Strategy: ROBUST_OOS certified
+    [ ] Audit: All P1 findings resolved
+    [ ] Tests: 100% pass rate
+    [ ] Paper: 60+ days successful validation
+    [ ] Infrastructure: All components operational
+    [ ] Operations: Team trained and ready
+
+[ ] 8.2 Phased capital deployment
+    [ ] Week 1-2: 1-5% target allocation
+    [ ] Week 3-4: 5-10% if no issues
+    [ ] Week 5-8: 10-25% if performance validates
+    [ ] Month 3+: Full target allocation
+
+[ ] 8.3 Close monitoring period
+    [ ] Daily P&L review
+    [ ] Weekly performance attribution
+    [ ] Bi-weekly safeguard audit
+    [ ] Monthly strategy health check
+    [ ] Quarterly research gate re-validation
+
+[ ] 8.4 Continuous improvement
+    [ ] Track live vs paper deviation
+    [ ] Monitor capacity utilization
+    [ ] Assess market regime changes
+    [ ] Plan next research cycle
+    [ ] Document lessons learned
+
+================================================================================
+SUMMARY: CRITICAL PATH TO LIVE TRADING
+================================================================================
+
+BLOCKERS (Must Complete First):
+  1. Find viable strategy (Phase 1) - CURRENT STATUS: 0/3 hypotheses successful
+  2. Fix P1 audit findings (Phase 2) - 0/10 verified complete
+  3. Build live broker (Phase 5) - 0% implemented
+
+DEPENDENT WORK (After Blockers):
+  4. Paper trading validation (Phase 7) - Requires Phases 1, 2, 4
+  5. Operational readiness (Phase 6) - Can proceed in parallel
+  6. Live launch (Phase 8) - Requires all prior phases
+
+ESTIMATED TIMELINE:
+  - Phase 1 (Strategy): 4-8 weeks (if hypotheses succeed)
+  - Phase 2 (Audit): 2-4 weeks
+  - Phase 3 (Tests): 1-2 weeks
+  - Phase 4 (Paper Infra): 2-4 weeks
+  - Phase 5 (Live Broker): 4-8 weeks
+  - Phase 6 (Ops): 2-4 weeks (parallel)
+  - Phase 7 (Paper Validation): 8-12 weeks (calendar time)
+  - Phase 8 (Launch): 1 week
+
+  TOTAL: 6-12 months MINIMUM (assuming strategy success)
+
+RISK FACTORS:
+  - Strategy may never achieve ROBUST_OOS (most likely outcome)
+  - Live broker integration complexity underestimated
+  - Regulatory/compliance hurdles not yet assessed
+  - Market regime change invalidates research
+  - Key person dependency for operations
+
+RECOMMENDATION:
+  Focus exclusively on Phase 1 until a viable strategy is found.
+  Do not invest in infrastructure until strategy risk is resolved.
+  Maintain strict preregistration discipline to avoid false discoveries.
+
+================================================================================
+END OF CHECKLIST
+================================================================================
