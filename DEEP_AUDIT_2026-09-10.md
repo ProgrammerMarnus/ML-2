@@ -1,3 +1,8 @@
+> **Historical audit snapshot.** This report describes commit
+> `44c85c340699081b0b209cfc2a8326ee613cd2fc`; its suite result and open
+> findings are preserved as evidence, not current status. See
+> [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
+
 **Deep audit — ML-2, 10 September 2026**
 
 **Assessment: retain `RESEARCH_ONLY`. The current tree has 15 actionable findings: five P1 and ten P2. Several recent fixes work, but the assertion that the earlier audit criteria are fully satisfied is unsupported.**

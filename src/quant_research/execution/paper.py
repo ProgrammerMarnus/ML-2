@@ -511,7 +511,7 @@ class PaperBroker:
         order.cancel_reason = reason
         if order_id in self.pending_orders:
             self.pending_orders.remove(order_id)
-        self._audit(pd.Timestamp.now(), "ORDER_CANCELLED", order_id, order.symbol,
+        self._audit(pd.Timestamp.now(tz="UTC"), "ORDER_CANCELLED", order_id, order.symbol,
                     f"cancelled: {reason}")
         return True
 

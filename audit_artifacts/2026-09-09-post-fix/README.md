@@ -1,5 +1,9 @@
 # Current-tree audit evidence — 9 September 2026
 
+> Historical evidence for the 2026-09-09 audited tree. These results are
+> intentionally unchanged; current remediation status is in the repository-root
+> `CURRENT_PROJECT_STATUS.md`.
+
 The report is [DEEP_AUDIT_2026-09-09_POST_FIX.md](/home/marnus/VS-Code/ML-2/DEEP_AUDIT_2026-09-09_POST_FIX.md).
 
 These are audit artifacts, not product fixes. Existing source/test/configuration/notebook/data files were preserved. Synthetic examples and market replay results are kept distinct. No provider download or order submission was performed.

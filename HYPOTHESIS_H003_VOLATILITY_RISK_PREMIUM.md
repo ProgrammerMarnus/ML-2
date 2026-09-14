@@ -1,5 +1,10 @@
 # Preregistration: H-003 Short-Term Volatility Risk Premium
 
+**Current status (2026-09-14):** `BLOCKED_BEFORE_TRIAL`. The repository lacks
+the VIX-futures M1–M3 curve, complete 17-ETF correlation panel, weekly
+risk-parity evaluator, and crisis/diversification gates this preregistration
+requires. The scalar daily-OHLCV runtime refuses proxy H-003 execution.
+
 ## 1. Economic Mechanism
 
 **Hypothesis:** Assets experiencing elevated realized volatility relative to their historical norm command a risk premium as volatility-averse investors reduce exposure, creating return opportunities for volatility sellers.
@@ -224,10 +229,10 @@ All artifacts saved to: `artifacts/H003/trial_N/`
 | Milestone | Target Date | Status |
 |-----------|-------------|--------|
 | Preregistration complete | Week 1 | ✅ Done |
-| Trial 1 execution | Week 2 | Pending |
-| Trials 2-5 | Week 3 | Pending |
-| Trials 6-10 | Week 4 | Pending |
-| Go/No-Go decision | Week 5 | Pending |
+| Trial 1 execution | Unscheduled | Blocked on exact data contract |
+| Trials 2-5 | Unscheduled | Blocked; no valid Trial 1 |
+| Trials 6-10 | Unscheduled | Blocked; no valid Trial 1 |
+| Go/No-Go decision | After valid evidence | Not reached |
 
 ---
 
@@ -237,7 +242,7 @@ All artifacts saved to: `artifacts/H003/trial_N/`
 **Date:** 2026-09-11  
 **Commitment:** I will execute this research plan exactly as specified, without modification based on interim results. Any deviations will be documented and justified. Violations of this protocol invalidate all findings.
 
-**Status:** PREREGISTERED - Ready for Trial 1
+**Status:** PREREGISTERED BUT BLOCKED — not ready for Trial 1
 
 ---
 
@@ -256,17 +261,15 @@ All artifacts saved to: `artifacts/H003/trial_N/`
 | Diversification | Equity only | Equity only | Multi-asset |
 | Complementarity | Orthogonal | Orthogonal | Orthogonal to both |
 
-**Portfolio Benefit:** All three hypotheses are mutually orthogonal:
+**Original portfolio rationale:** The designs targeted orthogonal exposures:
 - Different mechanisms (information, liquidity, volatility)
 - Different horizons (intraday, days, weeks)
 - Different universes (ETFs, stocks, multi-asset)
 - Different turnover profiles
 
-If all three succeed, they can form a diversified alpha portfolio with:
-- Combined Sharpe potentially > 2.0 (uncorrelated sources)
-- Smoothed returns across regimes
-- Multiple capacity constraints relaxed
-- Robustness through diversification
+No current portfolio benefit may be claimed: H-001 is rejected and H-002/
+H-003 have no valid trial evidence. Any diversification claim requires new,
+untouched results under their exact contracts.
 
 ---
 

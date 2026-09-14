@@ -7,31 +7,37 @@ Current Status: RESEARCH_ONLY - No viable strategy, no live broker capability
 ================================================================================
 PHASE 1: STRATEGY RESEARCH (CRITICAL BLOCKER)
 ================================================================================
-Status: IN PROGRESS - Current strategy line (pv-2.2.0) FAILED all research gates
+Status: IN PROGRESS - pv-2.2.0 failed; H-001 is rejected after confirmation;
+H-002/H-003 are blocked by preregistration-to-data-contract mismatches
 
-[ ] 1.1 Close failed strategy line with documentation
+[x] 1.1 Close failed strategy line with documentation
     [x] Created PV220_CLOSURE_REPORT.md
     [x] Archived artifacts to closed_strategies/pv-2.2.0/
     [x] Documented root causes and lessons learned
 
-[ ] 1.2 Develop new signal hypotheses with economic mechanisms
+[x] 1.2 Develop new signal hypotheses with economic mechanisms
     [x] H-001: Cross-Asset Spillover (SPY/QQQ information diffusion)
     [x] H-002: Liquidity Reversal (small-cap liquidity provision)
     [x] H-003: Volatility Risk Premium (multi-asset vol bearing)
     [x] All hypotheses preregistered with locked protocols
 
-[ ] 1.3 Implement feature modules for all hypotheses
-    [x] cross_asset_spillover.py (10 features)
+[x] 1.3 Implement feature modules for all hypotheses
+    [x] cross_asset_spillover.py (9 preregistered H-001 features)
     [x] liquidity_reversal.py (13 features)
     [x] volatility_risk_premium.py (21 features)
-    [x] All features registered in central registry (73 total)
+    [x] All features registered in central registry (72 total)
 
 [ ] 1.4 Execute research campaign (Trials 1-10 per hypothesis)
-    [x] H-001 Trial 1: EXECUTED - FAILED (Sharpe -0.41, Placebo 0.10)
-    [x] H-001 Trial 2: EXECUTED - FAILED (Sharpe -0.41, Placebo 0.10)
-    [ ] H-001 Trials 3-10: PENDING (or abandon after stopping rules)
-    [ ] H-002 Trials 1-10: NOT STARTED
-    [ ] H-003 Trials 1-10: NOT STARTED
+    [x] H-001 corrected Trial 1: REAL_DATA diagnostic only — SUPERSEDED because
+        its generic feature placebo held the ratio-selected SPY/QQQ leg fixed
+    [x] H-001 independent confirmation (frozen 2021-2026): EXECUTED — FAILED
+        valid full-strategy placebo separation (net Sharpe 0.787; percentile
+        0.35; adjusted p 0.667; 20 nulls). H-001 REJECTED; no paper/live use.
+    [x] H-001 remaining trial budget: RETIRED after rejecting confirmation
+    [ ] H-002 Trials 1-10: BLOCKED — registered hypothesis requires Russell
+        3000 constituent, market-cap, and intraday trade-classification data
+    [ ] H-003 Trials 1-10: BLOCKED — registered hypothesis requires VIX-futures
+        M1-M3 term structure, 17-ETF inputs, correlations, and risk-parity path
 
 [ ] 1.5 Achieve ROBUST_OOS status on at least one hypothesis
     CRITICAL GATES (all must pass):
@@ -60,99 +66,106 @@ Status: IN PROGRESS - Current strategy line (pv-2.2.0) FAILED all research gates
 PHASE 2: AUDIT FIXES (P1 CRITICAL FINDINGS)
 ================================================================================
 Source: DEEP_AUDIT_2026-09-11.md - 10 P1 findings must be resolved
+Status: COMPLETE - all 10 P1 findings fixed with behavioral regressions
 
-[ ] E01: Paper days count function calls (not real sessions)
-    Status: Partially addressed in V2.1.5
-    Action: Verify current implementation counts actual trading days
-    Test: Add regression test for session counting edge cases
+[x] E01: Paper days count function calls (not real sessions)
+    Status: FIXED — unique dates count only when backed by a processed bar on
+        an official configured-exchange session; weekends/holidays are rejected
+    Test: Covers duplicate calls, XNYS holiday, weekend, and valid-session edges
 
-[ ] E02: Safety gates pass after real breaches
-    Status: Partially addressed
-    Action: Audit gate logic for race conditions
-    Test: Simulate breach during order submission
+[x] E02: Safety gates pass after real breaches
+    Status: FIXED — submission-time loss breaches atomically trip the kill
+        switch, reject the order, and persist as validation-gate failures
+    Test: Simulates a breach discovered during order submission
 
-[ ] E03: Pending orders fill after kill switch trips
-    Status: NOT VERIFIED
-    Action: Implement hard block on all pending fills when killed
-    Test: Trip kill switch with pending orders, verify cancellation
+[x] E03: Pending orders fill after kill switch trips
+    Status: FIXED — process_bar cancels every resting risk-increasing order
+        before fill evaluation; audited reduce-only exits remain permitted
+    Test: Trips kill switch with a marketable pending limit and verifies no fill
 
-[ ] E04: Position checks reject liquidation orders
-    Status: NOT VERIFIED
-    Action: Add emergency override for reduce-only liquidation
-    Test: Trigger max position breach, verify liquidation allowed
+[x] E04: Position checks reject liquidation orders
+    Status: FIXED — audited reduce-only orders bypass risk-increasing position
+        checks but cannot reverse or increase an existing position
+    Test: Existing position breaches its weight limit after a price move, then
+        a reduce-only order successfully flattens it
 
-[ ] E05: Pending orders bypass exposure/cash limits
-    Status: Partially addressed
-    Action: Verify reservation system catches all edge cases
-    Test: Submit conflicting orders simultaneously
+[x] E05: Pending orders bypass exposure/cash limits
+    Status: FIXED — pending buys reserve cash across symbols and pending
+        same-symbol quantities count toward projected position exposure
+    Test: Simultaneous cash-conflicting and exposure-conflicting orders covered
 
-[ ] E06: Market orders fill immediately despite latency
-    Status: Partially addressed
-    Action: Add realistic fill delay simulation
-    Test: Measure actual fill latency in paper trading
+[x] E06: Market orders fill immediately despite latency
+    Status: FIXED — every order receives an eligible execution bar and market
+        orders remain submitted for the configured number of processed bars
+    Test: Three-bar latency is measured before fill eligibility
 
-[ ] E07: Order-ID retries execute twice
-    Status: Partially addressed
-    Action: Verify idempotency in PaperBroker
-    Test: Retry same order ID, confirm single execution
+[x] E07: Order-ID retries execute twice
+    Status: FIXED — identical retries return the original immutable order;
+        conflicting reuse raises and cannot overwrite history
+    Test: Identical retry produces one pending order, fill event, and position
 
-[ ] E08: Nested discovery replay omits fold-boundary costs
-    Status: NOT FIXED
-    Action: Fix cost accounting at fold boundaries
-    Test: Compare nested vs flat replay costs
+[x] E08: Nested discovery replay omits fold-boundary costs
+    Status: FIXED — discovery and replay both recompute turnover from one
+        merged position ledger, charging each fold transition exactly once
+    Test: No-override replay matches positions, returns, fees, and turnover
 
-[ ] E09: Discovery ignores locked-test protocol
-    Status: NOT FIXED
-    Action: Enforce lock protocol in all discovery modes
-    Test: Attempt protocol violation, verify rejection
+[x] E09: Discovery ignores locked-test protocol
+    Status: FIXED — discovery verifies the supplied fold lock before candidate
+        validation, fitting, threshold search, or trial accounting
+    Test: Rejecting lock proves no candidate fit occurs first
 
-[ ] E10: Tiny data revisions reset research family
-    Status: NOT FIXED
-    Action: Implement content-based hashing for family continuity
-    Test: Make minor data change, verify family preserved
+[x] E10: Tiny data revisions reset research family
+    Status: FIXED — family identity retains the explicit data contract while
+        exact snapshot content remains separate forensic revision metadata
+    Test: Tiny content revisions share a family; different windows do not
 
-[ ] 2.11: All P1 fixes have regression tests
-    [ ] Test suite updated for each fix
-    [ ] No shared-state pollution between tests
-    [ ] All tests deterministic and reproducible
+[x] 2.11: All P1 fixes have regression tests
+    [x] Test suite updated for each fix
+    [x] No shared-state pollution between tests
+    [x] All tests deterministic and reproducible
 
 ================================================================================
 PHASE 3: TEST SUITE REMEDIATION
 ================================================================================
-Current: 308 passed, 6 failed, 1 teardown error (Sept 11 audit)
+Current: latest complete 360-test run passed with no failures or teardown
+errors; 3 subsequent PaperBroker tests pass and 363 tests are now collected.
+See TEST_SUITE_REMEDIATION_REPORT.md.
 
-[ ] 3.1 Identify and fix 6 failing tests
-    [ ] Document failure root causes
-    [ ] Update stale assertions
-    [ ] Fix estimator-specific assumptions
-    [ ] Eliminate shared-state pollution
+[x] 3.1 Identify and fix 6 failing tests
+    [x] Document failure root causes
+    [x] Update stale assertions
+    [x] Fix estimator-specific assumptions
+    [x] Eliminate shared-state pollution
 
-[ ] 3.2 Clean test architecture
-    [ ] Isolate ledger state between tests
-    [ ] Use fixtures for reproducible setup
-    [ ] Add teardown verification
-    [ ] Ensure deterministic ordering
+[x] 3.2 Clean test architecture
+    [x] Isolate ledger state between tests
+    [x] Use fixtures for reproducible setup
+    [x] Add teardown verification
+    [x] Ensure deterministic ordering
 
 [ ] 3.3 Achieve 100% pass rate
-    [ ] All unit tests pass
-    [ ] All integration tests pass
-    [ ] All end-to-end tests pass
-    [ ] No teardown errors
+    [x] All unit tests pass
+    [x] All integration tests pass
+    [x] All end-to-end tests pass
+    [x] No teardown errors
     [ ] CI/CD pipeline green
 
 ================================================================================
 PHASE 4: PAPER TRADING INFRASTRUCTURE
 ================================================================================
 
-[ ] 4.1 Harden PaperBroker (V2.1.5 enhancements verified)
+[x] 4.1 Harden PaperBroker (V2.1.5 enhancements verified)
     [x] Unique session counting implemented
     [x] Cash/exposure reservation at fill time
     [x] Conflicting order-ID rejection
     [x] Reduce-only emergency exits
     [x] Research-record binding
-    [ ] End-to-end integration testing COMPLETE
-    [ ] Performance under load tested
-    [ ] Error recovery scenarios validated
+    [x] End-to-end integration testing COMPLETE (entry, emergency cancellation,
+        reduce-only flatten, persisted restart, reconciliation and audit chain)
+    [x] Performance under load tested (250 simultaneous orders/fills preserve
+        lifecycle, position ledger, reconciliation and audit integrity)
+    [x] Error recovery scenarios validated (pending and cancelled order restart,
+        corrupt audit rejection, active kill-switch restoration)
 
 [ ] 4.2 Wire safeguards into order flow
     [ ] Kill switch blocks ALL order types
@@ -350,7 +363,7 @@ SUMMARY: CRITICAL PATH TO LIVE TRADING
 
 BLOCKERS (Must Complete First):
   1. Find viable strategy (Phase 1) - CURRENT STATUS: 0/3 hypotheses successful
-  2. Fix P1 audit findings (Phase 2) - 0/10 verified complete
+  2. Fix P1 audit findings (Phase 2) - 10/10 verified complete
   3. Build live broker (Phase 5) - 0% implemented
 
 DEPENDENT WORK (After Blockers):
@@ -378,8 +391,9 @@ RISK FACTORS:
   - Key person dependency for operations
 
 RECOMMENDATION:
-  Focus exclusively on Phase 1 until a viable strategy is found.
-  Do not invest in infrastructure until strategy risk is resolved.
+  Phase 1 remains the promotion blocker. Continue safe infrastructure and
+  audit work in parallel, but do not begin observed paper validation or build
+  live deployment claims until a strategy passes untouched ROBUST_OOS gates.
   Maintain strict preregistration discipline to avoid false discoveries.
 
 ================================================================================
@@ -390,21 +404,34 @@ END OF CHECKLIST
 PHASE 1 UPDATE - STEP 5 BLOCKER (Added 2026-09-14)
 ================================================================================
 
-[ ] FIX CRITICAL FRAMEWORK BUG - automation.py ignoring feature configs
-    Status: BLOCKING ALL HYPOTHESIS TESTING
-    Impact: 4 trials wasted, ZERO valid scientific results
-    Required: Modify automation.py to respect features.include_sources from YAML
-    Alternative: Create direct execution script bypassing automation module
+[x] FIX CRITICAL FRAMEWORK BUG - automation.py ignoring feature configs
+    Status: RESOLVED 2026-09-14 - feature contract is loaded, fingerprinted,
+    frozen into automated protocols, and enforced against the runtime model panel
+    Impact: Previous 4 trials remain invalid; no hypothesis result was rerun here
+    Evidence: FeatureConfig + feature assembly regression tests (22 passed)
+    Guardrails: unknown sources, missing SPY/QQQ inputs, unavailable PIT feeds,
+    duplicate columns, and protocol/panel feature mismatches fail closed
+
+[ ] RECONCILE HYPOTHESIS PREREGISTRATIONS WITH EXECUTABLE DATA/MODEL CONTRACTS
+    Status: H-001 reconciliation and confirmation COMPLETE but hypothesis
+    REJECTED. H-002/H-003 remain BLOCKED by the missing contracts documented in
+    PHASE1_DATA_CONTRACT_GAP_MATRIX.md.
+    Required: Select an approved data source and implement the exact H-002 or
+    H-003 point-in-time data/evaluation path, or freeze a genuinely new family.
     
-[ ] RE-EXECUTE H-001 Trials 1-2 with correct cross_asset_spillover features
-    Status: PENDING framework fix
+[x] RE-EXECUTE H-001 Trials 1-2 with correct cross_asset_spillover features
+    Status: COMPLETE — corrected Trial 1 is superseded diagnostic evidence;
+    frozen 2021-2026 independent confirmation failed placebo separation.
+    Decision: H-001 REJECTED; Trials 3-10 abandoned under the stopping rule.
     
 [ ] RE-EXECUTE H-002 Trials 1-2 with correct liquidity_reversal features  
-    Status: PENDING framework fix
+    Status: BLOCKED BEFORE TRIAL — existing synthetic single-target results are
+    invalid proxies and the runtime now refuses this execution path
     
 [ ] EXECUTE H-003 Trials 1-5 with correct volatility_risk_premium features
-    Status: PENDING framework fix
+    Status: BLOCKED BEFORE TRIAL — VIX-futures, 17-ETF correlation, risk-parity,
+    weekly execution, crisis and diversification contracts are absent
 
-NOTE: All previous trial results (H-001 T1-2, H-002 T1-2) are INVALID due to 
-framework bug. Do not cite these results as scientific evidence.
-
+NOTE: All earlier proxy H-001/H-002 trials are invalid. The corrected H-001
+confirmation is valid decision evidence and rejects H-001. Do not cite any
+invalid proxy or superseded candidate result as promotion evidence.

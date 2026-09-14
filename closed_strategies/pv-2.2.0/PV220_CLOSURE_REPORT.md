@@ -1,3 +1,7 @@
+> **Archived historical copy.** The pv-2.2.0 closure remains valid. Review and
+> successor-hypothesis status are maintained in the repository-root
+> `CURRENT_PROJECT_STATUS.md`.
+
 # Strategy pv-2.2.0 Closure Report
 
 **Date:** 2026-09-13  

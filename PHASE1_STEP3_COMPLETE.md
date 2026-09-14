@@ -1,3 +1,8 @@
+> **Historical milestone.** Hypothesis design and feature implementation were
+> completed, but scientific outcomes changed afterward: H-001 is rejected and
+> H-002/H-003 are blocked before valid trials. See
+> [PHASE1_PROGRESS.md](PHASE1_PROGRESS.md).
+
 # Phase 1, Step 3: New Signal Hypotheses - COMPLETE
 
 ## Summary
@@ -15,7 +20,7 @@ Three fully preregistered signal hypotheses have been developed to replace the f
 **Mechanism:** Information diffusion lag between correlated assets (SPY → QQQ)  
 **Horizon:** Intraday to 2 days  
 **Universe:** 5 large-cap ETFs (SPY, QQQ, IWM, EFA, EEM)  
-**Features:** 10 pre-specified features - **IMPLEMENTED in `cross_asset_spillover.py`**  
+**Features:** 9 pre-specified features - **IMPLEMENTED in `cross_asset_spillover.py`**  
 **Trial Budget:** 10 trials maximum  
 **Key Innovation:** Exploits predictable information transmission without requiring structural breaks
 
@@ -66,7 +71,7 @@ Three fully preregistered signal hypotheses have been developed to replace the f
 | **Complexity** | Low | Medium | Medium-High |
 | **Crisis Alpha** | Unknown | Unknown | Core feature |
 | **Diversification** | Equity only | Equity only | Multi-asset |
-| **Trials Remaining** | 10 | 10 | 10 |
+| **Current outcome** | Rejected | Blocked before trial | Blocked before trial |
 
 ---
 
@@ -216,7 +221,8 @@ All three hypotheses satisfy rigorous preregistration standards:
 **Date:** 2026-09-11  
 **Status:** ✅ STEP 3 COMPLETE  
 
-**Ready for:** Step 4 (Implementation) and Step 5 (Execution)
+**Historical next step:** Step 4 implementation (completed). Current Step 5 is
+H-001 rejected and H-002/H-003 blocked before valid execution.
 
 ---
 

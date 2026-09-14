@@ -1,3 +1,7 @@
+> **Historical audit snapshot.** “Current working tree” below means the tree
+> audited on 2026-09-09, not the present repository. Later remediation is
+> summarized in [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
+
 # Deep audit — current working tree, 9 September 2026
 
 **Assessment: retain `RESEARCH_ONLY`. I found 18 actionable findings: 6 high priority (P1) and 12 medium priority (P2). The statement that all previous findings are fixed is not supported by the current code.**

@@ -67,6 +67,13 @@ class BacktestResult:
     metrics: dict
 
 
+@dataclass
+class CrossAssetBacktestResult(BacktestResult):
+    """Backtest result with the executed asset leg retained per session."""
+
+    legs: pd.Series | None = None
+
+
 def _vol_target_scale(returns: pd.Series, cfg: ExecutionConfig) -> pd.Series:
     """Causal vol targeting: trailing std through t-1 only.
 
@@ -197,4 +204,113 @@ def backtest(
         turnover=turnover,
         costs=costs,
         metrics=metrics,
+    )
+
+
+def backtest_selected_asset(
+    signal: pd.Series,
+    asset_forward_returns: pd.DataFrame,
+    selected_asset: pd.Series,
+    cfg: ExecutionConfig,
+    *,
+    threshold: float | None = None,
+    hold_bars: int = 1,
+    risk_returns: pd.Series | None = None,
+) -> CrossAssetBacktestResult:
+    """Backtest a causal signal whose trade leg is selected at decision time.
+
+    ``selected_asset[t]`` is the asset selected using information available
+    through close ``t``. Both the decision and leg are delayed together under
+    the engine execution contract. The selected leg is then *held* until a
+    permitted rebalance; an SPY-to-QQQ switch therefore sells SPY and buys QQQ
+    and is charged two-sided turnover. This prevents a scalar return proxy from
+    silently changing the held asset on every later bar.
+    """
+    if hold_bars < 1:
+        raise ValueError("hold_bars must be >= 1")
+    idx = asset_forward_returns.index
+    if not idx.is_unique or not asset_forward_returns.columns.is_unique:
+        raise ValueError("asset_forward_returns index and columns must be unique")
+    if not idx.equals(signal.index) or not idx.equals(selected_asset.index):
+        raise ValueError("signal, selected_asset, and asset_forward_returns must share an index")
+    available = set(asset_forward_returns.columns)
+    bad_legs = set(selected_asset.dropna()).difference(available)
+    if bad_legs:
+        raise ValueError(f"selected_asset contains unknown asset(s): {sorted(bad_legs)}")
+    numeric_returns = asset_forward_returns.astype("float64")
+    interior = numeric_returns.iloc[1:-1] if len(numeric_returns) > 2 else numeric_returns.iloc[0:0]
+    if not np.isfinite(interior.to_numpy()).all():
+        raise ValueError("asset_forward_returns contains non-finite interior values")
+
+    raw = signal.astype("float64") if threshold is None else pd.Series(
+        np.where(signal.astype("float64") > threshold, 1.0, 0.0), index=idx,
+    )
+    lag = INHERENT_MARKET_EXECUTION_LAG + int(cfg.signal_delay_bars)
+    desired_active = raw.shift(lag).fillna(0.0).ne(0.0)
+    desired_leg = selected_asset.shift(lag).where(desired_active)
+
+    active = False
+    leg: str | None = None
+    bars_since_change = hold_bars
+    staged_active: list[bool] = []
+    staged_legs: list[object] = []
+    for want_active, want_leg in zip(desired_active, desired_leg):
+        next_leg = str(want_leg) if bool(want_active) and pd.notna(want_leg) else None
+        wanted = (bool(want_active) and next_leg is not None, next_leg)
+        current = (active, leg)
+        bars_since_change += 1
+        if wanted != current and bars_since_change >= hold_bars:
+            active, leg = wanted
+            bars_since_change = 0
+        staged_active.append(active)
+        staged_legs.append(leg if active else pd.NA)
+    legs = pd.Series(staged_legs, index=idx, dtype="object")
+
+    if risk_returns is None:
+        # An equal-weighted cross-asset return is observable at close t and is
+        # a neutral risk-scale input; callers may pass a more specific frozen
+        # risk series when their protocol declares one.
+        risk_returns = numeric_returns.mean(axis=1).shift(1)
+    scale = _vol_target_scale(risk_returns, cfg).reindex(idx).fillna(0.0)
+    position = (pd.Series(staged_active, index=idx, dtype="float64") * scale).clip(
+        -cfg.max_position, cfg.max_position
+    )
+
+    realized = pd.Series(0.0, index=idx)
+    for asset in available:
+        mask = legs.eq(asset)
+        realized.loc[mask] = numeric_returns.loc[mask, asset].fillna(0.0)
+    gross = position * realized
+
+    turnover = pd.Series(0.0, index=idx)
+    previous_position = 0.0
+    previous_leg: object = pd.NA
+    for i, (current_position, current_leg) in enumerate(zip(position, legs)):
+        prior_active = pd.notna(previous_leg)
+        current_active = pd.notna(current_leg)
+        if prior_active and current_active and previous_leg != current_leg:
+            turnover.iloc[i] = abs(previous_position) + abs(current_position)
+        elif prior_active or current_active:
+            turnover.iloc[i] = abs(current_position - previous_position)
+        previous_position, previous_leg = float(current_position), current_leg
+    total_cost_bps = cfg.fee_bps + cfg.slippage_bps
+    costs = turnover * total_cost_bps / 10000.0
+    gross = gross.fillna(0.0)
+    net = gross - costs
+    metrics = compute_metrics(net, gross_returns=gross, positions=position)
+    metrics.update({
+        "trade_count": int((turnover > 1e-9).sum()),
+        "total_turnover": float(turnover.sum()),
+        "fee_cost": float((turnover * cfg.fee_bps / 10000.0).sum()),
+        "slippage_cost": float((turnover * cfg.slippage_bps / 10000.0).sum()),
+        "total_cost": float(costs.sum()),
+    })
+    return CrossAssetBacktestResult(
+        net_returns=net,
+        gross_returns=gross,
+        positions=position,
+        turnover=turnover,
+        costs=costs,
+        metrics=metrics,
+        legs=legs,
     )

@@ -1,5 +1,10 @@
 # Strategy pv-2.2.0 Closure Report
 
+> **Closed historical strategy record.** The closure remains valid. Subsequent
+> research produced no promotable replacement: H-001 is rejected and H-002/
+> H-003 are blocked before valid trials. Current status is recorded in
+> [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
+
 **Date:** 2026-09-13  
 **Status:** CLOSED_FAILED  
 **Research Family:** 27c49d858beb9a36 (seed44), related families from seed45, seed46  
@@ -193,12 +198,12 @@ See PHASE1_STRATEGY_RESET.md for detailed proposals:
 
 All experimental artifacts preserved in:
 
-- `/workspace/artifacts_seed44/` - 3 runs + metadata
-- `/workspace/artifacts_seed45/` - 1 run + metadata
-- `/workspace/artifacts_seed46/` - 1 run + metadata
-- `/workspace/artifacts_seed44_30min/` - 1 run + metadata
-- `/workspace/strategy-runs.jsonl` - Complete run history
-- `/workspace/experiment_registry.jsonl` - Family tracking
+- `artifacts_seed44/` - 3 runs + metadata
+- `artifacts_seed45/` - 1 run + metadata
+- `artifacts_seed46/` - 1 run + metadata
+- `artifacts_seed44_30min/` - 1 run + metadata
+- `strategy-runs.jsonl` - Complete run history
+- `experiment_registry.jsonl` - Family tracking
 
 **Total Storage:** ~5 MB of JSON/CSV evidence  
 **Retention Policy:** Indefinite (for audit trail and learning)
@@ -216,5 +221,5 @@ Future efforts must start from first principles: identify a market inefficiency 
 ---
 
 **Report Prepared By:** Automated Research System  
-**Review Status:** Pending human review  
-**Next Action:** Begin new hypothesis development per PHASE1_STRATEGY_RESET.md
+**Review Status:** Closure recorded 2026-09-14  
+**Next Action:** Follow the current decision boundary in PHASE1_PROGRESS.md

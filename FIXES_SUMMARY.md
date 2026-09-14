@@ -1,3 +1,9 @@
+> **Historical remediation ledger.** Versioned counts and claims below record
+> successive audit/fix rounds. The current 2026-09-14 position is: E01–E10
+> fixed, latest full run 360/360 passing, three later PaperBroker tests passing,
+> and 363 tests currently collected. See
+> [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
+
 # Audit Fix Summary — Quant Research Engine V2.1.3
 
 ## History

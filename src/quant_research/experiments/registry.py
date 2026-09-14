@@ -214,16 +214,47 @@ class TrialCounter:
         return self._count
 
 
+def dataset_family_identity(
+    dataset_hash: str,
+    *,
+    mode: str,
+    assets: List[str],
+    target: str,
+    start: str,
+    end: str,
+    frequency: str,
+    exchange_calendar: str,
+) -> str:
+    """Bind a content revision to its stable, explicit data contract.
+
+    The contract digest separates different universes/windows/providers while
+    the final content hash remains forensic metadata. ``_family_lineage``
+    deliberately drops only that final revision component.
+    """
+    contract = {
+        "mode": str(mode),
+        "assets": sorted(str(asset) for asset in assets),
+        "target": str(target),
+        "start": str(start),
+        "end": str(end),
+        "frequency": str(frequency),
+        "exchange_calendar": str(exchange_calendar).upper(),
+    }
+    raw = json.dumps(contract, sort_keys=True, separators=(",", ":"))
+    contract_digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+    return f"ohlcv:v1:{contract_digest}:{dataset_hash}"
+
+
 def family_id_for_search(dataset_hash: str, eval_fingerprint: str) -> str:
     """B11/E10: stable research-family identifier (output-dir independent).
 
     E10: the key is a coarse lineage signature, NOT the exact dataset hash,
     so tiny data revisions (type suffixes, patch rows, single-bar fixes) stay
     in the same family while a wholesale dataset change starts a new one.
-    ``dataset_hash`` may be a bare hash (legacy) or a lineage string such as
-    "ohlcv:v3:<hash>" (run.py passes the latter).  The lineage coarse key
-    keeps kind+major-version; the fine key keeps the exact hash and is used
-    only for forensics.
+    ``dataset_hash`` may be a bare hash (legacy) or the explicit identity
+    ``ohlcv:v1:<contract-digest>:<content-hash>`` produced by
+    ``dataset_family_identity``. The lineage key keeps kind, schema major, and
+    data contract while dropping only the exact content revision.
     """
     lineage = _family_lineage(dataset_hash)
     raw = f"{lineage}|{eval_fingerprint}"
@@ -239,11 +270,14 @@ def _family_lineage(dataset_version: str) -> str:
     text = str(dataset_version or "")
     parts = text.split(":")
     if len(parts) >= 3 and parts[0] in ("ohlcv", "market", "dataset"):
-        # kind + major schema/data version (trailing patch/hash ignored).
+        # Kind + major schema/data version. New identities include a stable
+        # contract digest before the trailing content revision; retain it so
+        # unrelated universes/windows do not collapse into one family.
         kind = parts[0]
         ver = parts[1]
         major = str(ver).lstrip("vV").split(".")[0]
-        return f"{kind}:v{major or ver}"
+        contract = f":{parts[2]}" if len(parts) >= 4 else ""
+        return f"{kind}:v{major or ver}{contract}"
     token = parts[0] if parts else text
     # A 64/32/16-hex token is an exact digest: family by its lineage means
     # "same snapshot pipeline" -- keep the token's stable prefix class out of

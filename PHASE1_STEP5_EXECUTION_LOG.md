@@ -1,3 +1,9 @@
+> **Historical execution log — invalid proxy runs.** The early H-001/H-002
+> entries below used generic price/volume templates and are framework-defect
+> evidence, not hypothesis evidence. Current outcome: H-001 was later confirmed
+> with the corrected contract and rejected; H-002/H-003 are blocked before
+> valid trials. See [PHASE1_STEP5_PROGRESS.md](PHASE1_STEP5_PROGRESS.md).
+
 # Phase 1, Step 5: Research Campaign Execution Log
 
 ## Overview

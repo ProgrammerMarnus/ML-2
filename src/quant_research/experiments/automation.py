@@ -105,13 +105,15 @@ class CreatedExperiment:
     config: AppConfig
 
 
-def _protocol_features() -> list[str]:
-    """Return the explicit registered feature contract used by the pipeline."""
-    from ..features.registry import registry
+def _protocol_features(config: AppConfig) -> list[str]:
+    """Return the exact registered feature contract selected by the config."""
+    from ..features.assembly import planned_feature_names
 
-    # Feature registry entries are authoritative when available.  Preserve a
-    # deterministic order in the immutable protocol document.
-    return sorted(spec.feature_name for spec in registry())
+    return planned_feature_names(
+        config.features,
+        events_available=config.data.mode == "synthetic",
+        assets=config.data.assets,
+    )
 
 
 def create_experiment_plan(
@@ -163,7 +165,7 @@ def create_experiment_plan(
         protocol = ResearchProtocol.create(
             hypothesis_id=template.strategy_id,
             economic_mechanism=template.mechanism,
-            feature_names=_protocol_features(),
+            feature_names=_protocol_features(candidate),
             target=candidate.data.target,
             primary_metric="full_oos_net_sharpe",
             development_data=(f"{candidate.data.mode}:{candidate.data.start}.."

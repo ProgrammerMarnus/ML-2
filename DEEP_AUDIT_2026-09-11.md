@@ -1,3 +1,8 @@
+> **Historical audit snapshot.** This report describes commit
+> `0f98bb89bb838d603f9ae712c6dab48c724c63d6`. Its findings motivated later
+> fixes; current resolution, test counts, and readiness are in
+> [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
+
 # Deep audit — ML-2 — 11 September 2026
 
 The saved-market baseline is reproducible, but the repository's research-history controls and paper-validation states are not dependable enough to support a readiness claim. This audit identifies **25 actionable findings: 10 P1 and 15 P2**. The most serious demonstrated failures are promotion to `LIVE_ELIGIBLE` without any elapsed trading sessions, execution after a kill switch, blocked position liquidation, and incorrect costs when replaying nested discovery.

@@ -1,5 +1,11 @@
 # Preregistration: H-002 Liquidity-Driven Reversal
 
+**Current status (2026-09-14):** `BLOCKED_BEFORE_TRIAL`. The repository lacks
+the point-in-time Russell 3000, market-cap, classified intraday trade, VIX,
+cross-sectional dollar-neutral portfolio, sector, and capacity contracts this
+preregistration requires. Existing synthetic single-target runs are invalid
+proxy diagnostics. The runtime refuses them as H-002 evidence.
+
 ## 1. Economic Mechanism
 
 **Hypothesis:** Short-term liquidity imbalances create temporary price pressure that reverses within 1-3 days as liquidity providers step in.
@@ -215,10 +221,10 @@ All artifacts saved to: `artifacts/H002/trial_N/`
 | Milestone | Target Date | Status |
 |-----------|-------------|--------|
 | Preregistration complete | Week 1 | ✅ Done |
-| Trial 1 execution | Week 2 | Pending |
-| Trials 2-5 | Week 3 | Pending |
-| Trials 6-10 | Week 4 | Pending |
-| Go/No-Go decision | Week 5 | Pending |
+| Trial 1 execution | Unscheduled | Blocked on exact data contract |
+| Trials 2-5 | Unscheduled | Blocked; no valid Trial 1 |
+| Trials 6-10 | Unscheduled | Blocked; no valid Trial 1 |
+| Go/No-Go decision | After valid evidence | Not reached |
 
 ---
 
@@ -228,7 +234,7 @@ All artifacts saved to: `artifacts/H002/trial_N/`
 **Date:** 2026-09-11  
 **Commitment:** I will execute this research plan exactly as specified, without modification based on interim results. Any deviations will be documented and justified. Violations of this protocol invalidate all findings.
 
-**Status:** PREREGISTERED - Ready for Trial 1
+**Status:** PREREGISTERED BUT BLOCKED — not ready for Trial 1
 
 ---
 
@@ -245,4 +251,6 @@ All artifacts saved to: `artifacts/H002/trial_N/`
 | Complexity | Low | Medium |
 | Complementarity | Orthogonal | Orthogonal |
 
-**Portfolio Benefit:** If both H-001 and H-002 succeed, they can be combined for diversification (different mechanisms, universes, horizons).
+**Portfolio note:** H-001 was rejected. Any future diversification claim for
+H-002 depends on H-002 first becoming executable and passing untouched OOS
+evaluation under a new approved protocol.

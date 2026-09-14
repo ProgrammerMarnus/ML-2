@@ -1,3 +1,9 @@
+HISTORICAL DISCOVERY SNAPSHOT — 2026-09-11
+The metrics and recommendation below describe the discovery run at that date.
+The pv-2.2.0 line is now closed; H-001 is rejected after corrected independent
+confirmation, and H-002/H-003 are blocked before valid trials. Current status:
+CURRENT_PROJECT_STATUS.md.
+
 ================================================================================
 QUANT STRATEGY DISCOVERY ANALYSIS
 ================================================================================

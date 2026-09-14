@@ -1,3 +1,8 @@
+> **Historical milestone.** Framework integration is complete, but the
+> execution instructions below are superseded. H-001 was validly confirmed and
+> rejected; H-002/H-003 require unavailable preregistered data contracts. Use
+> [PHASE1_PROGRESS.md](PHASE1_PROGRESS.md) for current actions.
+
 # Phase 1 Step 4 - Strategy Framework Implementation
 
 ## Status: COMPLETE ✅
@@ -6,13 +11,13 @@ Successfully integrated all three preregistered hypotheses into the research fra
 
 ### Feature Registry Integration
 
-**Total Features Registered:** 73
+**Total Features Registered:** 72
 
 | Category | Count | Features |
 |----------|-------|----------|
 | **Base Price/Volume** | 21 | momentum, trend, vol, volume, regime features |
 | **Information (FinBERT)** | 8 | sentiment, attention, novelty, disagreement |
-| **H-001 Cross-Asset Spillover** | 10 | qqq/spy lags, interaction terms, acceleration |
+| **H-001 Cross-Asset Spillover** | 9 | qqq/spy lags, interaction terms, acceleration |
 | **H-002 Liquidity Reversal** | 13 | amihud, volume imbalance, pressure, Kyle's lambda |
 | **H-003 Volatility Risk Premium** | 21 | VRP, term structure, skewness, kurtosis, jumps |
 
@@ -27,13 +32,14 @@ Successfully integrated all three preregistered hypotheses into the research fra
 ✅ H-001 features module imports correctly
 ✅ H-002 features module imports correctly  
 ✅ H-003 features module imports correctly
-✅ All 73 features registered in central registry
+✅ All 72 features registered in central registry
 ✅ Feature specs accessible with metadata (source, history, normalization)
 ```
 
 ### Next Steps (Step 5)
 
-Ready to execute research campaign:
+The original execution plan below is preserved as historical context and must
+not be run as a proxy campaign:
 
 1. Run Trial 1 for H-001 (Cross-Asset Spillover)
 2. Run Trial 1 for H-002 (Liquidity Reversal)
@@ -68,8 +74,9 @@ A hypothesis achieves **ROBUST_OOS** status when ALL 14 gates pass:
 - ✅ max drawdown ≤ 50%
 - + 6 additional gates
 
-### Timeline
+### Current Scientific Outcome
 
-- **Week 2 (Current):** Framework ready, begin trials
-- **Week 3-4:** Complete trial campaigns (up to 10 per hypothesis)
-- **Week 5:** Go/No-Go decision on promotion to paper trading
+- H-001: corrected confirmation completed and rejected.
+- H-002: blocked before trial on its cross-sectional liquidity contract.
+- H-003: blocked before trial on its multi-asset/VIX contract.
+- Promotion remains `RESEARCH_ONLY`.

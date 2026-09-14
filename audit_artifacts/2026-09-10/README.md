@@ -1,5 +1,9 @@
 **Audit evidence — 10 September 2026**
 
+> Historical evidence for the 2026-09-10 audited commit. These results are
+> intentionally unchanged; current remediation status is in the repository-root
+> `CURRENT_PROJECT_STATUS.md`.
+
 The main report is [DEEP_AUDIT_2026-09-10.md](/home/marnus/VS-Code/ML-2/DEEP_AUDIT_2026-09-10.md). This directory contains fresh audit outputs, not engine changes or remediations.
 
 | File | Purpose |

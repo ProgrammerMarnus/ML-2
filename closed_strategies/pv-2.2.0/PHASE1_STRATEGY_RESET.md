@@ -1,3 +1,7 @@
+> **Archived historical copy.** Preserved with the closed pv-2.2.0 evidence;
+> its schedule and status are not current. See the repository-root
+> `CURRENT_PROJECT_STATUS.md`.
+
 # Phase 1: Strategy Research Reset - Implementation Plan
 
 ## Executive Summary

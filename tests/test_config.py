@@ -9,6 +9,7 @@ from quant_research.config import (
     ConfigError,
     DataConfig,
     EvaluationConfig,
+    FeatureConfig,
     load_config,
 )
 
@@ -33,12 +34,17 @@ evaluation:
   train_window: 300
 execution:
   fee_bps: 7.5
+features:
+  include_sources: [liquidity_reversal, price_volume]
+  exclude_features: [trend_50]
 """
     )
     cfg = load_config(str(p))
     assert cfg.evaluation.train_window == 300
     assert cfg.execution.fee_bps == 7.5
     assert cfg.model.random_seed == 42
+    assert cfg.features.include_sources == ["liquidity_reversal", "price_volume"]
+    assert cfg.features.exclude_features == ["trend_50"]
 
 
 def test_invalid_data_mode_rejected():
@@ -72,3 +78,8 @@ def test_to_dict_roundtrip():
     cfg = AppConfig()
     again = AppConfig.from_dict(cfg.to_dict())
     assert again.fingerprint() == cfg.fingerprint()
+
+
+def test_feature_source_duplicates_are_rejected():
+    with pytest.raises(ConfigError, match="duplicates"):
+        FeatureConfig(include_sources=["price_volume", "price_volume"])

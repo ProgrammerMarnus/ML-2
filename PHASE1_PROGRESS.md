@@ -1,187 +1,49 @@
-# Phase 1: Strategy Research Reset - Progress Tracker
+# Phase 1: Strategy Research Reset — Current Progress
 
 **Started:** 2026-09-13  
-**Status:** IN PROGRESS  
-**Current Step:** 2/5 - Closing pv-2.2.0 line  
+**Updated:** 2026-09-14  
+**Status:** ACTIVE, BLOCKED ON H-002/H-003 DATA CONTRACT DECISION  
+**Promotion state:** `RESEARCH_ONLY`
 
----
+## Completed
 
-## Completed Steps ✓
+- Closed the legacy pv-2.2.0 strategy family as failed and preserved its evidence.
+- Created the preregistration template and H-001/H-002/H-003 specifications.
+- Implemented and registered the hypothesis feature modules.
+- Fixed the experiment execution path so hypothesis identity and feature-family
+  selection are enforced instead of silently falling back to generic templates.
+- Added execution-eligibility and stable dataset-family contract checks.
+- Completed the corrected H-001 confirmation run.
 
-### Step 1: Document Current Strategy Failures ✓
+## Scientific Results
 
-**Status:** COMPLETE  
-**Date:** 2026-09-13
+| Hypothesis | Valid status | Result / blocker |
+|---|---|---|
+| H-001 Cross-Asset Spillover | **REJECTED** | Net Sharpe 0.787318; placebo percentile 0.35; adjusted p-value 0.6667. The preregistered separation gate failed. |
+| H-002 Liquidity Reversal | **BLOCKED BEFORE TRIAL** | Requires the preregistered cross-sectional small/mid-cap universe and liquidity inputs; the scalar runner cannot provide them. |
+| H-003 Volatility Risk Premium | **BLOCKED BEFORE TRIAL** | Requires the preregistered multi-asset and VIX/term-structure inputs; the scalar runner cannot provide them. |
 
-**Evidence gathered:**
-- Analyzed 6 experimental runs (seed44×3, seed45, seed46, seed44_30min)
-- All runs failed `placebo_separates` gate (best: 0.90, required: ≥0.95)
-- seed45 also failed `cost_stress_survives`
-- Total trials: 250+ with 0% success rate
+Earlier runs that produced identical generic price/volume results were invalid
+proxy executions. They consume audit history but are not scientific evidence
+for H-001, H-002, or H-003.
 
-**Key finding:** Strategy is statistically indistinguishable from noise. Placebo percentile of 0.85-0.90 means random permutations achieve similar results 85-90% of the time.
+## Required Decision
 
-**Artifacts:** See PV220_CLOSURE_REPORT.md for full analysis.
+For H-002 and H-003, either:
 
----
+1. implement and freeze each exact preregistered data contract, then execute;
+2. close the hypothesis without a valid trial; or
+3. preregister a new scalar-compatible family under a new identity.
 
-### Step 2: Close pv-2.2.0 Research Line ✓
+Substituting generic price/volume features under the current hypothesis IDs is
+forbidden. H-001 remains rejected; its observed confirmation period must not be
+used for post-hoc tuning.
 
-**Status:** COMPLETE  
-**Date:** 2026-09-13
+## Phase 1 Exit Condition
 
-**Actions completed:**
-1. ✅ Created closure report (PV220_CLOSURE_REPORT.md)
-   - Documents all failures with evidence
-   - Root cause analysis (no economic mechanism, overfitting)
-   - Lessons learned and recommendations
-   
-2. ✅ Archived all artifacts
-   - Copied to `/workspace/closed_strategies/pv-2.2.0/`
-   - Includes: seed44, seed45, seed46, seed44_30min artifacts
-   - Preserved for audit trail and learning
+Phase 1 is complete only when every open hypothesis is validly executed or
+formally closed and the portfolio decision is recorded. No strategy currently
+qualifies for `ROBUST_OOS`, paper promotion, or live trading.
 
-3. ⚠️ Update experiment registry
-   - **TODO:** Mark families as CLOSED_FAILED in registry
-   - Need to add status field to experiment_registry.jsonl
-
-4. ✅ Documented lessons learned
-   - Technical analysis alone insufficient
-   - Preregistration required for future research
-   - Placebo test is the critical gate
-
-**Deliverables:**
-- [x] PV220_CLOSURE_REPORT.md
-- [x] closed_strategies/pv-2.2.0/ directory with all artifacts
-- [ ] Registry updates (pending)
-
----
-
-## In Progress 🔄
-
-### Step 3: Develop New Signal Hypothesis
-
-**Status:** IN PROGRESS  
-**Target Date:** 2026-09-20
-
-**Completed:**
-- [x] Created preregistration template (PREREGISTRATION_TEMPLATE.md)
-  - Enforces economic mechanism documentation
-  - Requires falsifiable predictions
-  - Specifies trial budgets and decision rules
-  
-- [x] Developed first hypothesis (HYPOTHESIS_H001_CROSS_ASSET_SPILLOVER.md)
-  - Economic mechanism: Information diffusion lag between SPY/QQQ
-  - Testable prediction: Mean reversion after 1.5σ deviation
-  - Pre-specified features (9 total, no post-hoc additions)
-  - Validation protocol locked (7-fold walk-forward)
-  - Trial budget: 10 trials maximum
-  - Falsification criteria defined
-
-**Pending:**
-- [ ] Human review of H-001 preregistration
-- [ ] Develop 2 additional hypotheses as backups
-  - Liquidity-based signals
-  - Volatility risk premium
-  - Seasonal/calendar effects
-- [ ] Finalize hypothesis selection
-
-**Next Action:** Await review approval before running experiments
-
----
-
-## Not Started ⏳
-
-### Step 4: Implement New Strategy Framework
-
-**Status:** NOT STARTED  
-**Target Start:** After hypothesis approval
-
-**Planned work:**
-- Create new strategy class supporting preregistration metadata
-- Add gate enhancements (economic_mechanism_documented, regime_stability)
-- Implement trial budget tracking
-- Build hypothesis registry system
-
-**Code changes needed:**
-```python
-# Planned additions to src/quant_research/strategies/
-- preregistered_strategy.py  # Base class with prereg support
-- hypothesis_registry.py     # Track hypotheses and trial counts
-- gates_enhanced.py          # Additional validation gates
-```
-
----
-
-### Step 5: Execute New Research Campaign
-
-**Status:** NOT STARTED  
-**Target Start:** After framework ready
-
-**Campaign plan:**
-1. Run H-001 trials 1-3 (baseline model)
-2. Review results, adjust if needed
-3. Run trials 4-6 (hyperparameter optimization)
-4. Run trials 7-8 (robustness checks)
-5. Run trials 9-10 (final validation)
-6. Decision: promote to paper trading OR abandon
-
-**Success criteria:**
-- All 14 gates pass with margin
-- Placebo percentile ≥ 0.95 (critical)
-- Replicate across multiple seeds
-- Economic mechanism validated
-
-**Timeline:** 4-6 weeks for complete campaign
-
----
-
-## Summary Statistics
-
-| Metric | Value |
-|--------|-------|
-| pv-2.2.0 trials run | 250+ |
-| pv-2.2.0 success rate | 0% |
-| Families closed | 4 (seed44, seed45, seed46, seed44_30min) |
-| New hypotheses proposed | 1 (H-001) |
-| Hypotheses pending review | 1 |
-| Trials remaining in family budget | 30 |
-| Days elapsed in Phase 1 | 0 (just started) |
-| Estimated days to completion | 30-45 |
-
----
-
-## Risks & Blockers
-
-### Current Blockers
-- **None** - awaiting human review of H-001 preregistration
-
-### Potential Risks
-1. **No viable hypothesis found**
-   - Mitigation: Have 3 backup hypotheses ready
-   - Expand to alternative data sources if needed
-
-2. **H-001 fails placebo test like pv-2.2.0**
-   - Mitigation: Mechanism-based approach should help
-   - Early abandonment if placebo < 0.80 after 5 trials
-
-3. **Framework changes delay experiments**
-   - Mitigation: Can run initial tests with existing infrastructure
-   - Preregistration can be enforced manually initially
-
----
-
-## Next Milestones
-
-| Date | Milestone | Deliverable |
-|------|-----------|-------------|
-| 2026-09-13 | Step 2 complete | pv-2.2.0 closed ✓ |
-| 2026-09-20 | Step 3 complete | Hypotheses approved |
-| 2026-09-27 | Step 4 complete | Framework ready |
-| 2026-10-04 | Step 5 mid-point | Trial 5 review |
-| 2026-10-11 | Step 5 complete | Promotion decision |
-
----
-
-**Last Updated:** 2026-09-13  
-**Next Review:** After H-001 approval
+See [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md) and
+[LIVE_TRADING_READINESS_CHECKLIST.txt](LIVE_TRADING_READINESS_CHECKLIST.txt).

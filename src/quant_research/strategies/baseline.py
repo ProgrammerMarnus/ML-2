@@ -28,7 +28,7 @@ from sklearn.preprocessing import StandardScaler
 
 from ..config import AppConfig, ExecutionConfig, ModelConfig
 from ..data.schemas import DataValidationError
-from ..evaluation.backtest import EXECUTION_CONTRACT, backtest
+from ..evaluation.backtest import EXECUTION_CONTRACT, backtest, backtest_selected_asset
 from ..evaluation.metrics import compute_metrics, max_drawdown, sharpe_ratio
 from ..evaluation.walk_forward import FoldSpec, LockedTestProtocol, walk_forward_splits
 
@@ -61,6 +61,13 @@ class ExperimentResult:
     per_fold_hold_bars: Dict[int, int] = field(default_factory=dict)
     per_fold_feature_subsets: Dict[int, List[str]] = field(default_factory=dict)
     anchor_index: Optional[pd.Index] = None
+    # Optional multi-asset execution contract. When present, each OOS return
+    # was earned by the recorded leg rather than by a scalar proxy that can
+    # silently switch instruments after entry.
+    asset_forward_returns: Optional[pd.DataFrame] = None
+    selected_asset: Optional[pd.Series] = None
+    oos_legs: Optional[pd.Series] = None
+    oos_turnover: Optional[pd.Series] = None
 
 
 def build_model(model_cfg: ModelConfig) -> Pipeline:
@@ -135,6 +142,34 @@ def select_threshold(
     return float(best["threshold"]), table
 
 
+def select_threshold_selected_asset(
+    probs: pd.Series,
+    asset_forward_returns: pd.DataFrame,
+    selected_asset: pd.Series,
+    candidates: List[float],
+    exec_cfg: ExecutionConfig,
+    hold_bars: int = 1,
+    risk_returns: Optional[pd.Series] = None,
+) -> tuple:
+    """Validation-only threshold selection for an asset-specific strategy."""
+    rows = []
+    for threshold in candidates:
+        bt = backtest_selected_asset(
+            probs, asset_forward_returns, selected_asset, exec_cfg,
+            threshold=float(threshold), hold_bars=hold_bars,
+            risk_returns=risk_returns,
+        )
+        rows.append({"threshold": float(threshold), "sharpe": bt.metrics["sharpe"],
+                     "max_dd": bt.metrics["max_dd"], "trades": bt.metrics["trade_count"]})
+    table = pd.DataFrame(rows).replace([np.inf, -np.inf], np.nan)
+    tradable = table.dropna(subset=["sharpe"])
+    tradable = tradable[tradable["trades"] > 0]
+    if tradable.empty:
+        return float(candidates[len(candidates) // 2]), table
+    best = tradable.sort_values(["sharpe", "max_dd"], ascending=[False, False]).iloc[0]
+    return float(best["threshold"]), table
+
+
 def run_walk_forward(
     features: pd.DataFrame,
     y: pd.Series,
@@ -156,6 +191,8 @@ def run_walk_forward(
     per_fold_hold_bars: Optional[Dict[int, int]] = None,
     per_fold_feature_subsets: Optional[Dict[int, List[str]]] = None,
     anchor_index: Optional[pd.Index] = None,
+    asset_forward_returns: Optional[pd.DataFrame] = None,
+    selected_asset: Optional[pd.Series] = None,
 ) -> ExperimentResult:
     """Run the baseline walk-forward experiment under the engine's execution
     contract (``backtest.EXECUTION_CONTRACT``).
@@ -202,6 +239,22 @@ def run_walk_forward(
     # means "use cfg.model.hold_bars, falling back to 1".
     if hold_bars is None:
         hold_bars = model_cfg.hold_bars if model_cfg.hold_bars is not None else 1
+
+    selected_asset_mode = asset_forward_returns is not None or selected_asset is not None
+    if selected_asset_mode and (asset_forward_returns is None or selected_asset is None):
+        raise DataValidationError(
+            "asset_forward_returns and selected_asset must be supplied together"
+        )
+    if selected_asset_mode:
+        assert asset_forward_returns is not None and selected_asset is not None
+        if not asset_forward_returns.index.equals(features.index) or not selected_asset.index.equals(features.index):
+            raise DataValidationError(
+                "asset-specific returns, selected legs, and features must share an index"
+            )
+        if boundary_policy == "fold_restart":
+            raise DataValidationError(
+                "asset-specific execution requires the continuous boundary policy"
+            )
 
     # Observable risk-return series aligned to the full anchor (warm-up):
     # risk_obs[k] = close[k]/close[k-1]-1, known at close[k].  fwd[k] is the
@@ -309,10 +362,16 @@ def run_walk_forward(
             table = None
         else:
             val_probs = pd.Series(model.predict_proba(X.loc[va, subset])[:, 1], index=va)
-            threshold, table = select_threshold(
-                val_probs, ff.loc[va], candidates, exec_cfg,
-                hold_bars=hold_bars, risk_returns=risk_obs,
-            )
+            if selected_asset_mode:
+                threshold, table = select_threshold_selected_asset(
+                    val_probs, asset_forward_returns.loc[va], selected_asset.loc[va],
+                    candidates, exec_cfg, hold_bars=hold_bars, risk_returns=risk_obs,
+                )
+            else:
+                threshold, table = select_threshold(
+                    val_probs, ff.loc[va], candidates, exec_cfg,
+                    hold_bars=hold_bars, risk_returns=risk_obs,
+                )
             if trial_counter is not None:
                 trial_counter.increment(len(candidates))
         chosen_thresholds[spec.fold_id] = threshold
@@ -342,10 +401,11 @@ def run_walk_forward(
             }
         )
         fold_rows.append(row)
-        pred_frames.append(
-            pd.DataFrame({"prob": test_probs, "y": yy_te.to_numpy(),
-                          "fwd": ff.loc[te].to_numpy(), "fold": spec.fold_id}, index=te)
-        )
+        prediction_data = {"prob": test_probs, "y": yy_te.to_numpy(),
+                           "fwd": ff.loc[te].to_numpy(), "fold": spec.fold_id}
+        if selected_asset_mode:
+            prediction_data["selected_asset"] = selected_asset.loc[te].to_numpy()
+        pred_frames.append(pd.DataFrame(prediction_data, index=te))
         test_axes.append(te)
         dir_frames.append(dir_series)
         accepted_specs.append(spec)
@@ -406,12 +466,20 @@ def run_walk_forward(
                 "overlapping folds are not supported until a prediction-combination "
                 "policy is defined (use step_bars >= test_window)")
         oos_idx = dir_full.index
-        bt = backtest(dir_full, ff.loc[oos_idx], exec_cfg, threshold=None,
-                      hold_bars=hold_bars, risk_returns=risk_obs)
+        if selected_asset_mode:
+            bt = backtest_selected_asset(
+                dir_full, asset_forward_returns.loc[oos_idx], selected_asset.loc[oos_idx],
+                exec_cfg, threshold=None, hold_bars=hold_bars, risk_returns=risk_obs,
+            )
+        else:
+            bt = backtest(dir_full, ff.loc[oos_idx], exec_cfg, threshold=None,
+                          hold_bars=hold_bars, risk_returns=risk_obs)
 
     oos_returns = []
     oos_gross = []
     oos_positions = []
+    oos_turnover = []
+    oos_legs = []
     fee_total = fee_total if boundary_policy == "fold_restart" else 0.0
     slip_total = slip_total if boundary_policy == "fold_restart" else 0.0
     for i, (spec, te) in enumerate(zip(accepted_specs, test_axes)):
@@ -448,6 +516,9 @@ def run_walk_forward(
         oos_returns.append(net_f)
         oos_gross.append(gross_f)
         oos_positions.append(pos_f)
+        oos_turnover.append(turn_f)
+        if selected_asset_mode and bt is not None:
+            oos_legs.append(bt.legs.loc[te])
 
     folds_df = pd.DataFrame(fold_rows)
     preds = pd.concat(pred_frames).sort_index()
@@ -459,6 +530,9 @@ def run_walk_forward(
                      else (bt.gross_returns if bt is not None else gross_full))
     oos_pos = (pd.concat(oos_positions).sort_index() if oos_positions
                else (bt.positions if bt is not None else pos_full))
+    oos_turn = (pd.concat(oos_turnover).sort_index() if oos_turnover
+                else (bt.turnover if bt is not None else turnover_full))
+    oos_leg = (pd.concat(oos_legs).sort_index() if oos_legs else None)
     return ExperimentResult(folds=folds_df, predictions=preds, oos_returns=oos_ret,
                             oos_gross_returns=oos_gross_ret, oos_positions=oos_pos,
                             fold_specs=accepted_specs,
@@ -469,7 +543,11 @@ def run_walk_forward(
                             model_cfg=model_cfg, boundary_policy=boundary_policy,
                             per_fold_hold_bars=effective_hold,
                             per_fold_feature_subsets=per_fold_feature_subsets or {},
-                            anchor_index=anchor)
+                            anchor_index=anchor,
+                            asset_forward_returns=asset_forward_returns,
+                            selected_asset=selected_asset,
+                            oos_legs=oos_leg,
+                            oos_turnover=oos_turn)
 
 
 def summarize_experiment(result: ExperimentResult) -> dict:

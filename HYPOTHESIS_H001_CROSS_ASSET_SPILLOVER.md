@@ -3,7 +3,12 @@
 **Hypothesis ID:** H-001  
 **Research Family:** cross_asset_spillover_v1  
 **Date Preregistered:** 2026-09-13  
-**Status:** PENDING_APPROVAL  
+**Status:** `REJECTED` — corrected independent confirmation failed the
+full-strategy placebo-separation gate on 2021–2026 evidence (2026-09-14).  
+
+> This document preserves the preregistered contract. It is not a current
+> execution plan. See `H001_CORRECTED_TRIAL_1_RESULTS.md` for the supersession
+> and confirmation decision.
 
 ---
 
@@ -327,8 +332,8 @@ All trials will be recorded in `/workspace/experiment_registry.jsonl` with:
 **Researcher signature:** _Automated Research System_  
 **Date:** 2026-09-13  
 
-**Reviewer signature:** _Pending human review_  
-**Date:** _______________
+**Reviewer signature:** _No promotion review performed; hypothesis rejected_  
+**Decision date:** 2026-09-14
 
 ---
 
@@ -396,5 +401,5 @@ All trials will be recorded in `/workspace/experiment_registry.jsonl` with:
 **Document Control:**
 - Version: 1.0
 - Created: 2026-09-13
-- Status: PENDING_APPROVAL
+- Status: REJECTED after corrected independent confirmation
 - Next Review: After trial 5 or 2026-09-27

@@ -2,6 +2,11 @@
 
 A point-in-time, leakage-safe, walk-forward quantitative research platform.
 
+> **Current status (2026-09-14):** `RESEARCH_ONLY`. H-001 is rejected after a
+> corrected independent confirmation; H-002/H-003 are blocked by missing data
+> and portfolio contracts; no live-broker adapter exists. See
+> [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
+
 `raw data -> PIT data -> features -> TRAIN/VAL/OOS walk-forward -> robustness
 -> information ablation -> strategy discovery -> portfolio/risk -> experiment
 registry`
@@ -26,7 +31,7 @@ src/quant_research/
   experiments/              registry, leaderboard, promotion
   execution/                paper simulator, safeguards, operational controls
   run.py                    one-command research pipeline (CLI)
-tests/                      pytest suite (322 collected tests)
+tests/                      pytest suite (363 collected tests)
 configs/                    baseline.yaml (synthetic), real_spy.yaml (yfinance)
 Institutional_Quant_Research_Engine_V2.1.ipynb   thin orchestration notebook
 ```
@@ -338,9 +343,9 @@ the loader raises `DataValidationError`; there is no fabricated success path.
 ## Known limitations
 
 - Only daily frequency (`1d`) is implemented.
-- The business-day calendar in `missing_data_report` treats exchange holidays
-  as missing gaps; real SPY data therefore has a nonzero missing-bar report.
-  Follow-up work should use a per-symbol exchange calendar.
+- Daily coverage and paper-session evidence use the configured
+  `exchange_calendars` schedule (default `XNYS`), including holidays. A single
+  run still assumes one configured exchange calendar for its entire universe.
 - The information/news engine is exercised with synthetic labelled events in
   offline mode; real news/Reddit/X providers are an external integration that
   has no credentials in this environment (interface + offline path exist).
@@ -349,3 +354,6 @@ the loader raises `DataValidationError`; there is no fabricated success path.
 - Strategy discovery currently grid-truncates deterministically to
   `max_trials`; threshold selection stays on validation (keeping the search
   bounded), and the final candidate is then evaluated on OOS exactly once.
+- H-002/H-003 preregistered portfolio contracts are intentionally refused by
+  the scalar daily-OHLCV research path until their required data and evaluators
+  exist.

@@ -1,6 +1,10 @@
-# H-002 Trial 1 Results - Liquidity Reversal Hypothesis
+# H-002 Proxy Run 1 — Invalid as Hypothesis Evidence
 
-**Status:** ❌ FAILED - RESEARCH_ONLY  
+> This run used the generic price/volume template, not H-002's preregistered
+> cross-sectional liquidity contract. Preserve it as execution-framework
+> diagnostic evidence only. H-002 remains blocked before a valid trial.
+
+**Status:** INVALID PROXY — `RESEARCH_ONLY`  
 **Experiment ID:** `20260914T133032Z_17e08c3f2a4bb8ec`  
 **Strategy:** `regularized_directional_logistic_short_hold`  
 **Date:** 2026-09-14

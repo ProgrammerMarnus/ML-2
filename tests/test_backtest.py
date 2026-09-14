@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from quant_research.config import ExecutionConfig
-from quant_research.evaluation.backtest import backtest
+from quant_research.evaluation.backtest import backtest, backtest_selected_asset
 
 
 @pytest.fixture()
@@ -105,3 +105,43 @@ def test_hold_bars_reduces_turnover(setup):
     bt1 = backtest(sig, rets, cfg, threshold=0.5, hold_bars=1)
     bt5 = backtest(sig, rets, cfg, threshold=0.5, hold_bars=5)
     assert bt5.metrics["total_turnover"] <= bt1.metrics["total_turnover"]
+
+
+def test_selected_asset_execution_keeps_the_decision_time_leg():
+    idx = pd.bdate_range("2020-01-01", periods=60, freq="B").tz_localize("UTC")
+    asset_returns = pd.DataFrame({"SPY": 0.01, "QQQ": 0.003}, index=idx)
+    signal = pd.Series(0.9, index=idx)
+    selected = pd.Series("SPY", index=idx, dtype="object")
+    selected.iloc[30:] = "QQQ"
+    risk = pd.Series(np.sin(np.arange(len(idx))) * 0.01, index=idx)
+    result = backtest_selected_asset(
+        signal, asset_returns, selected,
+        ExecutionConfig(fee_bps=0.0, slippage_bps=0.0),
+        threshold=0.5, risk_returns=risk,
+    )
+    # The QQQ selection at bar 30 executes one bar later under the shared
+    # delayed-close contract; its return, not SPY's, is earned from then on.
+    assert result.legs.iloc[31] == "QQQ"
+    assert result.positions.iloc[31] > 0
+    assert result.gross_returns.iloc[31] / result.positions.iloc[31] == pytest.approx(0.003)
+
+
+def test_selected_asset_switch_is_charged_as_two_sided_turnover():
+    idx = pd.bdate_range("2020-01-01", periods=60, freq="B").tz_localize("UTC")
+    asset_returns = pd.DataFrame({"SPY": 0.01, "QQQ": 0.002}, index=idx)
+    signal = pd.Series(0.9, index=idx)
+    selected = pd.Series("SPY", index=idx, dtype="object")
+    selected.iloc[30:] = "QQQ"
+    risk = pd.Series(np.sin(np.arange(len(idx))) * 0.01, index=idx)
+    result = backtest_selected_asset(
+        signal, asset_returns, selected,
+        ExecutionConfig(fee_bps=5.0, slippage_bps=0.0),
+        threshold=0.5, risk_returns=risk,
+    )
+    switch = 31
+    assert result.turnover.iloc[switch] == pytest.approx(
+        result.positions.iloc[switch - 1] + result.positions.iloc[switch]
+    )
+    assert result.metrics["fee_cost"] == pytest.approx(
+        result.turnover.sum() * 5.0 / 10000.0
+    )

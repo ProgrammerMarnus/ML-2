@@ -1,95 +1,60 @@
-"""Cross-asset spillover features for H-001 hypothesis.
+"""The frozen H-001 SPY/QQQ cross-asset feature contract.
 
-Economic mechanism: Information diffusion lag between SPY and QQQ creates
-predictable spillover effects with 1-3 day delays.
-
-Features are computed using only past data (no look-ahead bias).
+The implementation deliberately mirrors the nine columns named in
+``HYPOTHESIS_H001_CROSS_ASSET_SPILLOVER.md``.  It is not a generic bag of
+related return lags: adding a plausible-but-unregistered signal would change
+the hypothesis and must instead be captured in a new protocol.
 """
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 
 
-CROSS_ASSET_FEATURE_VERSION = "h001.v1.0"
+CROSS_ASSET_FEATURE_VERSION = "h001.v2.0"
 
 
 def compute_spillover_features(
-    target_returns: pd.Series,
-    spy_returns: pd.Series,
-    qqq_returns: pd.Series,
-    spy_volume: Optional[pd.Series] = None,
-    qqq_volume: Optional[pd.Series] = None,
+    spy_close: pd.Series,
+    qqq_close: pd.Series,
+    spy_volume: pd.Series,
+    qqq_volume: pd.Series,
+    vix: pd.Series,
 ) -> pd.DataFrame:
-    """Compute cross-asset spillover features.
-    
-    Args:
-        target_returns: Returns of the target asset
-        spy_returns: SPY returns (market proxy)
-        qqq_returns: QQQ returns (tech sector proxy)
-        spy_volume: Optional SPY volume for intensity weighting
-        qqq_volume: Optional QQQ volume for intensity weighting
-    
-    Returns:
-        DataFrame with spillover features, indexed to match target_returns
+    """Build H-001's locked ratio, volatility-regime, and volume features.
+
+    Values at bar ``t`` use only prices, volumes, and VIX observed no later
+    than ``t``.  The research runner trades on the following return, so the
+    current-bar inputs cannot enter an already-executed position.
     """
-    # Align all series
-    df = pd.DataFrame({
-        'target_ret': target_returns,
-        'spy_ret': spy_returns,
-        'qqq_ret': qqq_returns,
-    })
-    
-    if spy_volume is not None:
-        df['spy_vol'] = spy_volume
-    if qqq_volume is not None:
-        df['qqq_vol'] = qqq_volume
-    
-    df = df.dropna()
-    
-    features = pd.DataFrame(index=df.index)
-    
-    # H1: Direct spillover - QQQ returns lead target with 1-3 day lag
-    for lag in [1, 2, 3]:
-        features[f'qqq_spillover_lag{lag}'] = df['qqq_ret'].shift(lag)
-    
-    # H2: SPY spillover - market-wide information diffusion
-    for lag in [1, 2]:
-        features[f'spy_spillover_lag{lag}'] = df['spy_ret'].shift(lag)
-    
-    # H3: Interaction term - QQQ spillover conditional on market regime
-    features['qqq_spill_x_spy_regime'] = (
-        df['qqq_ret'].shift(1) * 
-        (df['spy_ret'].rolling(20).mean() > 0).astype(int)
+    frame = pd.concat(
+        [spy_close.rename("spy_close"), qqq_close.rename("qqq_close"),
+         spy_volume.rename("spy_volume"), qqq_volume.rename("qqq_volume"),
+         vix.rename("vix")],
+        axis=1,
     )
-    
-    # H4: Volume-weighted spillover (if volume available)
-    if 'spy_vol' in df.columns and 'qqq_vol' in df.columns:
-        spy_vol_ma = df['spy_vol'].rolling(20).mean()
-        qqq_vol_ma = df['qqq_vol'].rolling(20).mean()
-        
-        features['vol_weighted_qqq_spill'] = (
-            df['qqq_ret'].shift(1) * 
-            (qqq_vol_ma / qqq_vol_ma.rolling(60).mean())
-        )
-    
-    # H5: Spillover acceleration (change in spillover magnitude)
-    features['spillover_accel'] = (
-        features['qqq_spillover_lag1'] - features['qqq_spillover_lag1'].shift(1)
-    )
-    
-    # H6: Cumulative spillover over 2 days
-    features['cumulative_spill_2d'] = (
-        df['qqq_ret'].shift(1) + df['qqq_ret'].shift(2)
-    )
-    
-    # H7: Asymmetric spillover (positive vs negative)
-    features['positive_spill'] = np.maximum(df['qqq_ret'].shift(1), 0)
-    features['negative_spill'] = np.minimum(df['qqq_ret'].shift(1), 0)
-    
-    return features
+    if (frame["vix"] <= 0).any():
+        raise ValueError("H-001 requires strictly positive VIX observations")
+    ratio_price = frame["qqq_close"] / frame["spy_close"]
+    ratio_ma20 = ratio_price.rolling(20, min_periods=20).mean()
+    ratio_std20 = ratio_price.rolling(20, min_periods=20).std()
+    ratio_zscore = (ratio_price - ratio_ma20) / ratio_std20.replace(0.0, float("nan"))
+    spy_volume_mean = frame["spy_volume"].rolling(20, min_periods=20).mean()
+    qqq_volume_mean = frame["qqq_volume"].rolling(20, min_periods=20).mean()
+    return pd.DataFrame({
+        "ratio_price": ratio_price,
+        "ratio_ma20": ratio_ma20,
+        "ratio_std20": ratio_std20,
+        "ratio_zscore": ratio_zscore,
+        "ratio_zscore_lag1": ratio_zscore.shift(1),
+        "ratio_zscore_lag3": ratio_zscore.shift(3),
+        "vol_regime": frame["vix"].rolling(20, min_periods=20).mean() / frame["vix"],
+        "spy_volume_zscore": (frame["spy_volume"] - spy_volume_mean) /
+                             frame["spy_volume"].rolling(20, min_periods=20).std(),
+        "qqq_volume_zscore": (frame["qqq_volume"] - qqq_volume_mean) /
+                             frame["qqq_volume"].rolling(20, min_periods=20).std(),
+    }, index=frame.index)
 
 
 def validate_spillover_features(features: pd.DataFrame) -> Tuple[bool, List[str]]:
@@ -100,17 +65,11 @@ def validate_spillover_features(features: pd.DataFrame) -> Tuple[bool, List[str]
     """
     errors = []
     
-    # Check for NaN patterns
-    nan_pct = features.isna().mean()
-    if (nan_pct > 0.5).any():
-        high_nan_cols = nan_pct[nan_pct > 0.5].index.tolist()
-        errors.append(f"Features with >50% NaN: {high_nan_cols}")
-    
-    # Check for infinite values
-    if np.isinf(features.values).any():
+    # Check for infinite values; warm-up NaNs are expected and are handled by
+    # the fold-local imputer.
+    if not pd.DataFrame(features).replace([float("inf"), float("-inf")], float("nan")).equals(features):
         errors.append("Infinite values detected in features")
-    
-    # Check for constant features
+
     constant_cols = [col for col in features.columns if features[col].nunique() == 1]
     if constant_cols:
         errors.append(f"Constant features: {constant_cols}")
@@ -122,58 +81,48 @@ def get_feature_specs() -> List[dict]:
     """Return feature specifications for registry."""
     return [
         {
-            "feature_name": "qqq_spillover_lag1",
-            "definition": "QQQ return lagged by 1 day",
+            "feature_name": "ratio_price",
+            "definition": "QQQ close / SPY close",
             "source": "cross_asset_spillover",
-            "required_history": 2,
+            "required_history": 1,
+            "availability_rule": "SPY/QQQ closes observed at bar t; no future data",
+            "missing_data_policy": "NaN during warm-up; fold-local imputer",
+            "normalization_rule": "fold-local StandardScaler",
+            "version": CROSS_ASSET_FEATURE_VERSION,
+        },
+        {
+            "feature_name": "ratio_ma20",
+            "definition": "20-bar rolling mean of ratio_price",
+            "source": "cross_asset_spillover",
+            "required_history": 20,
             "availability_rule": "trailing window ending at bar t; no future data",
             "missing_data_policy": "NaN during warm-up; fold-local imputer",
             "normalization_rule": "fold-local StandardScaler",
             "version": CROSS_ASSET_FEATURE_VERSION,
         },
         {
-            "feature_name": "qqq_spillover_lag2",
-            "definition": "QQQ return lagged by 2 days",
+            "feature_name": "ratio_std20",
+            "definition": "20-bar rolling standard deviation of ratio_price",
             "source": "cross_asset_spillover",
-            "required_history": 3,
+            "required_history": 20,
             "availability_rule": "trailing window ending at bar t; no future data",
             "missing_data_policy": "NaN during warm-up; fold-local imputer",
             "normalization_rule": "fold-local StandardScaler",
             "version": CROSS_ASSET_FEATURE_VERSION,
         },
         {
-            "feature_name": "qqq_spillover_lag3",
-            "definition": "QQQ return lagged by 3 days",
+            "feature_name": "ratio_zscore",
+            "definition": "(ratio_price - ratio_ma20) / ratio_std20",
             "source": "cross_asset_spillover",
-            "required_history": 4,
+            "required_history": 20,
             "availability_rule": "trailing window ending at bar t; no future data",
             "missing_data_policy": "NaN during warm-up; fold-local imputer",
             "normalization_rule": "fold-local StandardScaler",
             "version": CROSS_ASSET_FEATURE_VERSION,
         },
         {
-            "feature_name": "spy_spillover_lag1",
-            "definition": "SPY return lagged by 1 day",
-            "source": "cross_asset_spillover",
-            "required_history": 2,
-            "availability_rule": "trailing window ending at bar t; no future data",
-            "missing_data_policy": "NaN during warm-up; fold-local imputer",
-            "normalization_rule": "fold-local StandardScaler",
-            "version": CROSS_ASSET_FEATURE_VERSION,
-        },
-        {
-            "feature_name": "spy_spillover_lag2",
-            "definition": "SPY return lagged by 2 days",
-            "source": "cross_asset_spillover",
-            "required_history": 3,
-            "availability_rule": "trailing window ending at bar t; no future data",
-            "missing_data_policy": "NaN during warm-up; fold-local imputer",
-            "normalization_rule": "fold-local StandardScaler",
-            "version": CROSS_ASSET_FEATURE_VERSION,
-        },
-        {
-            "feature_name": "qqq_spill_x_spy_regime",
-            "definition": "QQQ lag-1 return × indicator(SPY 20d mean return > 0)",
+            "feature_name": "ratio_zscore_lag1",
+            "definition": "ratio_zscore shifted by one bar",
             "source": "cross_asset_spillover",
             "required_history": 21,
             "availability_rule": "trailing window ending at bar t; no future data",
@@ -182,40 +131,40 @@ def get_feature_specs() -> List[dict]:
             "version": CROSS_ASSET_FEATURE_VERSION,
         },
         {
-            "feature_name": "spillover_accel",
-            "definition": "Change in QQQ spillover_lag1 from t-1 to t",
+            "feature_name": "ratio_zscore_lag3",
+            "definition": "ratio_zscore shifted by three bars",
             "source": "cross_asset_spillover",
-            "required_history": 3,
+            "required_history": 23,
             "availability_rule": "trailing window ending at bar t; no future data",
             "missing_data_policy": "NaN during warm-up; fold-local imputer",
             "normalization_rule": "fold-local StandardScaler",
             "version": CROSS_ASSET_FEATURE_VERSION,
         },
         {
-            "feature_name": "cumulative_spill_2d",
-            "definition": "Sum of QQQ returns at lag 1 and lag 2",
+            "feature_name": "vol_regime",
+            "definition": "20-bar VIX mean / VIX",
             "source": "cross_asset_spillover",
-            "required_history": 3,
+            "required_history": 20,
+            "availability_rule": "VIX observed at bar t; no future data",
+            "missing_data_policy": "NaN during warm-up; fold-local imputer",
+            "normalization_rule": "fold-local StandardScaler",
+            "version": CROSS_ASSET_FEATURE_VERSION,
+        },
+        {
+            "feature_name": "spy_volume_zscore",
+            "definition": "SPY volume relative to its 20-bar mean and standard deviation",
+            "source": "cross_asset_spillover",
+            "required_history": 20,
             "availability_rule": "trailing window ending at bar t; no future data",
             "missing_data_policy": "NaN during warm-up; fold-local imputer",
             "normalization_rule": "fold-local StandardScaler",
             "version": CROSS_ASSET_FEATURE_VERSION,
         },
         {
-            "feature_name": "positive_spill",
-            "definition": "max(QQQ lag-1 return, 0)",
+            "feature_name": "qqq_volume_zscore",
+            "definition": "QQQ volume relative to its 20-bar mean and standard deviation",
             "source": "cross_asset_spillover",
-            "required_history": 2,
-            "availability_rule": "trailing window ending at bar t; no future data",
-            "missing_data_policy": "NaN during warm-up; fold-local imputer",
-            "normalization_rule": "fold-local StandardScaler",
-            "version": CROSS_ASSET_FEATURE_VERSION,
-        },
-        {
-            "feature_name": "negative_spill",
-            "definition": "min(QQQ lag-1 return, 0)",
-            "source": "cross_asset_spillover",
-            "required_history": 2,
+            "required_history": 20,
             "availability_rule": "trailing window ending at bar t; no future data",
             "missing_data_policy": "NaN during warm-up; fold-local imputer",
             "normalization_rule": "fold-local StandardScaler",

@@ -1,3 +1,8 @@
+> **Historical audit snapshot.** This report describes commit
+> `36d87064d8da89fea649573141d5a6521aa1ebc5`; later fixes supersede its open
+> finding counts. See [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md)
+> for current status.
+
 **Deep audit — Quant Research Engine V2.1.3**  
 9 September 2026 · `/home/marnus/VS-Code/ML-2` · commit `36d87064d8da89fea649573141d5a6521aa1ebc5`
 

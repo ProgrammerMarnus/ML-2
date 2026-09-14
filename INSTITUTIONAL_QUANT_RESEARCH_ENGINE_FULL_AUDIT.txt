@@ -1,3 +1,8 @@
+HISTORICAL AUDIT SNAPSHOT
+This report describes V2.1.2 as audited on 2026-09-07. Later audits and fixes
+supersede its open-finding inventory. As of 2026-09-14 the project remains
+RESEARCH_ONLY; see CURRENT_PROJECT_STATUS.md for current evidence and status.
+
 INSTITUTIONAL QUANT RESEARCH ENGINE V2.1.2 — FULL AUDIT
 Date: 2026-09-07
 Basis: supplied Repomix repository export + bundled artifacts/results + local test execution

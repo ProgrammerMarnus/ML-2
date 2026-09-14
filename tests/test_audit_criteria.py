@@ -23,6 +23,7 @@ from quant_research.evaluation.walk_forward import (
 from quant_research.experiments.registry import (
     SearchLedger,
     TrialCounter,
+    dataset_family_identity,
     family_id_for_search,
 )
 from quant_research.features.point_in_time import validate_events
@@ -303,6 +304,40 @@ def test_c14_family_attempts_counted_once(tmp_path):
     ledger.record_outcome(fid, "search", 5, "completed", attempt_id=s1["attempt_id"])
     assert ledger.family_search_count(fid) == 1
     assert ledger.family_attempt_count(fid) == 2  # 1 completed + 1 unresolved
+
+
+def test_e10_tiny_content_revision_keeps_research_family():
+    contract = {
+        "mode": "yfinance",
+        "assets": ["QQQ", "SPY"],
+        "target": "SPY",
+        "start": "2010-01-01",
+        "end": "2026-01-01",
+        "frequency": "1d",
+        "exchange_calendar": "XNYS",
+    }
+    first = dataset_family_identity("content-hash-a", **contract)
+    revised = dataset_family_identity("content-hash-b", **contract)
+    assert first != revised  # exact provenance remains visible
+    assert family_id_for_search(first, "eval-v1") == family_id_for_search(
+        revised, "eval-v1"
+    )
+
+
+def test_e10_distinct_data_contracts_do_not_share_research_family():
+    common = {
+        "mode": "yfinance",
+        "assets": ["QQQ", "SPY"],
+        "target": "SPY",
+        "start": "2010-01-01",
+        "frequency": "1d",
+        "exchange_calendar": "XNYS",
+    }
+    first = dataset_family_identity("same-hash", end="2025-01-01", **common)
+    extended = dataset_family_identity("same-hash", end="2026-01-01", **common)
+    assert family_id_for_search(first, "eval-v1") != family_id_for_search(
+        extended, "eval-v1"
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -19,6 +19,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 
 from ..config import AppConfig
+from ..data.calendar import is_session
 from ..execution.paper import (
     PaperBroker, PaperOrder, OrderSide, OrderStatus, Safeguards,
 )
@@ -141,6 +142,12 @@ class PaperValidationRunner:
         if current_time.tzinfo is None or not isinstance(bar_data, dict) or not bar_data:
             return
         if broker._current_bar != current_time:
+            return
+        # E01: a distinct UTC date is evidence only when it is an official
+        # session on the configured exchange. Weekend/holiday process_bar
+        # calls remain visible in the broker audit but cannot manufacture
+        # paper-validation duration.
+        if not is_session(current_time, exchange=self.cfg.data.exchange_calendar):
             return
         if self._last_step_time is not None and current_time <= self._last_step_time:
             return

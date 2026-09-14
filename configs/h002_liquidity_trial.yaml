@@ -1,5 +1,7 @@
-# H-002 Liquidity Reversal - Trial 2 (Corrected)
-# Uses actual liquidity reversal features from registry
+# HISTORICAL PROXY ONLY — DO NOT EXECUTE AS H-002.
+# This single-target synthetic OHLCV configuration does not meet H-002's
+# preregistered Russell 3000, intraday trade-classification, market-cap, VIX,
+# or dollar-neutral cross-sectional portfolio contract. The runtime refuses it.
 
 data:
   mode: synthetic

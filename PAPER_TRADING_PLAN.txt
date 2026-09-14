@@ -1,187 +1,78 @@
 =================================================================
-PRE-PAPER TRADING PLAN
+PAPER TRADING PLAN — CURRENT
+As of: 2026-09-14
 =================================================================
 
-Current State Summary
----------------------
-| Aspect                  | Status                                                      |
-|-------------------------|-------------------------------------------------------------|
-| Code version            | V2.1.3 (frozen)                                             |
-| Promotion state         | RESEARCH_ONLY                                               |
-| Real-data net Sharpe    | -0.0712 (negative)                                          |
-| Failed gates            | cost_stress_survives, delay_stress_survives,                |
-|                         | bootstrap_positive_prob, placebo_separates                  |
-| Paper broker            | Interface stub — no order lifecycle, no fill simulation,    |
-|                         | no cash accounting                                          |
-| Safeguards              | Standalone class, NOT wired into PaperBroker.submit()       |
-| Promotion automation    | Only auto-promotes to CANDIDATE; PAPER_READY+ requires      |
-|                         | live evidence                                               |
+CURRENT STATE
+-------------
+Promotion state: RESEARCH_ONLY
+Research evidence: H-001 rejected; H-002 and H-003 blocked before valid trial
+Test baseline: 360-test full run passed; 3 later PaperBroker tests pass;
+               363 tests currently collect
+PaperBroker: hardened local simulator (phase 4.1 complete)
+Live adapter: none
+Observed paper sessions: none accepted as promotion evidence
 
+The PaperBroker is no longer an interface stub. It implements order lifecycle,
+causal fill latency, cash/position validation, pending-cash reservation,
+idempotent order identifiers, reduce-only emergency exits, safeguards,
+tamper-evident persistence, restart validation, and session accounting. Those
+properties are infrastructure evidence only. They do not establish strategy
+edge, market connectivity, paper-market performance, or live readiness.
 
------------------------------------------------------------------
-PHASE 1: Fix Research Gates (Get to ROBUST_OOS)
------------------------------------------------------------------
+GATE 1 — RESEARCH EVIDENCE
+--------------------------
+[x] Legacy pv-2.2.0 line closed as failed.
+[x] H-001 executed through the corrected hypothesis-specific path.
+[x] H-001 rejected by its preregistered placebo gate.
+[ ] Supply the exact H-002 cross-sectional liquidity data contract or close it.
+[ ] Supply the exact H-003 multi-asset/VIX data contract or close it.
+[ ] Produce a preregistered strategy that passes every required research gate
+    on untouched evidence.
 
-Before paper trading is even conceivable, the strategy must pass all
-automated research gates. Currently it fails 4:
+No paper-validation promotion can begin while this gate is open.
 
-1. cost_stress_survives
-   - Strategy cannot survive 10 bps fee stress.
-   - Cost drag is 11.90% on a gross Sharpe of only 0.1572.
-   - Need to reduce turnover, increase signal strength, or both.
+GATE 2 — PAPER EXECUTION ACCOUNTING
+-----------------------------------
+[x] Order lifecycle, rejection, cancellation, and partial-fill mechanics.
+[x] Fill-time cash/exposure checks and cross-symbol cash reservation.
+[x] Safeguards and persistent kill-switch behavior.
+[x] Restart integrity, broker snapshots, and tamper detection.
+[x] 250-order simulator load smoke.
+[ ] End-to-end realized/unrealized P&L attribution.
+[ ] Buying-power and margin policy for the intended strategy/universe.
+[ ] Exchange-session and stale-market-data integration tests.
+[ ] Alert delivery and operator acknowledgement workflow.
+[ ] Manual cancel-all, flatten, and controlled reset procedure.
 
-2. delay_stress_survives
-   - Strategy cannot survive execution delay.
-   - Signal degrades too quickly with latency.
+GATE 3 — OBSERVED PAPER VALIDATION
+----------------------------------
+[ ] Connect to an approved delayed/live paper data and execution endpoint.
+[ ] Record unique sessions from durable broker events, not repeated calls.
+[ ] Reconcile orders, fills, cash, positions, P&L, and marks every session.
+[ ] Exercise failure/restart, rejection, partial-fill, duplicate-request,
+    stale-data, kill-switch, and emergency-flatten scenarios.
+[ ] Retain immutable validation reports and review all breaches.
 
-3. bootstrap_positive_prob
-   - Only ~56.6% probability that Sharpe > 0.
-   - Needs to exceed the configured threshold (typically 80-90%).
+PAPER_READY, PAPER_VALIDATED, and LIVE_ELIGIBLE require explicit evidence and
+review. The local simulator cannot award these states by itself.
 
-4. placebo_separates
-   - Placebo percentile at 0.45.
-   - Needs to be higher (typically 0.90+, meaning the real strategy
-     beats 90% of null runs).
-   - Adjusted p-value of 0.571 means no statistical separation from
-     noise.
+GATE 4 — LIVE OPERATIONAL READINESS
+-----------------------------------
+[ ] Approved broker and market-data providers.
+[ ] Credential/key-management design with no secrets in project artifacts.
+[ ] Monitoring, alerting, ownership, incident response, and rollback.
+[ ] Position/capital limits independently configured and reviewed.
+[ ] Extended observed-paper period completed without unresolved breaches.
+[ ] Human go/no-go review documented.
 
-Actions needed:
-- Improve the underlying signal (currently weak/noisy).
-- Reduce turnover to lower cost drag.
-- Re-run the full pipeline after improvements.
-- Verify all 4 gates pass on fresh OOS evidence.
-- Achieve ROBUST_OOS promotion state.
+STOP CONDITIONS
+---------------
+- Remain RESEARCH_ONLY after any research-gate failure.
+- Stop a paper session on reconciliation failure, stale data, breached limits,
+  corrupt state, or unexplained order/fill activity.
+- Do not send live orders until every gate above is complete and explicitly
+  reviewed.
 
-
------------------------------------------------------------------
-PHASE 2: Harden the Paper Broker (paper.py)
------------------------------------------------------------------
-
-The current PaperBroker is explicitly documented as a stub.
-It needs:
-
-| Missing Component              | What to Build                                               |
-|--------------------------------|-------------------------------------------------------------|
-| Order lifecycle states         | PENDING -> SUBMITTED -> PARTIAL_FILL -> FILLED / REJECTED   |
-|                                | / CANCELLED                                                 |
-| Order IDs                      | Unique, persistent order identifiers (UUID or sequential)   |
-| Partial fills                  | Support for fills at different prices/quantities over time  |
-| Rejection handling             | Orders can be rejected (safeguards, bad data, exchange      |
-|                                | rules)                                                      |
-| Market/limit order semantics   | Market orders (fill at next available price) and limit      |
-|                                | orders (price ceiling/floor)                                |
-| Explicit fill timestamps       | latency_bars = 1 is currently metadata — must become a      |
-|                                | checked, simulated fill time                                |
-| Latency measurement            | Simulate realistic fill delay based on order type and       |
-|                                | market conditions                                           |
-
------------------------------------------------------------------
-PHASE 3: Build Execution Accounting
------------------------------------------------------------------
-
-Per the audit's "Missing for serious paper trading" list:
-
-| Component                    | Description                                           |
-|------------------------------|-------------------------------------------------------|
-| Cash/margin accounting       | Track cash balance, buying power, margin requirements|
-| Position reconciliation      | Internal positions must match filled orders exactly  |
-| P&L attribution              | Realized + unrealized P&L, decomposed by symbol       |
-| Exchange-hours checks        | Only fill orders during simulated market hours        |
-| Stale quote/data handling    | Detect and handle stale market data (no fills on     |
-|                              | stale quotes)                                         |
-| Retry logic                  | Handle transient failures gracefully                 |
-| Audit trail                  | Immutable log of every order event (submission, fill, |
-|                              | cancel, reject)                                       |
-| Persistent kill-switch state | Kill switch must survive process restarts            |
-| Alerting                     | Notify on gate breaches, rejections, data staleness  |
-| Failure/restart tests        | Verify recovery from crash mid-execution             |
-
-
------------------------------------------------------------------
-PHASE 4: Wire Safeguards into the Order Flow
------------------------------------------------------------------
-
-Currently Safeguards is a standalone class that nobody calls.
-The PaperBroker.submit() method must:
-
-1. Check safeguards.check_position(intended) — reject if over limit.
-2. Check safeguards.check_daily_loss(daily_return) — trip kill switch
-   if breached.
-3. Check safeguards.check_drawdown(current_drawdown) — trip kill switch
-   if breached.
-4. Check safeguards.check_data_freshness(last_bar_ts, now) — reject if
-   data stale.
-5. Only proceed with fill if ALL safeguards pass.
-6. If kill switch is active, reject all new orders until manually
-   reset.
-
-
------------------------------------------------------------------
-PHASE 5: Build the Paper Validation Framework
------------------------------------------------------------------
-
-The promotion state machine has:
-PAPER_READY -> PAPER_VALIDATED -> LIVE_ELIGIBLE
-
-The code explicitly states these are "deliberately not automatable here."
-You need to define:
-
-| State           | Entry Criteria                                                |
-|-----------------|---------------------------------------------------------------|
-| PAPER_READY     | All research gates pass + paper broker hardened + safeguards  |
-|                 | wired                                                         |
-| PAPER_VALIDATED | Minimum N days of continuous paper execution with: no         |
-|                 | safeguard breaches, position reconciliation holds, P&L        |
-|                 | attribution matches, kill switch tested                       |
-| LIVE_ELIGIBLE   | Extended paper validation (typically 1-3 months) +            |
-|                 | operational readiness review                                  |
-
-Build:
-- A paper-validation runner that executes the strategy against
-  live/delayed market data.
-- A paper-validation report that feeds evidence back into the
-  promotion gate.
-- Integration with the registry/leaderboard so paper evidence is
-  recorded alongside research evidence.
-
-
------------------------------------------------------------------
-PHASE 6: Operational Readiness
------------------------------------------------------------------
-
-| Task                         | Why                                                    |
-|------------------------------|--------------------------------------------------------|
-| Failure/restart tests        | Verify the system recovers correctly from crashes     |
-| Data feed integration        | Connect to a real market data feed (delayed is fine   |
-|                              | for paper)                                             |
-| Monitoring dashboard         | Real-time view of positions, P&L, safeguard status     |
-| Manual override capability   | Ability to cancel all orders, flatten positions, reset |
-|                              | kill switch                                            |
-| Configuration validation     | Ensure paper-trading config is valid before launch    |
-| Audit trail verification     | Confirm the audit trail is complete and tamper-evident|
-
-
------------------------------------------------------------------
-Recommended Execution Order
------------------------------------------------------------------
-
-1. Fix the strategy -> pass all 4 failed research gates -> reach
-   ROBUST_OOS.
-2. Harden PaperBroker (order lifecycle, validation, fill simulation).
-3. Wire Safeguards into the order flow.
-4. Build execution accounting (cash, positions, P&L).
-5. Build paper validation framework (PAPER_READY -> PAPER_VALIDATED).
-6. Operational readiness (failure tests, monitoring, overrides).
-7. Launch paper trading.
-
-
------------------------------------------------------------------
-CRITICAL NOTE
------------------------------------------------------------------
-
-Phase 1 is the gating item. With a net Sharpe of -0.0712 and 4 failed
-gates, paper trading would be trading a strategy that the system has
-already determined is statistically indistinguishable from noise. The
-honest path is to fix the signal first, then build the paper
-infrastructure around a strategy that actually survives research gates.
-
+Canonical project status: CURRENT_PROJECT_STATUS.md
+Detailed readiness ledger: LIVE_TRADING_READINESS_CHECKLIST.txt

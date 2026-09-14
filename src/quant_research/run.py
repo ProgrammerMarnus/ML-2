@@ -31,6 +31,7 @@ import pandas as pd
 
 from . import CODE_VERSION
 from .config import AppConfig, load_config
+from .data.schemas import DataValidationError
 from .data.loaders import load_market_data, to_panels, to_price_panels
 from .data.snapshots import create_run_manifest, get_git_info, save_manifest, save_snapshot
 from .data.validation import missing_data_report, validate_ohlcv
@@ -44,16 +45,49 @@ from .evaluation.robustness import (
 from .evaluation.walk_forward import LockedTestProtocol
 from .experiments.leaderboard import build_leaderboard
 from .experiments.promotion import evaluate_gates, promotion_decision, stress_survival
-from .experiments.registry import ExperimentRegistry, TrialCounter, SearchLedger
-from .features.information import build_information_features
+from .experiments.registry import (
+    ExperimentRegistry, SearchLedger, TrialCounter, dataset_family_identity,
+)
+from .features.assembly import build_feature_panel, h001_selected_legs, selected_sources
 from .features.leakage import feature_leakage_report
-from .features.price_volume import build_price_volume_features, build_signal_extensions
+from .features.price_volume import build_price_volume_features
 from .features.point_in_time import validate_events
 from .features.registry import registry_hash
 from .portfolio.risk import risk_report
 from .strategies.baseline import run_walk_forward, summarize_experiment
 
 SYNTHETIC_EVENT_NOTE = "synthetic events for offline exercise of the PIT layer; NOT market evidence"
+
+
+def _assert_preregistered_execution_supported(cfg: AppConfig) -> list[str]:
+    """Refuse proxy runs that could be mislabelled as H-002/H-003 evidence.
+
+    The generic engine evaluates one scalar target against daily OHLCV.  H-002
+    and H-003 each require a different data and portfolio contract; allowing
+    their registered feature source through this path would create an invalid
+    result with a deceptively official-looking experiment record.  The feature
+    functions remain available for isolated development tests.
+    """
+    sources = selected_sources(
+        cfg.features, events_available=cfg.data.mode == "synthetic",
+    )
+    missing_contracts = {
+        "liquidity_reversal": (
+            "H-002 cannot run in the scalar daily-OHLCV engine: it requires "
+            "point-in-time Russell 3000 membership, market-cap and intraday "
+            "buy/sell classification data, plus a cross-sectional dollar-neutral "
+            "portfolio evaluator."
+        ),
+        "volatility_risk_premium": (
+            "H-003 cannot run in the scalar daily-OHLCV engine: it requires "
+            "the 17-ETF universe, VIX-futures M1-M3 term structure, rolling "
+            "cross-asset correlations, and a risk-parity portfolio evaluator."
+        ),
+    }
+    unsupported = [missing_contracts[source] for source in sources if source in missing_contracts]
+    if unsupported:
+        raise DataValidationError(" ".join(unsupported))
+    return sources
 
 
 def generate_synthetic_events(bars_index: pd.DatetimeIndex, symbol: str, seed: int = 7) -> pd.DataFrame:
@@ -89,6 +123,7 @@ def generate_synthetic_events(bars_index: pd.DatetimeIndex, symbol: str, seed: i
 
 def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> Dict:
     """Execute the full research pipeline; returns the experiment record."""
+    declared_sources = _assert_preregistered_execution_supported(cfg)
     out = Path(output_dir or cfg.output_dir)
     out.mkdir(parents=True, exist_ok=True)
     report: Dict = {"config_fingerprint": cfg.fingerprint()}
@@ -133,24 +168,53 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
     report["events"] = events
 
     # --- 3. features -----------------------------------------------------------
+    # Keep the canonical price-only panel for diagnostics/ablation below, but
+    # construct model inputs solely through the declared feature contract.
     price_feats = build_price_volume_features(close, volume, cfg.data.target)
-    ext_feats = build_signal_extensions(open_, high, low, close, volume, cfg.data.target)
-    if events is not None:
-        info_feats = build_information_features(close.index, events, cfg.data.target)
-        features = price_feats.join(ext_feats, how="left").join(info_feats, how="left")
-        info_cols = list(info_feats.columns)
-    else:
-        features = price_feats.join(ext_feats, how="left")
-        info_cols = []
+    features = build_feature_panel(
+        close, volume, cfg.data.target, cfg.features,
+        open_=open_, high=high, low=low, events=events,
+    )
+    info_cols = [column for column in features.columns if column.startswith("info_")]
+    feature_sources = declared_sources
     leakage = feature_leakage_report(close, volume, cfg.data.target, info_events=events,
                                      open_=open_, high=high, low=low)
     report["feature_leakage_check"] = leakage
     integrity_ok = integrity_ok and leakage["passed"]
 
-    y = (close[cfg.data.target].shift(-1) > close[cfg.data.target]).astype("float")
-    y[close[cfg.data.target].shift(-1).isna()] = np.nan
-    fwd = close[cfg.data.target].shift(-1) / close[cfg.data.target] - 1.0
+    asset_forward_returns = None
+    selected_asset = None
+    if "cross_asset_spillover" in feature_sources:
+        if feature_sources != ["cross_asset_spillover"]:
+            raise DataValidationError(
+                "H-001 is a closed feature contract; cross_asset_spillover cannot "
+                "be combined with other feature sources"
+            )
+        asset_forward_returns = pd.DataFrame({
+            "SPY": close["SPY"].shift(-1) / close["SPY"] - 1.0,
+            "QQQ": close["QQQ"].shift(-1) / close["QQQ"] - 1.0,
+        })
+        selected_asset = h001_selected_legs(features)
+        fwd = pd.Series(np.nan, index=features.index, dtype="float64")
+        for symbol in ("SPY", "QQQ"):
+            mask = selected_asset.eq(symbol)
+            fwd.loc[mask] = asset_forward_returns.loc[mask, symbol]
+        report["asset_execution_contract"] = {
+            "strategy": "H-001 conditional selected-asset",
+            "assets": ["SPY", "QQQ"],
+            "selection_rule": "ratio_zscore > 0 selects SPY; otherwise QQQ",
+            "switch_turnover": "two-sided",
+        }
+    else:
+        fwd = close[cfg.data.target].shift(-1) / close[cfg.data.target] - 1.0
+    y = (fwd > 0).astype("float")
+    y[fwd.isna()] = np.nan
     feature_version = registry_hash(list(features.columns))
+    if cfg.research.protocol_path:
+        if sorted(protocol.feature_names) != sorted(features.columns):
+            raise DataValidationError(
+                "research protocol feature contract does not match the selected feature panel"
+            )
 
         # --- 4. walk-forward baseline (locked test) ---------------------------------
     eval_fp = cfg.evaluation.fingerprint() if hasattr(cfg.evaluation, "fingerprint") else str(cfg.evaluation)
@@ -177,21 +241,33 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
     shared_ledger_dir.mkdir(parents=True, exist_ok=True)
     ledger = SearchLedger(shared_ledger_dir / "search_ledger.jsonl")
     eval_fp = cfg.evaluation.fingerprint() if hasattr(cfg.evaluation, "fingerprint") else str(cfg.evaluation)
-    # E10: family key uses the coarse lineage (kind+major version), NOT the
-    # exact content digest, so tiny revisions (type suffixes, patched rows)
-    # stay in the same family.  The exact digest travels on the start/outcome
-    # entries (dataset_hash field) for forensics.
+    # E10: bind the exact snapshot revision to a stable data contract. Family
+    # identity retains provider/mode, universe, window, frequency and calendar,
+    # but not the exact content hash, so minor revisions cannot reset history.
     from .experiments.registry import family_lineage as _lineage
-    family_id = SearchLedger.family_id(dataset_version, eval_fp)
+    family_dataset_identity = dataset_family_identity(
+        dataset_version,
+        mode=cfg.data.mode,
+        assets=cfg.data.assets,
+        target=cfg.data.target,
+        start=cfg.data.start,
+        end=cfg.data.end,
+        frequency=cfg.data.frequency,
+        exchange_calendar=cfg.data.exchange_calendar,
+    )
+    family_id = SearchLedger.family_id(family_dataset_identity, eval_fp)
     n_threshold_trials = len(getattr(cfg.research, "threshold_candidates", [0.5]))
     start_entry = ledger.record_start(family_id, "baseline_threshold_search", n_threshold_trials,
                                       dataset_version, eval_fp,
                                       {"stage": "walk_forward_baseline",
-                                       "dataset_lineage": _lineage(dataset_version)})
+                                       "dataset_lineage": _lineage(family_dataset_identity),
+                                       "dataset_family_identity": family_dataset_identity})
     attempt_id = start_entry.get("attempt_id", "")
 
     baseline = run_walk_forward(features, y, fwd, cfg, locked_test=locked_test,
-                                trial_counter=counter)
+                                trial_counter=counter,
+                                asset_forward_returns=asset_forward_returns,
+                                selected_asset=selected_asset)
     summary = summarize_experiment(baseline)
 
     ledger.record_outcome(family_id, "baseline_threshold_search", n_threshold_trials,
@@ -201,6 +277,7 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
     report["folds"] = baseline.folds
     report["baseline_summary"] = summary
     report["search_family_id"] = family_id
+    report["search_family_dataset_identity"] = family_dataset_identity
     return _finish_pipeline(cfg, out, report, close, volume, price_feats, features,
                             info_cols, y, fwd, baseline, summary, locked_test,
                             counter, start_count, dataset_version, feature_version,
@@ -330,18 +407,33 @@ def _finish_pipeline(cfg, out, report, close, volume, price_feats, features, inf
     report["bootstrap"] = boot
 
     def _summarize(feats: pd.DataFrame) -> dict:
-        return summarize_experiment(run_walk_forward(feats, y, fwd, cfg,
-                                                     locked_test=locked_test))
+        return summarize_experiment(run_walk_forward(
+            feats, y, fwd, cfg, locked_test=locked_test,
+            asset_forward_returns=baseline.asset_forward_returns,
+            selected_asset=baseline.selected_asset,
+        ))
 
     def _run_pipeline(X, yy, ff):
         """Full pass-through pipeline for placebo: uses the permuted inputs."""
-        return summarize_experiment(run_walk_forward(X, yy, ff, cfg,
-                                                     locked_test=locked_test))
+        placebo_legs = baseline.selected_asset
+        if baseline.asset_forward_returns is not None:
+            placebo_legs = h001_selected_legs(X)
+        return summarize_experiment(run_walk_forward(
+            X, yy, ff, cfg, locked_test=locked_test,
+            asset_forward_returns=baseline.asset_forward_returns,
+            selected_asset=placebo_legs,
+        ))
 
-    price_only = _summarize(price_feats)
     metric_keys = ("mean_oos_sharpe", "median_oos_sharpe", "mean_oos_auc", "mean_oos_brier")
-    ablation = [{"source": "price_volume", **{k: price_only[k] for k in metric_keys}}]
-    if info_cols:
+    if baseline.asset_forward_returns is not None:
+        # H-001's preregistration prohibits removing its ratio/VIX/volume
+        # contract. A price-only ablation would be a different hypothesis.
+        ablation = [{"source": "not_applicable_closed_h001_contract",
+                     **{k: summary[k] for k in metric_keys}}]
+    else:
+        price_only = _summarize(price_feats)
+        ablation = [{"source": "price_volume", **{k: price_only[k] for k in metric_keys}}]
+    if info_cols and baseline.asset_forward_returns is None:
         ablation.append({
             "source": "price_plus_information",
             **{k: summary[k] for k in metric_keys},
@@ -442,6 +534,7 @@ def _register_and_decide(cfg, out, report, baseline, summary, robustness, boot,
         # same OOS family can be recognized across artifact directories and the
         # full search history audited.
         "search_family_id": family_id,
+        "search_family_dataset_identity": report.get("search_family_dataset_identity"),
         "search_ledger": str(ledger.path) if ledger else None,
         "search_correction_method": cfg.promotion.selection_correction,
         "research_protocol": report.get("research_protocol"),

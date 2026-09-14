@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from quant_research.config import AppConfig, DataConfig, ResearchConfig
+from quant_research.config import AppConfig, DataConfig, FeatureConfig, ResearchConfig
 from quant_research.data.schemas import DataValidationError
 from quant_research.experiments.automation import create_experiment_plan
 from quant_research.experiments.overnight import (catalogue_size,
@@ -44,6 +44,21 @@ def test_automation_refuses_to_overwrite_a_plan(tmp_path):
     create_experiment_plan(_config(), tmp_path, max_experiments=1)
     with pytest.raises(DataValidationError, match="already exists"):
         create_experiment_plan(_config(), tmp_path, max_experiments=1)
+
+
+def test_automation_protocol_uses_the_configured_feature_sources(tmp_path):
+    cfg = AppConfig(
+        data=DataConfig(mode="synthetic", assets=["SPY", "QQQ", "^VIX"], target="SPY"),
+        features=FeatureConfig(include_sources=["cross_asset_spillover"]),
+        research=ResearchConfig(placebo_runs=1, bootstrap_samples=10),
+    )
+    item = create_experiment_plan(cfg, tmp_path, max_experiments=1)[0]
+    protocol = ResearchProtocol.load(item.protocol_path)
+    assert protocol.feature_names == [
+        "qqq_volume_zscore", "ratio_ma20", "ratio_price", "ratio_std20",
+        "ratio_zscore", "ratio_zscore_lag1", "ratio_zscore_lag3",
+        "spy_volume_zscore", "vol_regime",
+    ]
 
 
 def test_overnight_campaign_refuses_synthetic_data_without_opt_in(tmp_path):

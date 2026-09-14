@@ -168,6 +168,30 @@ class ModelConfig:
 
 
 @dataclass(frozen=True)
+class FeatureConfig:
+    """Declared, auditable feature-source selection for one experiment.
+
+    An empty ``include_sources`` preserves the historic pipeline input: price
+    and volume features (and point-in-time information when it is available).
+    A non-empty list is an explicit allow-list, which is what a preregistered
+    hypothesis must use. ``exclude_features`` applies after source selection.
+    """
+
+    include_sources: List[str] = field(default_factory=list)
+    exclude_features: List[str] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if not all(isinstance(item, str) and item.strip() for item in self.include_sources):
+            raise ConfigError("features.include_sources must contain non-empty strings")
+        if len(self.include_sources) != len(set(self.include_sources)):
+            raise ConfigError("features.include_sources must not contain duplicates")
+        if not all(isinstance(item, str) and item.strip() for item in self.exclude_features):
+            raise ConfigError("features.exclude_features must contain non-empty strings")
+        if len(self.exclude_features) != len(set(self.exclude_features)):
+            raise ConfigError("features.exclude_features must not contain duplicates")
+
+
+@dataclass(frozen=True)
 class ResearchConfig:
     max_trials: int = 48
     bootstrap_samples: int = 500
@@ -236,6 +260,7 @@ class AppConfig:
     evaluation: EvaluationConfig = field(default_factory=EvaluationConfig)
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
     model: ModelConfig = field(default_factory=ModelConfig)
+    features: FeatureConfig = field(default_factory=FeatureConfig)
     research: ResearchConfig = field(default_factory=ResearchConfig)
     promotion: PromotionConfig = field(default_factory=PromotionConfig)
     output_dir: str = "artifacts"
@@ -253,6 +278,7 @@ class AppConfig:
             evaluation=EvaluationConfig(**raw.get("evaluation", {})),
             execution=ExecutionConfig(**raw.get("execution", {})),
             model=ModelConfig(**raw.get("model", {})),
+            features=FeatureConfig(**raw.get("features", {})),
             research=ResearchConfig(**raw.get("research", {})),
             promotion=PromotionConfig(**raw.get("promotion", {})),
             output_dir=raw.get("output_dir", "artifacts"),
@@ -264,6 +290,7 @@ class AppConfig:
             "evaluation": asdict(self.evaluation),
             "execution": asdict(self.execution),
             "model": asdict(self.model),
+            "features": asdict(self.features),
             "research": asdict(self.research),
             "promotion": asdict(self.promotion),
             "output_dir": self.output_dir,

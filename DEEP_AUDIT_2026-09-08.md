@@ -1,3 +1,8 @@
+> **Historical audit snapshot.** This report describes the code as audited on
+> 2026-09-08; later fixes changed many findings. For current resolution and
+> readiness, use [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md) and
+> [LIVE_TRADING_READINESS_CHECKLIST.txt](LIVE_TRADING_READINESS_CHECKLIST.txt).
+
 **Deep audit — ML-2 / Quant Research Engine V2.1.3**  
 Audited 8 September 2026. Root: `/home/marnus/VS-Code/ML-2`.
 

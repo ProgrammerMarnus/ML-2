@@ -1,0 +1,61 @@
+# H-001 corrected execution configuration.
+# The immutable protocol is written by the protocol-first planning command and
+# inserted into the generated copy of this configuration; do not run this file
+# directly as scientific evidence.
+data:
+  mode: yfinance
+  assets: [SPY, QQQ, ^VIX]
+  target: SPY
+  start: "2010-01-01"
+  end: "2021-01-01"
+  frequency: 1d
+  exchange_calendar: XNYS
+  raw_snapshot_dir: data/raw_snapshots
+
+evaluation:
+  train_window: 1008
+  validation_window: 1
+  test_window: 252
+  step_bars: 252
+  purge_bars: 0
+  embargo_bars: 0
+  expanding: false
+
+execution:
+  fee_bps: 1.0
+  slippage_bps: 1.0
+  signal_delay_bars: 0
+  target_vol: 0.10
+  max_position: 1.0
+
+model:
+  type: logistic
+  random_seed: 44
+  logreg_C: 1.0
+  hold_bars: 3
+
+features:
+  include_sources: [cross_asset_spillover]
+  exclude_features: []
+
+research:
+  max_trials: 10
+  bootstrap_samples: 500
+  placebo_runs: 20
+  threshold_candidates: [0.5]
+  hold_candidates: [3]
+
+promotion:
+  min_median_oos_sharpe: 0.0
+  min_mean_oos_sharpe: 0.0
+  max_oos_dd: -0.25
+  cost_stress_fee_bps: 10.0
+  delay_stress_bars: 1
+  min_bootstrap_positive_prob: 0.85
+  min_placebo_percentile: 0.95
+  max_single_fold_share: 0.60
+  max_annual_turnover: 50.0
+  min_placebo_runs: 20
+  max_placebo_adjusted_p: 0.10
+  selection_correction: bonferroni_family
+  max_family_searches: 1

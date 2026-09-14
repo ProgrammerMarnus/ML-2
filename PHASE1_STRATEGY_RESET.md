@@ -1,3 +1,8 @@
+> **Historical implementation plan.** Steps 1–4 were completed. Current Step 5
+> status is H-001 rejected and H-002/H-003 blocked before valid trial; use
+> [PHASE1_PROGRESS.md](PHASE1_PROGRESS.md) rather than the old schedule or
+> unchecked deliverables below.
+
 # Phase 1: Strategy Research Reset - Implementation Plan
 
 ## Executive Summary
@@ -193,5 +198,5 @@ All 14 gates must pass:
 ---
 
 *Created: 2026-09-13*
-*Status: IN PROGRESS*
-*Next Milestone: Close pv-2.2.0 line by EOD*
+*Historical status at creation: IN PROGRESS*  
+*Current status: superseded by PHASE1_PROGRESS.md*

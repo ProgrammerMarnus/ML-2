@@ -103,6 +103,8 @@ def replay_oos(
         per_fold_hold_bars=baseline.per_fold_hold_bars,
         per_fold_feature_subsets=baseline.per_fold_feature_subsets,
         anchor_index=baseline.anchor_index,
+        asset_forward_returns=baseline.asset_forward_returns,
+        selected_asset=baseline.selected_asset,
     )
 
 
@@ -203,9 +205,16 @@ def assert_cost_accounting(res: ExperimentResult, fee_bps: float,
     if p is None:
         raise AssertionError("oos_positions missing; cannot verify costs")
     p = p.sort_index()
-    turn_bar = p.diff().abs()
-    if len(turn_bar):
-        turn_bar.iat[0] = abs(p.iat[0])
+    # An asset switch is two-sided turnover even if scalar gross exposure is
+    # unchanged. Asset-specific executions retain their explicit ledger;
+    # scalar strategies retain the historical |delta(position)| definition.
+    turn_bar = getattr(res, "oos_turnover", None)
+    if turn_bar is None:
+        turn_bar = p.diff().abs()
+        if len(turn_bar):
+            turn_bar.iat[0] = abs(p.iat[0])
+    else:
+        turn_bar = turn_bar.sort_index()
     turnover = float(turn_bar.sum())
     np.testing.assert_allclose(
         res.fee_costs, turnover * fee_bps / 1e4, rtol=0, atol=1e-10,

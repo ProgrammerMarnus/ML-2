@@ -1,6 +1,6 @@
-# Phase 1 Step 4 - Hypothesis Testing Configuration
-# Tests three preregistered hypotheses: H-001, H-002, H-003
-# Strict protocol enforcement with trial budgets
+# HISTORICAL GENERIC SAMPLE CONFIGURATION — NOT A Phase 1 trial plan.
+# It cannot execute preregistered H-002 or H-003: their required data and
+# portfolio contracts are absent, and the runtime refuses those feature sources.
 
 data:
   mode: synthetic          # synthetic | csv | yfinance
