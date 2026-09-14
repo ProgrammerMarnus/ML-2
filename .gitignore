@@ -1,68 +1,51 @@
-```gitignore
-# Compiled Python files
+```
+# Dependencies
+node_modules/
+
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Build and distribution directories
+# Build artifacts
 dist/
 build/
 *.egg-info/
 
-# Virtual environments
-venv/
-.venv/
-env/
-.ENV/
-
-# Node.js dependencies
-node_modules/
-
-# Logs
-*.log
-
-# Temporary files
-*.tmp
-*.temp
-*.swp
-*.swo
-
-# Environment variables
+# Environment files
 .env
 .env.local
 .env.*
 
-# IDE specific files
-.vscode/
-.idea/
-*.swp
-*.swo
+# Logs
+*.log
+
+# Data files that might be temporary
+*.csv
+*.json
+*.parquet
+
+# Coverage reports
+coverage/
+htmlcov/
 
 # OS generated files
 .DS_Store
 Thumbs.db
 
-# Data files (often large)
-*.parquet
-*.csv
-
-# Coverage reports
-.coverage
-htmlcov/
-coverage/
-
-# Testing
-.pytest_cache/
-.hypothesis/
-
-# Distribution artifacts
-*.egg
-*.whl
-
-# Experimental data and logs
+# Artifacts directory
 artifacts/
-closed_strategies/
-data/raw_snapshots/
-data/research_ledgers/
+
+# Data snapshots
+data/raw_snapshots/*.meta.json
+data/raw_snapshots/*.parquet
+
+# Temporary run logs
+**/run_log.txt
+
+# Lock files for counters
+**/trial_counter.json.lock
+**/test_lock.json
+
 ```

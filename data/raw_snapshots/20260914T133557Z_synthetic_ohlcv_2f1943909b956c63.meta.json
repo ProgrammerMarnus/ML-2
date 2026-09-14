@@ -1,0 +1,16 @@
+{
+  "snapshot_id": "20260914T133557Z_synthetic_ohlcv_2f1943909b956c63",
+  "path": "data/raw_snapshots/20260914T133557Z_synthetic_ohlcv_2f1943909b956c63.parquet",
+  "dataset_hash": "2f1943909b956c63",
+  "n_rows": 24640,
+  "symbols": [
+    "AAPL",
+    "GLD",
+    "JPM",
+    "MSFT",
+    "QQQ",
+    "SPY",
+    "TLT"
+  ],
+  "created_utc": "20260914T133557Z"
+}
