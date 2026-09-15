@@ -1,0 +1,27 @@
+{
+  "snapshot_id": "20260915T174605Z_h006_ohlcv_53ec3599faff65a0",
+  "path": "data/raw_snapshots/20260915T174605Z_h006_ohlcv_53ec3599faff65a0.csv.gz",
+  "dataset_hash": "53ec3599faff65a0",
+  "n_rows": 63396,
+  "symbols": [
+    "DBC",
+    "DIA",
+    "EEM",
+    "EFA",
+    "GLD",
+    "HYG",
+    "IEF",
+    "IWM",
+    "LQD",
+    "QQQ",
+    "SHY",
+    "SPY",
+    "TLT",
+    "USO",
+    "VEA",
+    "VNQ",
+    "VWO",
+    "^VIX"
+  ],
+  "created_utc": "20260915T174605Z"
+}

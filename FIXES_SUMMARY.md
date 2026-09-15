@@ -431,3 +431,33 @@ All deltas are machine epsilon (float64 rounding) — the executable ledger is i
   already-inspected 2010-2021 window. Their two five-selection counters sum to
   the frozen 10/10 budget, so H-005 is now closed to further campaign runs and
   remains below `ROBUST_OOS` without an untouched confirmation.
+
+### H-006 cross-sectional evaluator and Trial 1 [integration + evidence]
+- **Implementation**: added the dedicated 17-ETF panel route
+  (`h006_pipeline.py`), constrained Wednesday portfolio constructor
+  (`portfolio/h006_portfolio.py`), SHY excess-return ledger, exact H-006
+  robustness/placebo/risk/capacity gates, and `data.mode == "h006"` runner
+  integration. The config now includes non-investable `^VIX` so its frozen
+  VIX>75 gross rule can execute.
+- **Defect caught**: self-beta for SPY/LQD/GLD and SPY self-correlation are
+  mathematically constant. Floating-point rolling noise had produced false
+  standardized signals in completed experiment
+  `20260915T180411Z_b728d6716c92a4c5`; that record is preserved but invalidated.
+  The corrected path makes these terms explicitly missing under the frozen
+  all-five-terms rule and has a regression test.
+- **Provider drift**: a corrected retry received historical dataset
+  `958ffb6d341e3e7e` instead of locked `53ec3599faff65a0`; the lock rejected it
+  before trial increment. H-006 can now replay the exact frozen raw snapshot,
+  bound to config fingerprint `e4eee798d3f09582` and protocol digest
+  `8bb93c7cf69cb156`.
+- **Valid result**: `20260915T183149Z_ce1050bcacf83541` — `REAL_DATA`,
+  `RESEARCH_ONLY`; net/gross Sharpe -0.073/0.206, 2/5 positive folds, 15.21x
+  turnover, $19.99m capacity, bootstrap P(SR>0) 0.472, and 13 failed gates.
+  Placebo separation passed (percentile 0.99, adjusted p 0.0198), but cost,
+  delay, slippage, parameter, missing-data, turnover, capacity, and central
+  performance gates failed. The Trial-1 stop rule rejects H-006 and retires
+  its remaining budget.
+- **Verification**: the expanded H-006/data/config/feature/pipeline
+  touched-surface suite passed **103 tests in 9:38**, and the complete
+  repository suite (`pytest -o addopts= -q -p no:cacheprovider tests/`) passed
+  **420 tests in 21:12** — exit 0, no failures, skips, or teardown errors.

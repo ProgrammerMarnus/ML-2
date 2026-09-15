@@ -1,7 +1,7 @@
 # Current Project Status
 
 **As of:** 2026-09-15 (late evening) — after both protocol-bound H-005 engine
-executions reached `CANDIDATE` and exhausted the 10/10 selection budget.
+executions and the valid H-006 Trial 1 decision.
 **Overall state:** `RESEARCH_ONLY` for promotion purposes — **H-005 is the first
 family with engine-protocol evidence passing every one of its frozen gates
 (`CANDIDATE`)**; it is not yet `ROBUST_OOS` because its evaluated window is not
@@ -51,18 +51,19 @@ historical metrics and findings are not current readiness claims.
   explicit `h002` and `h003` modes route only to their separately frozen R1
   portfolio contracts; neither is evidence for the original hypothesis.
 
-### Newly preregistered families (not yet validly executed)
+### Newer hypothesis families
 
-The preregistration ledger `data/research_ledgers/preregistrations.jsonl`
-(authoritative; served by the dashboard at `/api/preregistrations`) now also
-contains five newer families:
+The repository contains frozen contracts for H-005/H-006 and ledger entries
+for H-004/H-007/H-008. H-005/H-006 are still absent from the served
+`data/research_ledgers/preregistrations.jsonl`; that reconciliation remains an
+open documentation/ledger task.
 
 | Family | Title (per frozen ledger) | State |
 |---|---|---|
 | H-005 | Overnight-Intraday Return Decomposition | **`CANDIDATE`** — both protocol-bound engine executions passed all 14 frozen gates. Execution 1: `20260915T160008Z_283db198b22dc6aa`, net Sharpe 0.997, placebo percentile 1.0, adjusted p 0.0476. Execution 2: `20260915T171435Z_8ab87aaf928a91ec`, net Sharpe 1.116, placebo percentile 0.95, adjusted p 0.0952. Both have bootstrap P(SR>0) 0.994 and clean cost/delay, leakage, and integrity gates. Not `ROBUST_OOS`: both reused the already-inspected 2010–2021 window; mean AUC remained near random (0.505/0.501). The cumulative 10/10 fold-level selection budget is spent. See `H005_TRIAL_SUMMARY.md`. |
-| H-006 | Factor Exposure Mean Reversion | 5 features registered, config frozen. **Execution blocked**: the scalar walk-forward evaluates one target series, while H-006 needs a cross-sectional (multi-asset panel, weekly ranking/rebalance) evaluator. See `H006_FINAL_STATUS_REPORT.md` — note its engine path reference and feature counts are stale; the blocker itself is accurate. |
+| H-006 | Factor Exposure Mean Reversion | **REJECTED.** The panel evaluator is implemented. Valid snapshot-bound experiment `20260915T183149Z_ce1050bcacf83541` produced net Sharpe -0.073, 2/5 positive folds, 15.21x turnover, $19.99m capacity, and failed 13 gates. The preregistered Trial-1 stop rule retires the remaining budget. An earlier completed record is preserved but invalidated for self-benchmark floating-noise scores; see `H006_FINAL_STATUS_REPORT.md`. |
 | H-004 | Macro Yield Curve & Credit Spread Momentum | Ledger-only preregistration: no hypothesis document, feature module, config, or engine path yet. Requires macro (yield-curve/credit-spread) data. |
-| H-007 | Cross-Sectional Quality-Minus-Junk Low-Turnover Core | Ledger-only preregistration; needs fundamentals data plus the cross-sectional evaluator. |
+| H-007 | Cross-Sectional Quality-Minus-Junk Low-Turnover Core | Ledger-only preregistration; the panel infrastructure now exists, but the family still needs a fundamentals data contract and family-specific evaluator. |
 | H-008 | Microstructure Order Flow Imbalance & Intraday Liquidity Replenishment | Ledger-only preregistration; needs intraday order-flow/microstructure data that the repository does not have. |
 
 Note: some AI Studio-generated documents call H-004 "Sector Rotation with
@@ -72,13 +73,15 @@ Volatility Regime Filtering"; the frozen ledger title above is authoritative.
 
 - All ten P1 findings E01–E10 from the 2026-09-11 audit are fixed and covered
   by behavioral regressions.
-- The latest complete suite run (`pytest -o addopts= -q -p no:cacheprovider`,
-  2026-09-15 evening, 20:04 wall time) collected **410 tests** and passed all of
-  them — exit 0 with no failures, skips, or teardown errors. (The older "451
-  collected" figure is not reproducible from this tree; 410 is the verified
-  count.) New coverage includes the H-005 feature-panel wiring contract
-  (VIX-present via both `VIX` and `^VIX` symbols, and VIX-absent) and the
-  H-006 feature tests.
+- The latest complete suite run (`pytest -o addopts= -q -p no:cacheprovider tests/`,
+  2026-09-15, finished 21:24 local after the valid H-006 Trial 1) collected
+  **420 tests** and passed all of them — exit 0 in 21:12 with no failures,
+  skips, or teardown errors. (The earlier 20:04 run collected 410 tests and is
+  superseded; 420 is the current verified count.) New coverage includes the
+  H-005 feature-panel wiring contract (VIX-present via both `VIX` and `^VIX`
+  symbols, and VIX-absent) and the H-006 panel evaluator: constrained weekly
+  portfolio, all-five-terms, self-benchmark, VIX gross reduction, locked-fold,
+  snapshot-replay, and full-run integration tests.
 - The feature registry holds **95 specs across 8 sources** (price_volume 21,
   volatility_risk_premium 21, liquidity_reversal 13, overnight_intraday 13,
   cross_asset_spillover 9, information 8, h003_r1_volatility_shock 5,
@@ -122,19 +125,14 @@ Volatility Regime Filtering"; the frozen ledger title above is authoritative.
    rerun it. Any confirmation on 2022–2026 must be authorized and frozen as a
    separate confirmation family/protocol before data are read; until then it
    remains `CANDIDATE`, not `ROBUST_OOS`.
-2. Implement the cross-sectional (panel + weekly portfolio) evaluator; it
-   unblocks H-006 and is prerequisite for H-007-style strategies.
-3. Implement or formally close the ledger-only preregistrations H-004, H-007,
+2. Implement or formally close the ledger-only preregistrations H-004, H-007,
    and H-008 (H-008 needs intraday order-flow data; H-004 needs macro
    yield-curve/credit-spread data; H-007 needs fundamentals).
-4. Commit the remaining untracked H-002 input (`data/universe_russell3000.csv`)
-   — `src/quant_research/data/h002_sectors.json` was committed in `66e5c04`,
-   but `h002_universe.py` requires both.
-5. Reconcile the authoritative preregistration ledger: H-005 and H-006 have
+3. Reconcile the authoritative preregistration ledger: H-005 and H-006 have
    frozen contracts/protocols but are absent from
    `data/research_ledgers/preregistrations.jsonl` (`/api/preregistrations`).
    Append them or correct the docs that claim they are present.
-6. Complete remaining paper/order-flow accounting and operational work in the
+4. Complete remaining paper/order-flow accounting and operational work in the
    live-readiness checklist; select and implement a real broker adapter;
    accumulate observed paper sessions only after a strategy is
    research-qualified.

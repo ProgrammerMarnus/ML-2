@@ -1,95 +1,114 @@
-# H-006: Factor Exposure Mean Reversion - Final Status Report
+# H-006 Factor Exposure Mean Reversion — Final Status
 
-## 1. Executive Summary
-**Status:** 🟡 **IMPLEMENTATION COMPLETE / EXECUTION BLOCKED**  
-**Date:** 2024  
-**Hypothesis ID:** H-006  
-**Strategy Type:** Cross-Sectional Factor Mean Reversion  
-**Universe:** 17 Multi-Asset ETFs (Equity Style, Geography, Fixed Income, Commodities, Real Estate)
+**Decision:** REJECTED; remaining valid-trial budget retired
 
-### Core Thesis
-Factor exposures exhibit mean-reverting behavior due to:
-1. **Crowding Unwinds:** Overcrowded trades revert when liquidity forces deleveraging.
-2. **Style Rotation:** Capital rotates between value/growth, large/small caps cyclically.
-3. **Risk Parity Adjustments:** Volatility-targeting funds rebalance away from high-vol assets.
+**Valid execution:** `20260915T183149Z_ce1050bcacf83541`
 
-## 2. Implementation Artifacts
+**Evidence:** `REAL_DATA`, `RESEARCH_ONLY`
 
-### A. Preregistration Document
-- **File:** `HYPOTHESIS_H006_FACTOR_MEAN_REVERSION.md`
-- **Status:** ✅ **FINALIZED & FROZEN**
-- **Key Contracts:**
-  - **Data:** 17 ETFs, Daily OHLCV, 2010-2023.
-  - **Signals:** 5 Immutable Features (Beta Z-Score, Momentum Deviation, Vol Percentile, Correlation Extreme, Drawdown Recovery).
-  - **Portfolio:** Weekly Wednesday Rebalance, Gross Leverage ≤ 1.0, Net Exposure ±40%.
-  - **Success Criteria:** OOS Sharpe > 0.5, Max Drawdown < 15%, Turnover < 150%.
+**Date:** 2026-09-15
 
-### B. Code Implementation
-- **Feature Module:** `src/quant_research/features/factor_mean_reversion.py`
-  - ✅ All 5 signals implemented with strict lookahead bias prevention.
-  - ✅ Validation suite passed (unit tests for NaN handling, stationarity, registry integration).
-- **Configuration:** `configs/h006_factor_mean_reversion.yaml`
-  - ✅ Hyperparameters frozen per preregistration.
-  - ✅ Walk-forward schema defined (6 folds, 2-year OOS each).
+## Outcome
 
-### C. Test Results
-- **Unit Tests:** ✅ PASSED (`tests/test_features.py`)
-  - No lookahead bias detected.
-  - Feature specs complete in registry.
-  - Robust to missing data.
-- **Integration Test:** ❌ **BLOCKED**
-  - **Error:** `DataValidationError: Research protocol digest mismatch`.
-  - **Root Cause:** The current execution engine (`src/quant_research/pipeline/walk_forward.py`) expects a **single-asset time series** (SingleIndex: Date). H-006 requires a **cross-sectional universe** (MultiIndex: [Asset, Date]) to compute ranks across the 17 ETFs at each rebalance point.
+The cross-sectional evaluator is implemented and H-006 has now run through the
+real engine on the frozen 17-ETF panel plus non-investable `^VIX`. The valid
+baseline failed 13 promotion gates. In accordance with the preregistered Trial
+1 stop rule, no parameter/sensitivity trials may be used to rescue this family.
 
-## 3. Execution Blocker Analysis
+| Metric | Valid Trial 1 result |
+|---|---:|
+| Full OOS net Sharpe | -0.073 |
+| Full OOS gross Sharpe | 0.206 |
+| Full OOS net return | -4.04% |
+| Mean / median fold Sharpe | -0.029 / -0.139 |
+| Positive folds | 2 / 5 |
+| Full OOS max drawdown | -16.22% |
+| Annual turnover | 15.21x |
+| Bootstrap P(SR > 0) | 0.472 |
+| Placebo percentile / adjusted p | 0.99 / 0.0198 |
+| 10 bps fee + 5 bps slippage Sharpe | -0.316 |
+| One-session-delay Sharpe | -0.018 |
+| 2x-slippage Sharpe | -0.177 |
+| -20% / +20% volatility-target Sharpes | -0.024 / -0.058 |
+| 5% missing-input Sharpe | -0.611 |
+| Capacity estimate | $19.99m |
 
-### The Problem
-The H-006 strategy generates signals for 17 different assets simultaneously. The portfolio construction logic requires ranking these assets against each other (e.g., "Go Long Top 3, Short Bottom 3") on every rebalance date. 
+The portfolio limit audit passed: maximum asset weight 10.51%, gross 100%,
+absolute net 40%, and every asset-class cap remained within its frozen bound.
+The panel leakage audit also passed with maximum historical delta 0.0 over
+1,761 checked rows. Data integrity and the 100-run placebo sample-size gates
+passed. Those controls do not overcome the negative net edge, excessive
+turnover, weak bootstrap result, or failed robustness/capacity gates.
 
-The current pipeline architecture:
-1. Loads data for a single target symbol (defined in config `target_symbol`).
-2. Expects features to be a 1D time series indexed only by `Date`.
-3. Fails when presented with a MultiIndex DataFrame or when trying to access cross-sectional data not loaded into the context.
+## Implemented execution contract
 
-### Required Engine Upgrade
-To unblock H-006 (and the upcoming H-004 Sector Rotation), the `walk_forward` engine must be refactored to support **Cross-Sectional Modes**:
-1. **Data Loading:** Load panel data for the entire `universe` list, not just a single `target_symbol`.
-2. **Feature Alignment:** Ensure features are computed on a per-asset basis but aligned on a common datetime index.
-3. **Signal Combination:** Apply the combination logic (e.g., `rank_signal`) across the asset axis at each time step.
-4. **Portfolio Construction:** Generate weights vector $w_t$ of size $N_{assets}$ instead of a single scalar weight.
+- `src/quant_research/h006_pipeline.py`: 17-asset feature panels,
+  cross-sectional standardization and signed five-term composite, locked
+  walk-forward evaluation, SHY excess returns, robustness, placebos,
+  bootstrap, risk, capacity, and registry integration.
+- `src/quant_research/portfolio/h006_portfolio.py`: Wednesday-only decisions,
+  one-session return lag, inverse-volatility sizing, position/class/gross/net
+  limits, 10% portfolio-volatility ceiling, VIX>75 gross reduction, missing-name
+  exclusion, and the frozen turnover scaling rule.
+- `src/quant_research/run.py`: dedicated `data.mode == "h006"` engine route.
+- `tests/test_h006_pipeline.py`: panel/signal, all-five-terms, self-benchmark,
+  leakage, lock, portfolio-limit, VIX, snapshot-replay, and full-run coverage.
 
-## 4. Next Steps (Action Plan)
+`SPY`, `LQD`, and `GLD` are the frozen beta benchmarks. Their beta to
+themselves is mathematically constant, and SPY's correlation to itself is also
+constant. These standardized terms are explicitly missing rather than derived
+from floating-point noise; the all-five-terms rule therefore excludes those
+names while leaving 14 possible names and preserving the minimum-12 rule.
 
-### Phase 1: Engine Refactoring (Priority: HIGH)
-- [ ] **Modify `load_data`**: Accept `universe` list and return Panel/MultiIndex DataFrame.
-- [ ] **Update `generate_features`**: Loop over universe or use vectorized groupby operations.
-- [ ] **Refactor `walk_forward` loop**: 
-  - Iterate over time folds.
-  - Inside each fold, operate on cross-sectional slices (`df.xs(date, level='date')`).
-  - Implement `rank_signals` function to sort assets by composite score.
-- [ ] **Update `PortfolioConstructor`**: Handle vector weights and enforce cross-sectional constraints (e.g., "Sum of absolute weights = 1").
+## Evidence lineage and invalidation
 
-### Phase 2: H-006 Trial 1 Execution
-- [ ] Re-run `python -m src.quant_research.run --config configs/h006_factor_mean_reversion.yaml`.
-- [ ] Verify OOS performance metrics against preregistered gates.
-- [ ] Generate tear sheet (equity curve, turnover analysis, factor exposure breakdown).
+The following events are preserved rather than hidden:
 
-### Phase 3: Promotion Decision
-- [ ] If **PASS**: Promote to "Live Trading Candidate".
-- [ ] If **FAIL**: Analyze failure mode (model decay vs. implementation error) and decide on Trial 2 (parameter sweep) or Archive.
+1. `20260915T180411Z_b728d6716c92a4c5` completed on dataset
+   `53ec3599faff65a0`, but is **invalid implementation evidence**. It allowed
+   tiny numerical differences in self-beta/self-correlation to become false
+   z-scores for SPY/LQD/GLD. It must not be used for H-006's decision.
+2. A corrected rerun fetched provider revision `958ffb6d341e3e7e`; the persisted
+   lock rejected it before trial increment or evaluation. The lock was not
+   deleted or weakened.
+3. The valid run replayed the exact original raw snapshot
+   `53ec3599faff65a0`, used config fingerprint `e4eee798d3f09582`, and was bound
+   to protocol digest `8bb93c7cf69cb156`.
 
-## 5. File Manifest
+The persistent counter is 2 because the invalid completed record remains
+accounted for. Scientifically, the corrected execution is the first valid
+H-006 trial. The frozen stop rule retires all remaining budget after this
+failure.
 
-| File Path | Status | Description |
-| :--- | :--- | :--- |
-| `HYPOTHESIS_H006_FACTOR_MEAN_REVERSION.md` | ✅ Final | Preregistration contract |
-| `src/quant_research/features/factor_mean_reversion.py` | ✅ Final | Signal definitions |
-| `configs/h006_factor_mean_reversion.yaml` | ✅ Final | Run configuration |
-| `tests/test_features.py` | ✅ Final | Unit tests (added 5 tests) |
-| `logs/h006_trial1_execution.log` | ⚠️ Partial | Contains initial error trace |
-| `src/quant_research/pipeline/walk_forward.py` | 🔴 Blocked | Requires cross-sectional upgrade |
+## Preregistration discrepancy
 
-## 6. Conclusion
-H-006 is scientifically sound and code-complete regarding feature engineering. The blocker is purely architectural: the backtesting engine needs to evolve from a single-asset time-series model to a multi-asset panel data model. This upgrade is strategic as it will also unlock H-004 (Sector Rotation) and future cross-sectional strategies.
+The frozen prose says "six" OOS folds but lists seven calendar ranges,
+including 2010–2011 even though those 504 sessions are the initial training
+window. The numeric contract (504 train, 126 validation, two five-session
+boundaries, 504 test, 504 step) yields five complete 504-session OOS folds over
+the available observations, covering 2012-07-18 through 2022-07-22. The engine
+used that numeric contract without post-result reinterpretation. This
+discrepancy is now explicit and is another reason not to claim `ROBUST_OOS`;
+the strategy already fails decisively on performance.
 
-**Recommendation:** Pause H-006 trial execution until the Cross-Sectional Engine Upgrade (Phase 1) is completed.
+## Verification
+
+- Expanded H-006/data/config/feature/pipeline touched-surface suite
+  (`pytest -o addopts= -q -p no:cacheprovider`, 2026-09-15): **103 passed,
+  0 failed in 9:38**.
+- Complete repository suite (`pytest -o addopts= -q -p no:cacheprovider tests/`,
+  2026-09-15, finished 21:24 local): **420 passed, 0 failed in 21:12** — exit 0,
+  no skips, no teardown errors.
+
+## Artifacts
+
+- Config: `configs/h006_factor_mean_reversion.yaml`
+- Protocol: `artifacts/h006/h006_protocol_snapshot_replay.json`
+- Valid results: `artifacts/h006/run/20260915T183149Z_ce1050bcacf83541_results.json`
+- Fold ledger: `artifacts/h006/run/20260915T183149Z_ce1050bcacf83541_folds.csv`
+- Manifest: `artifacts/h006/run/20260915T183149Z_ce1050bcacf83541_manifest.json`
+- Raw snapshot: `data/raw_snapshots/20260915T174605Z_h006_ohlcv_53ec3599faff65a0.csv.gz`
+
+H-006 is closed. Any materially revised signal, benchmark treatment,
+portfolio rule, or data window must be preregistered as a new family; it cannot
+inherit this rejected family's evidence.

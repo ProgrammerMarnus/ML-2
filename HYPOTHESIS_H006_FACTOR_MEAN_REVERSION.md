@@ -2,7 +2,7 @@
 
 **Family:** H-006 (new hypothesis family)  
 **Frozen before evaluation data retrieval:** 2026-09-15  
-**Status:** PENDING EXECUTION
+**Status:** EXECUTED AND REJECTED (valid Trial 1: `20260915T183149Z_ce1050bcacf83541`; remaining budget retired)
 
 ## Economic mechanism
 
@@ -128,16 +128,22 @@ If Trial 1 fails to meet ROBUST_OOS criteria, the trial budget is retired and H-
 ## Implementation checklist
 
 Before Trial 1 execution:
-- [ ] Feature module `factor_mean_reversion.py` created with all 5 signals
-- [ ] All features registered in central registry
-- [ ] Configuration file `h006_factor_mean_reversion.yaml` created
-- [ ] Unit tests for feature calculations
-- [ ] Integration test for full pipeline
-- [ ] Preregistration document locked (this file)
+- [x] Feature module `factor_mean_reversion.py` created with all 5 signals
+- [x] All features registered in central registry
+- [x] Configuration file `h006_factor_mean_reversion.yaml` created
+- [x] Unit tests for feature calculations
+- [x] Integration test for full pipeline
+- [x] Preregistration protocol locked
 
 ---
 
 **Preregistration lock statement**: This document defines the complete H-006 hypothesis family. Any deviation in data, signals, portfolio construction, or evaluation protocol creates a new family (H-006-R1, etc.) and does not constitute evidence for H-006. This preregistration was frozen before any evaluation data was retrieved or analyzed.
 
 **Freeze timestamp**: 2026-09-15T00:00:00Z  
-**Next action**: Implement feature module and execute Trial 1
+**Post-execution record (not part of the frozen contract):** the valid,
+snapshot-bound Trial 1 produced net OOS Sharpe -0.073 and failed 13 gates.
+H-006 is rejected under the prospective stop rule. The prose above says six
+folds but enumerates seven ranges while reserving the first 504 sessions for
+training; the exact numeric geometry yields five complete OOS folds. See
+`H006_FINAL_STATUS_REPORT.md` for the full result, invalidated first execution,
+and provider-drift lineage.

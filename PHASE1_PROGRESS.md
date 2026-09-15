@@ -1,10 +1,10 @@
 # Phase 1: Strategy Research Reset — Current Progress
 
 **Started:** 2026-09-13  
-**Updated:** 2026-09-15 (late evening, after H-005 execution 2)
+**Updated:** 2026-09-15 (late evening, after valid H-006 Trial 1)
 **Status:** ACTIVE — both H-005 engine executions are `CANDIDATE` (all frozen
 gates passed; 10/10 selection budget spent); H-001/H-002-R1/H-003-R1 rejected;
-H-006/H-004/H-007/H-008 preregistered without valid engine evidence
+H-006 rejected after valid panel execution; H-004/H-007/H-008 remain ledger-only
 **Promotion state:** `RESEARCH_ONLY` overall — H-005 `CANDIDATE` pending an
 untouched confirmation window
 
@@ -23,6 +23,10 @@ untouched confirmation window
 - Amended H-003 into the new family H-003-R1, froze the five-term daily-data
   and weekly portfolio contract before retrieval, executed one real-data
   baseline, and rejected it under the prospective stopping rule.
+- Implemented the H-006 panel evaluator and constrained weekly portfolio,
+  corrected undefined self-benchmark standardization, froze exact-snapshot
+  replay after provider drift, executed valid Trial 1, and rejected the family
+  under its prospective stop rule.
 - Merged the parallel AI Studio branches (PRs #4/#5): the H-005 and H-006
   feature modules, configs, and tests are on main, and the full-stack research
   dashboard (Express backend + 8 panels) was imported from the AI Studio
@@ -41,7 +45,7 @@ untouched confirmation window
 | H-003 Volatility Risk Premium | **BLOCKED BEFORE TRIAL** | Requires the preregistered multi-asset and VIX/term-structure inputs; the scalar runner cannot provide them. |
 | H-003-R1 Daily Volatility-Shock Allocation | **REJECTED** | One frozen 2008–2023 baseline: net Sharpe −0.074; 10/14 mandate gates failed; budget retired. |
 | H-005 Overnight-Intraday Decomposition | **CANDIDATE (two protocol-bound engine executions)** | Both REAL_DATA runs passed all 14 gates. Execution 1 `20260915T160008Z_283db198b22dc6aa`: net Sharpe 0.997, placebo 1.0 / p 0.0476. Execution 2 `20260915T171435Z_8ab87aaf928a91ec`: net Sharpe 1.116, placebo 0.95 / p 0.0952. Both bootstrap P(SR>0) 0.994; cost/delay, leakage, and integrity gates pass. Not `ROBUST_OOS`: both use the previously inspected 2010–2021 window and mean AUC is 0.505/0.501. Budget 10/10 spent. |
-| H-006 Factor Exposure Mean Reversion | **PREREGISTERED, EXECUTION BLOCKED** | 5 features registered, config frozen; needs a cross-sectional (multi-asset panel, weekly rank/rebalance) evaluator the scalar engine lacks. |
+| H-006 Factor Exposure Mean Reversion | **REJECTED** | Valid experiment `20260915T183149Z_ce1050bcacf83541`: net Sharpe -0.073, 2/5 positive folds, turnover 15.21x, capacity $19.99m, 13 failed gates. Remaining budget retired. Earlier self-benchmark-noise record invalidated. |
 | H-004 Macro Yield Curve & Credit Spread Momentum | **PREREGISTERED (LEDGER ONLY)** | No module/config/engine path; needs macro yield-curve/credit-spread data. |
 | H-007 Cross-Sectional Quality-Minus-Junk Low-Turnover Core | **PREREGISTERED (LEDGER ONLY)** | Needs fundamentals data plus the cross-sectional evaluator. |
 | H-008 Microstructure Order Flow Imbalance | **PREREGISTERED (LEDGER ONLY)** | Needs intraday order-flow/microstructure data. |
@@ -65,13 +69,11 @@ the rejected family.
 ## Next Research Decision
 
 H-005 cleared every gate it froze twice, but its budget was exhausted on the
-already-inspected window. It must not be run again under this campaign. The
-next authorized research steps are:
-
-1. implement the cross-sectional (panel) evaluator that H-006 — and H-007-style
-   families — require; or
-2. implement the data contracts for ledger-only H-004/H-007/H-008 or formally
-   close them.
+already-inspected window. It must not be run again under this campaign. H-006
+is also closed after its valid Trial 1 failure. The next authorized research
+step is to implement the data contracts for ledger-only H-004/H-007/H-008 or
+formally close them. The panel infrastructure needed by H-007-style families
+now exists, but no fundamentals contract does.
 
 A genuinely unseen 2022–2026 H-005 confirmation now requires explicit approval
 and a separately frozen confirmation family/protocol with its own budget.

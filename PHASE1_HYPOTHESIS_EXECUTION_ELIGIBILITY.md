@@ -1,13 +1,13 @@
 # Phase 1 Hypothesis Execution Eligibility Audit
 
 **Date:** 2026-09-14 (rows for the five newer preregistered families added
-2026-09-15; H-005 status updated 2026-09-15 late evening after both
-protocol-bound engine executions)
+2026-09-15; H-005 status updated after both protocol-bound engine executions;
+H-006 updated after valid Trial 1)
 **Decision:** `DO_NOT_PROMOTE` — H-001, H-002-R1, and H-003-R1 are rejected;
 H-005 is `CANDIDATE` but not yet `ROBUST_OOS` (its evaluated window is not
 untouched). Original H-002/H-003 may not consume research budget until their
 exact external data contracts are supplied; their amended-family evidence does
-not transfer. H-006 is blocked on a cross-sectional evaluator;
+not transfer. H-006 is implemented and rejected after valid Trial 1;
 H-004/H-007/H-008 are ledger-only and not executable.
 
 ## Scope
@@ -26,7 +26,7 @@ selected correctly yet still fail to represent the preregistered hypothesis.
 | H-003 Volatility Risk Premium | Seven-feature tactical allocation across 17 ETFs, with VIX futures M1–M3 term structure, correlations, and risk-parity construction | Twenty-one mostly single-target realized-volatility features; optional VIX/VXN *spot* inputs only. The engine has no VIX-futures, correlation, or multi-asset risk-parity input path. | Do not execute |
 | H-003-R1 Daily Volatility-Shock Allocation | Five sign-aligned daily-data terms across the same 17 ETFs; VIX spot stand-down; Wednesday signed inverse-vol allocation; 0.5 gross cap; portfolio-native placebo, cost, delay, crisis, capacity, and diversification gates | Implemented and protocol-frozen as a separate amended family. Baseline experiment `20260915T103928Z_e309df031a658f12` produced net Sharpe −0.074, 7.42x turnover, $6.76m capacity, and failed 10/14 mandate gates. | Rejected; budget retired |
 | H-005 Overnight-Intraday Return Decomposition | Daily OHLCV **including opens** for SPY/QQQ/IWM/EFA/EEM/TLT/GLD plus ^VIX, 2010–2021; 13 overnight/intraday features; 7-fold expanding walk-forward (1260/252/252, purge/embargo 5) | The 13-feature contract is implemented and produces `vix_regime` from `^VIX`. Frozen-protocol experiments `20260915T160008Z_283db198b22dc6aa` and `20260915T171435Z_8ab87aaf928a91ec` each passed all 14 gates; their counters sum to 10/10 selections. | `CANDIDATE`, budget spent — no `ROBUST_OOS` claim because both runs reused the inspected window; any untouched confirmation requires a new approved/frozen family |
-| H-006 Factor Exposure Mean Reversion | 17-ETF cross-sectional weekly mean-reversion portfolio: 5 immutable features, Wednesday rebalance, gross ≤ 1.0, net ±40% | 5 features registered and computable (multi-asset feature path exists); no cross-sectional portfolio/walk-forward evaluator — the scalar engine ranks nothing | Do not execute until the panel evaluator exists |
+| H-006 Factor Exposure Mean Reversion | 17-ETF cross-sectional weekly mean-reversion portfolio: 5 immutable features, Wednesday rebalance, gross ≤ 1.0, net ±40% | Dedicated panel evaluator, constrained weekly portfolio, exact snapshot replay, locked five-fold OOS, and native robustness/placebo/risk path. Valid experiment `20260915T183149Z_ce1050bcacf83541` returned net Sharpe -0.073 and failed 13 gates. | **REJECTED; remaining budget retired** |
 | H-004 Macro Yield Curve & Credit Spread Momentum | Macro yield-curve and credit-spread momentum data (per frozen ledger entry) | Ledger-only: no hypothesis document, feature module, config, or engine path | Not executable |
 | H-007 Cross-Sectional Quality-Minus-Junk Low-Turnover Core | Cross-sectional quality/fundamentals factor with low-turnover core allocation | Ledger-only; needs fundamentals data plus the panel evaluator | Not executable |
 | H-008 Microstructure Order Flow Imbalance | Intraday order-flow imbalance and liquidity-replenishment microstructure data | Ledger-only; no intraday data or engine path | Not executable |

@@ -6,13 +6,18 @@
 
 data:
   mode: h006
+  # The 17 ETFs are investable. ^VIX is a non-investable indicator required
+  # solely by the frozen VIX>75 gross-reduction rule.
   assets:
-    [SPY, QQQ, IWM, DIA, EFA, EEM, VEA, VWO, TLT, IEF, SHY, LQD, HYG, GLD, DBC, USO, VNQ]
+    [SPY, QQQ, IWM, DIA, EFA, EEM, VEA, VWO, TLT, IEF, SHY, LQD, HYG, GLD, DBC, USO, VNQ, ^VIX]
   target: SPY
   start: "2010-01-01"
   end: "2023-12-31"
   frequency: 1d
   exchange_calendar: XNYS
+  # Replay the exact provider snapshot that created the persisted locked test;
+  # a later same-day yfinance response produced a different dataset hash.
+  csv_path: data/raw_snapshots/20260915T174605Z_h006_ohlcv_53ec3599faff65a0.csv.gz
   raw_snapshot_dir: data/raw_snapshots
 
 evaluation:
@@ -49,7 +54,9 @@ research:
   placebo_runs: 100
   threshold_candidates: []  # No threshold search for H-006
   hold_candidates: [5]
-  protocol_path: artifacts/h006/h006_protocol.json
+  # Both earlier write-once records remain preserved. This binding adds exact
+  # snapshot replay after the mutable provider response changed under the lock.
+  protocol_path: artifacts/h006/h006_protocol_snapshot_replay.json
 
 promotion:
   min_median_oos_sharpe: 0.0
@@ -72,4 +79,3 @@ promotion:
   max_family_searches: 10
 
 output_dir: artifacts/h006/run
-

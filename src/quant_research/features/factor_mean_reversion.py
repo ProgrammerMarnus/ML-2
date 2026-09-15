@@ -91,6 +91,7 @@ def compute_factor_mean_reversion_features(
     low: pd.Series,
     volume: pd.Series,
     benchmark_close: pd.Series,
+    correlation_benchmark_close: Optional[pd.Series] = None,
     vix: Optional[pd.Series] = None,
     asset_class: str = "us_equity",
 ) -> pd.DataFrame:
@@ -102,6 +103,10 @@ def compute_factor_mean_reversion_features(
         low: Daily low prices
         volume: Daily volume
         benchmark_close: Benchmark close prices (SPY for equities, LQD for credit, GLD for commodities)
+        correlation_benchmark_close: Optional separate benchmark for the
+            correlation-extreme term. H-006 uses SPY for this term even when
+            beta uses an asset-class benchmark. Defaults to benchmark_close for
+            backward compatibility.
         vix: Optional VIX index for volatility stand-down check
         asset_class: Asset class identifier for benchmark selection
         
@@ -118,15 +123,25 @@ def compute_factor_mean_reversion_features(
     # Align benchmark
     benchmark = benchmark_close.rename('benchmark')
     df = df.join(benchmark)
+    correlation_benchmark = (
+        correlation_benchmark_close
+        if correlation_benchmark_close is not None
+        else benchmark_close
+    ).rename('correlation_benchmark')
+    df = df.join(correlation_benchmark)
     
     if vix is not None:
         df['vix'] = vix
     
-    df = df.dropna()
-    
     # Compute daily returns
-    daily_ret = df['close'].pct_change()
-    benchmark_ret = df['benchmark'].pct_change()
+    # The frozen H-006 data contract forbids forward-filling missing market
+    # observations.  Be explicit because pandas' historic pct_change default
+    # pads gaps, which would manufacture returns across missing sessions.
+    daily_ret = df['close'].pct_change(fill_method=None)
+    benchmark_ret = df['benchmark'].pct_change(fill_method=None)
+    correlation_benchmark_ret = df['correlation_benchmark'].pct_change(
+        fill_method=None
+    )
     
     features = pd.DataFrame(index=df.index)
     
@@ -136,7 +151,7 @@ def compute_factor_mean_reversion_features(
     features['h006_beta_zscore'] = beta_zscore
     
     # H2: Momentum deviation (20d return minus 252d median, cross-sectional z-score)
-    ret_20d = df['close'].pct_change(20)
+    ret_20d = df['close'].pct_change(20, fill_method=None)
     ret_median_252 = daily_ret.rolling(252).median()
     momentum_deviation = ret_20d - ret_median_252
     # Note: Cross-sectional z-scoring happens downstream in assembly
@@ -154,7 +169,9 @@ def compute_factor_mean_reversion_features(
     features['h006_volatility_percentile'] = vol_percentile_zscore
     
     # H4: Correlation extreme (60d corr minus 252d mean corr)
-    corr_60 = _compute_correlation_to_benchmark(daily_ret, benchmark_ret, window=60)
+    corr_60 = _compute_correlation_to_benchmark(
+        daily_ret, correlation_benchmark_ret, window=60
+    )
     corr_mean_252 = corr_60.rolling(252).mean()
     corr_std_252 = corr_60.rolling(252).std()
     correlation_extreme = (corr_60 - corr_mean_252) / corr_std_252.replace(0.0, float("nan"))

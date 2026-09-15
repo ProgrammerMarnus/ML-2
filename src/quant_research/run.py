@@ -57,6 +57,7 @@ from .portfolio.risk import risk_report
 from .strategies.baseline import run_walk_forward, summarize_experiment
 from .h002_pipeline import run_h002_pipeline
 from .h003_pipeline import run_h003_pipeline
+from .h006_pipeline import finish_h006_pipeline, run_h006_pipeline
 
 SYNTHETIC_EVENT_NOTE = "synthetic events for offline exercise of the PIT layer; NOT market evidence"
 
@@ -86,6 +87,13 @@ def _assert_preregistered_execution_supported(cfg: AppConfig) -> list[str]:
             raise DataValidationError(
                 "H-003-R1 mode requires the single frozen feature source "
                 "'h003_r1_volatility_shock'"
+            )
+        return sources
+    if cfg.data.mode == "h006":
+        if sources != ["factor_mean_reversion"]:
+            raise DataValidationError(
+                "H-006 mode requires the single frozen feature source "
+                "'factor_mean_reversion'"
             )
         return sources
     missing_contracts = {
@@ -249,6 +257,29 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
             h003_report["feature_version"], integrity_ok, None, None,
         )
 
+    # --- H-006 fixed-rule cross-sectional factor pipeline -------------------
+    if cfg.data.mode == "h006":
+        h006_report = run_h006_pipeline(cfg, ohlcv, out, dataset_version)
+        report.update(h006_report)
+        report["data_integrity_report"] = missing
+        report["snapshot_metadata"] = snapshot_meta
+        report["data_meta"] = data_meta
+        counter = TrialCounter(Path(out) / "trial_counter.json")
+        start_count = counter.count
+        counter.increment()
+        report["trial_counter"] = counter
+        report["start_count"] = start_count
+        report["strategy_name"] = "h006_factor_mean_reversion_portfolio"
+        return _finish_pipeline(
+            cfg, out, report,
+            h006_report["close"], h006_report["volume"],
+            h006_report["price_feats"], h006_report["features"],
+            h006_report["info_cols"], h006_report["y"], h006_report["fwd"],
+            h006_report["baseline"], h006_report["baseline_summary"], None,
+            counter, start_count, dataset_version,
+            h006_report["feature_version"], integrity_ok, None, None,
+        )
+
     # --- 2. point-in-time validation ------------------------------------------
     events = None
     if cfg.data.mode == "synthetic":
@@ -390,6 +421,8 @@ def _finish_pipeline(cfg, out, report, close, volume, price_feats, features, inf
                 getattr(baseline, "execution_contract", "") == "h002_cross_sectional_portfolio")
     is_h003 = (baseline is not None and
                 getattr(baseline, "execution_contract", "") == "h003_r1_multi_asset_portfolio")
+    is_h006 = (baseline is not None and
+                getattr(baseline, "execution_contract", "") == "h006_cross_sectional_portfolio")
 
     if is_h002:
         return _finish_h002_pipeline(cfg, out, report, close, volume, features,
@@ -398,6 +431,11 @@ def _finish_pipeline(cfg, out, report, close, volume, price_feats, features, inf
         return _finish_h003_pipeline(cfg, out, report, close, volume, features,
                                       baseline, summary, dataset_version,
                                       integrity_ok)
+    if is_h006:
+        return finish_h006_pipeline(
+            cfg, out, report, dataset_version, integrity_ok,
+            _register_and_decide,
+        )
 
     # --- 5. robustness on the exact OOS execution path ------------------------
     battery = robustness_battery(features, y, fwd, cfg, baseline, locked_test)

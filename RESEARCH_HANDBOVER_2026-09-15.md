@@ -321,3 +321,16 @@ following points supersede parts of it:
 - Test suite: 410 tests collected, exit 0 (see
   `TEST_SUITE_REMEDIATION_REPORT.md`; an earlier "451 collected" figure was
   not reproducible and was corrected).
+
+## Addendum (2026-09-15 late evening — H-006 supersession)
+
+- The H-006 blocker is resolved by a dedicated cross-sectional panel and
+  weekly portfolio path in `h006_pipeline.py` and `portfolio/h006_portfolio.py`.
+- Valid snapshot-bound Trial 1 `20260915T183149Z_ce1050bcacf83541` is
+  `REAL_DATA`, `RESEARCH_ONLY`: net Sharpe -0.073, 2/5 positive folds, 15.21x
+  turnover, $19.99m capacity, and 13 failed gates. The frozen stop rule rejects
+  H-006 and retires its remaining budget.
+- Earlier execution `20260915T180411Z_b728d6716c92a4c5` is invalidated because
+  self-beta/self-correlation floating noise created false benchmark scores.
+  The provider-drift retry was rejected by the persisted lock. See
+  `H006_FINAL_STATUS_REPORT.md` for the complete lineage.

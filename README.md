@@ -7,10 +7,10 @@ A point-in-time, leakage-safe, walk-forward quantitative research platform.
 > H-002-R1 family, and REJECTED (valid evidence, no edge, trial budget retired)**
 > in `HYPOTHESIS_H002_R1_LIQUIDITY_REVERSAL_AMENDED.md`; H-003-R1 was likewise
 > amended, executed, and rejected (net Sharpe −0.074, 10/14 mandate gates
-> failed), while original H-003 remains untested. Newer preregistered families
-> await implementation or execution: **H-005** (overnight-intraday — registered
-> and engine-ready), **H-006** (factor mean reversion — registered, blocked on a
-> cross-sectional evaluator), and ledger-only **H-004/H-007/H-008**. No
+> failed), while original H-003 remains untested. **H-005** is a `CANDIDATE`
+> after two protocol-bound runs on an already-inspected window (budget spent),
+> and **H-006** is rejected after its valid panel-native Trial 1 failed 13 gates.
+> Ledger-only **H-004/H-007/H-008** remain unresolved. No
 > live-broker adapter exists. See
 > [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
 
@@ -36,7 +36,7 @@ src/quant_research/
   evaluation/               metrics, backtest, walk_forward, bootstrap, placebo,
                             multiple_testing, overfitting, robustness
   strategies/               baseline, discovery
-  portfolio/                construction, risk
+  portfolio/                construction, risk, H-002/H-003/H-006 panel books
   experiments/              registry, leaderboard, promotion
   execution/                paper simulator, safeguards, operational controls
   run.py                    one-command research pipeline (CLI)

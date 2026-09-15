@@ -1,0 +1,19 @@
+{
+  "config_fingerprint": "e4eee798d3f09582",
+  "created_at": "2026-09-15T18:12:13.471814+00:00",
+  "development_data": "h006:2010-01-01..2023-12-31:train_validation; frozen snapshot 53ec3599faff65a0; 17 investable ETFs plus non-investable ^VIX control",
+  "economic_mechanism": "Factor exposure mean reversion driven by crowding unwinds, style rotation, and risk parity adjustments across multi-asset ETF universe",
+  "evaluation_data": "h006:2010-01-01..2023-12-31:locked_oos; frozen snapshot 53ec3599faff65a0; 17 investable ETFs plus non-investable ^VIX control",
+  "feature_names": [
+    "h006_beta_zscore",
+    "h006_momentum_deviation",
+    "h006_volatility_percentile",
+    "h006_correlation_extreme",
+    "h006_drawdown_recovery"
+  ],
+  "hypothesis_id": "h006_factor_mean_reversion",
+  "max_trials": 10,
+  "primary_metric": "full_oos_net_sharpe",
+  "protocol_digest": "8bb93c7cf69cb156",
+  "target": "SPY"
+}

@@ -281,10 +281,25 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
         ohlcv = load_csv_ohlcv(cfg.csv_path, cfg.assets)  # type: ignore[arg-type]
         assumption = "user-provided csv; corporate-action basis is the user's responsibility"
     elif cfg.mode in {"yfinance", "h003", "h006"}:
-        ohlcv = load_yfinance_ohlcv(cfg.assets, cfg.start, cfg.end)
+        # A protocol-bound H-006 replay may point at the exact raw snapshot
+        # captured by an earlier attempt. This keeps the dedicated H-006
+        # portfolio branch while preventing a mutable provider response from
+        # silently changing a persisted locked test. Generic yfinance/H-003
+        # runs retain their existing live-download behaviour.
+        snapshot_replay = cfg.mode == "h006" and bool(cfg.csv_path)
+        ohlcv = (
+            load_csv_ohlcv(str(cfg.csv_path), cfg.assets)
+            if snapshot_replay
+            else load_yfinance_ohlcv(cfg.assets, cfg.start, cfg.end)
+        )
         assumption = (
-            "yfinance daily bars, auto_adjust=True: split/dividend-adjusted OHLC "
-            "(documented corporate-action basis)"
+            (
+                f"frozen raw-snapshot replay from {cfg.csv_path}; original "
+                "provider basis: yfinance auto_adjust=True"
+                if snapshot_replay
+                else "yfinance daily bars, auto_adjust=True: split/dividend-adjusted "
+                     "OHLC (documented corporate-action basis)"
+            )
             + ("; H-003-R1 amended 17-ETF plus VIX-spot contract"
                if cfg.mode == "h003" else "")
             + ("; H-006 17-ETF factor mean reversion universe"
