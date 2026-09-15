@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { LeaderboardTab } from './components/LeaderboardTab';
 import { SimulatorTab } from './components/SimulatorTab';
@@ -6,21 +6,45 @@ import { PaperTradingTab } from './components/PaperTradingTab';
 import { PitAuditTab } from './components/PitAuditTab';
 import { InstitutionalAuditsTab } from './components/InstitutionalAuditsTab';
 import { ExperimentDetailModal } from './components/ExperimentDetailModal';
+import { PreregistrationModal } from './components/PreregistrationModal';
 import { HISTORICAL_EXPERIMENTS } from './data/experimentsData';
-import { ExperimentRecord } from './types';
+import { ExperimentRecord, PreregistrationRecord } from './types';
+import { apiService } from './utils/apiService';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('leaderboard');
   const [experiments, setExperiments] = useState<ExperimentRecord[]>(HISTORICAL_EXPERIMENTS);
   const [selectedExperiment, setSelectedExperiment] = useState<ExperimentRecord | null>(null);
 
-  // Compute trial counter & highwater mark
+  // Compute trial counter & highwater mark with live backend sync
   const maxTrialsFromData = Math.max(...experiments.map(e => e.n_trials_global), 63);
   const [globalTrials, setGlobalTrials] = useState<number>(maxTrialsFromData);
   const [highwaterMark, setHighwaterMark] = useState<number>(maxTrialsFromData);
 
+  // Preregistration Gate state
+  const [preregistrations, setPreregistrations] = useState<PreregistrationRecord[]>([]);
+  const [isPreregModalOpen, setIsPreregModalOpen] = useState<boolean>(false);
+  const [selectedPrereg, setSelectedPrereg] = useState<PreregistrationRecord | null>(null);
+
+  const loadPreregistrations = () => {
+    apiService.getPreregistrations().then((list) => {
+      setPreregistrations(list);
+    });
+  };
+
+  useEffect(() => {
+    // Initial sync with backend API
+    apiService.getTrialCounter().then((data) => {
+      if (data.currentCount > 0) {
+        setGlobalTrials((prev) => Math.max(prev, data.currentCount));
+        setHighwaterMark((prev) => Math.max(prev, data.highwaterMark));
+      }
+    });
+
+    loadPreregistrations();
+  }, []);
+
   const handleRegisterExperiment = (newExp: ExperimentRecord) => {
-    // Add to top of experiments
     setExperiments(prev => [newExp, ...prev]);
     const updatedTrials = Math.max(globalTrials + newExp.trials_this_experiment, newExp.n_trials_global);
     setGlobalTrials(updatedTrials);
@@ -33,6 +57,12 @@ export function App() {
     setSelectedExperiment(exp);
   };
 
+  const handleSelectHypothesisFromPrereg = (prereg: PreregistrationRecord) => {
+    setSelectedPrereg(prereg);
+    setActiveTab('simulator');
+    setIsPreregModalOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-teal-500/30 selection:text-teal-200">
       <Header
@@ -41,6 +71,8 @@ export function App() {
         globalTrials={globalTrials}
         highwaterMark={highwaterMark}
         experimentCount={experiments.length}
+        onOpenPreregistration={() => setIsPreregModalOpen(true)}
+        activePreregCount={preregistrations.length}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -54,9 +86,13 @@ export function App() {
         {activeTab === 'simulator' && (
           <SimulatorTab
             globalTrials={globalTrials}
+            highwaterMark={highwaterMark}
             onRegisterExperiment={handleRegisterExperiment}
             onInspectExperiment={handleSelectExperiment}
             onNavigateToPaperTrading={() => setActiveTab('paper-trading')}
+            onOpenPreregistration={() => setIsPreregModalOpen(true)}
+            selectedPrereg={selectedPrereg}
+            onClearSelectedPrereg={() => setSelectedPrereg(null)}
           />
         )}
 
@@ -74,9 +110,18 @@ export function App() {
         )}
 
         {activeTab === 'institutional-audits' && (
-          <InstitutionalAuditsTab />
+          <InstitutionalAuditsTab experiments={experiments} />
         )}
       </main>
+
+      {/* Preregistration Gate Modal */}
+      <PreregistrationModal
+        isOpen={isPreregModalOpen}
+        onClose={() => setIsPreregModalOpen(false)}
+        existingPreregistrations={preregistrations}
+        onRefreshPreregistrations={loadPreregistrations}
+        onSelectHypothesis={handleSelectHypothesisFromPrereg}
+      />
 
       {/* Experiment Detail Inspector Modal */}
       {selectedExperiment && (

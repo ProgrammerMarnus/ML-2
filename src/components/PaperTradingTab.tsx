@@ -29,12 +29,17 @@ import {
   DEFAULT_SAFEGUARDS 
 } from '../utils/paperBrokerEngine';
 import { PAPER_MARKET_SESSIONS, MarketSessionBar } from '../data/paperSessionsData';
+import { OperationalIntegrationPanel } from './OperationalIntegrationPanel';
+import { LiveExecutionConsole } from './LiveExecutionConsole';
+import { Radio } from 'lucide-react';
 
 interface PaperTradingTabProps {
   experiments: ExperimentRecord[];
 }
 
 export const PaperTradingTab: React.FC<PaperTradingTabProps> = ({ experiments }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'live-console' | 'replay-stepper' | 'operational-controls'>('live-console');
+
   // Bind paper trading to an experiment (defaults to the robust Seed 43 experiment)
   const defaultExp = experiments.find(e => e.promotion_state === 'ROBUST_OOS') || experiments[0];
   const [selectedExpId, setSelectedExpId] = useState<string>(defaultExp?.experiment_id || '');
@@ -459,6 +464,53 @@ export const PaperTradingTab: React.FC<PaperTradingTabProps> = ({ experiments })
         </div>
       </div>
 
+      {/* Sub-View Navigation Bar */}
+      <div className="flex flex-wrap items-center gap-2 bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-xs">
+        <button
+          onClick={() => setActiveSubTab('live-console')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-semibold transition ${
+            activeSubTab === 'live-console'
+              ? 'bg-teal-500 text-slate-950 shadow-md'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <Radio className="w-3.5 h-3.5" />
+          <span>Real-Time Level-2 Execution Console</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('replay-stepper')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-semibold transition ${
+            activeSubTab === 'replay-stepper'
+              ? 'bg-teal-500 text-slate-950 shadow-md'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <Play className="w-3.5 h-3.5" />
+          <span>Multi-Day Session Replay &amp; Validation</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('operational-controls')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-semibold transition ${
+            activeSubTab === 'operational-controls'
+              ? 'bg-teal-500 text-slate-950 shadow-md'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`}
+        >
+          <ShieldAlert className="w-3.5 h-3.5" />
+          <span>Dual-Key Operator Controls &amp; Webhooks</span>
+        </button>
+      </div>
+
+      {/* SUB-VIEW 1: REAL-TIME LEVEL-2 EXECUTION CONSOLE */}
+      {activeSubTab === 'live-console' && (
+        <LiveExecutionConsole />
+      )}
+
+      {/* SUB-VIEW 2: MULTI-DAY SESSION REPLAY & VALIDATION */}
+      {activeSubTab === 'replay-stepper' && (
+      <div className="space-y-6">
       {/* Main Grid: Safeguards / Stepper Controls on Left, Metrics & Ledger on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Emergency Safeguards & Session Stepper */}
@@ -981,8 +1033,18 @@ export const PaperTradingTab: React.FC<PaperTradingTabProps> = ({ experiments })
           )}
         </div>
       </div>
+      </div>
+      )}
 
-      {/* Cryptographic Tamper-Evident SHA-256 Audit Trail */}
+      {/* SUB-VIEW 3: DUAL-KEY OPERATIONAL CONTROLS & WEBHOOKS */}
+      {activeSubTab === 'operational-controls' && (
+        <div className="space-y-6">
+          <OperationalIntegrationPanel />
+        </div>
+      )}
+
+      {/* Cryptographic Tamper-Evident SHA-256 Audit Trail (shared across views) */}
+      {activeSubTab !== 'live-console' && (
       <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -1028,6 +1090,7 @@ export const PaperTradingTab: React.FC<PaperTradingTabProps> = ({ experiments })
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

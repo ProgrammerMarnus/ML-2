@@ -268,3 +268,72 @@ export interface PaperValidationReport {
 }
 
 type intNumber = number;
+
+export interface PreregistrationRecord {
+  preregistration_id: string;
+  hypothesis_id: string;
+  title: string;
+  economic_mechanism: string;
+  universe: string[];
+  target: string;
+  timeframe: string;
+  features: string[];
+  model_type: string;
+  parameter_grid: Record<string, any>;
+  gates: {
+    min_net_sharpe: number;
+    max_drawdown: number;
+    placebo_p_threshold: number;
+  };
+  config_hash: string;
+  status: 'PREREGISTERED_LOCKED' | 'PREREGISTERED_ACTIVE' | 'PREREGISTERED_CONFIRMED' | 'REJECTED';
+  timestamp_utc: string;
+  sign_off_researcher: string;
+}
+
+export interface LeakageProbeResult {
+  id: string;
+  name: string;
+  description: string;
+  tested_features: string[];
+  delta: number;
+  threshold: number;
+  passed: boolean;
+  score: number;
+  details: string;
+}
+
+export interface LeakageScanReport {
+  status: 'VERIFIED_LEAKAGE_FREE' | 'FLAGGED_POTENTIAL_LEAK';
+  overallPassed: boolean;
+  compositeScore: number;
+  scan_timestamp: string;
+  features_scanned: number;
+  target: string;
+  probes: LeakageProbeResult[];
+}
+
+export interface SafeguardsConfig {
+  maxDailyDrawdownPct: number;
+  circuitBreakerActive: boolean;
+  volRegimeThreshold: number;
+  volRegimeActive: boolean;
+  consecutiveLossLimit: number;
+  consecutiveLossActive: boolean;
+  highwaterLockStrict: boolean;
+  lastTripTimestamp?: string;
+  tripReason?: string;
+}
+
+export interface AuditDocumentMetadata {
+  filename: string;
+  title: string;
+  date: string;
+  findings: {
+    p1: number;
+    p2: number;
+    p3: number;
+  };
+  verdict: string;
+  exists: boolean;
+}

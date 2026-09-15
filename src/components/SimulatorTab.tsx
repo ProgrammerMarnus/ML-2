@@ -1,24 +1,35 @@
-import React, { useState } from 'react';
-import { Play, CheckCircle2, AlertCircle, RefreshCw, Layers, ShieldCheck, ArrowRight, Save, Download, Compass, Sparkles, Sliders } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { Play, CheckCircle2, AlertCircle, RefreshCw, Layers, ShieldCheck, ArrowRight, Save, Download, Compass, Sparkles, Sliders, Lock, ShieldAlert, Zap, X } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, AreaChart, Area } from 'recharts';
 import { runWalkForwardSimulation, SimulationParams, evaluateGateResults } from '../utils/quantEngine';
-import { ExperimentRecord } from '../types';
+import { ExperimentRecord, PreregistrationRecord } from '../types';
 import { StrategyDiscoverySuite } from './StrategyDiscoverySuite';
+import { PreflightLeakageScanner } from './PreflightLeakageScanner';
+import { PlaceboNullVisualizer } from './PlaceboNullVisualizer';
+import { SafeguardsPanel } from './SafeguardsPanel';
 
 interface SimulatorTabProps {
   globalTrials: number;
+  highwaterMark?: number;
   onRegisterExperiment: (newExp: ExperimentRecord) => void;
   onInspectExperiment: (exp: ExperimentRecord) => void;
   onNavigateToPaperTrading?: () => void;
+  onOpenPreregistration?: () => void;
+  selectedPrereg?: PreregistrationRecord | null;
+  onClearSelectedPrereg?: () => void;
 }
 
 export const SimulatorTab: React.FC<SimulatorTabProps> = ({
   globalTrials,
+  highwaterMark = 63,
   onRegisterExperiment,
   onInspectExperiment,
-  onNavigateToPaperTrading
+  onNavigateToPaperTrading,
+  onOpenPreregistration,
+  selectedPrereg,
+  onClearSelectedPrereg,
 }) => {
-  const [subTab, setSubTab] = useState<'discovery' | 'single'>('discovery');
+  const [subTab, setSubTab] = useState<'discovery' | 'single' | 'preflight' | 'placebo' | 'safeguards'>('discovery');
   const [params, setParams] = useState<SimulationParams>({
     strategyType: 'regime_conditioned_gb',
     hypothesis_name: 'Macro Volatility Tilt (GB)',
@@ -31,6 +42,21 @@ export const SimulatorTab: React.FC<SimulatorTabProps> = ({
     n_placebo_runs: 20,
     seed: 88
   });
+
+  // When a preregistration is selected, synchronize simulation params to its contract
+  useEffect(() => {
+    if (selectedPrereg) {
+      setSubTab('single');
+      setParams((prev) => ({
+        ...prev,
+        hypothesis_name: `${selectedPrereg.hypothesis_id}: ${selectedPrereg.title}`,
+        discovery_notes: selectedPrereg.economic_mechanism,
+        universe: selectedPrereg.universe,
+        target: selectedPrereg.target,
+        strategyType: (selectedPrereg.model_type as any) || prev.strategyType,
+      }));
+    }
+  }, [selectedPrereg]);
 
   const [isRunning, setIsRunning] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -85,56 +111,147 @@ export const SimulatorTab: React.FC<SimulatorTabProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Mode Switcher: Discovery Suite vs Single Interactive Trial */}
-      <div className="flex items-center justify-between bg-slate-900/80 p-2 rounded-xl border border-slate-800">
-        <div className="flex items-center gap-2">
+      {/* Mode Switcher: Discovery Suite vs Single Interactive Trial vs Quant Integrity Diagnostics */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             id="tab-discovery-suite"
             onClick={() => setSubTab('discovery')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
               subTab === 'discovery'
                 ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Compass className="w-3.5 h-3.5" />
-            <span>Autonomous Strategy Discovery</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/20 font-mono">
-              Campaign Sweeps
-            </span>
+            <span>Autonomous Discovery</span>
           </button>
 
           <button
             id="tab-single-trial"
             onClick={() => setSubTab('single')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
               subTab === 'single'
                 ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Sliders className="w-3.5 h-3.5" />
-            <span>Interactive Single-Trial Simulator</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/20 font-mono">
-              7 Folds Deep Audit
-            </span>
+            <span>Walk-Forward (7 Folds)</span>
+          </button>
+
+          <button
+            id="tab-preflight-scan"
+            onClick={() => setSubTab('preflight')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              subTab === 'preflight'
+                ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Pre-Flight Leakage Scanner</span>
+          </button>
+
+          <button
+            id="tab-placebo-null"
+            onClick={() => setSubTab('placebo')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              subTab === 'placebo'
+                ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>Placebo &amp; Hansen SPA</span>
+          </button>
+
+          <button
+            id="tab-safeguards"
+            onClick={() => setSubTab('safeguards')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              subTab === 'safeguards'
+                ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+            <span>Circuit Breakers</span>
           </button>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-slate-400 pr-2">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Audit Protocol: V2.1.5 Invariant Enforced</span>
+        <div className="flex items-center gap-3">
+          {onOpenPreregistration && (
+            <button
+              onClick={onOpenPreregistration}
+              className="flex items-center gap-1.5 px-3 py-1 rounded bg-teal-500/10 border border-teal-500/30 text-teal-300 hover:bg-teal-500/20 text-xs font-mono transition"
+            >
+              <Lock className="w-3 h-3 text-amber-400" />
+              <span>Preregistration Gate</span>
+            </button>
+          )}
+
+          <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-slate-400 pr-2">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>V2.1.5 Invariant Enforced</span>
+          </div>
         </div>
       </div>
 
-      {subTab === 'discovery' ? (
+      {/* Preregistration Binding Notification if active */}
+      {selectedPrereg && subTab === 'single' && (
+        <div className="p-3.5 rounded-xl bg-teal-950/40 border border-teal-500/40 text-xs flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-1.5 rounded-lg bg-teal-500/20 text-teal-300">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-white font-semibold flex items-center gap-2">
+                <span>Simulation Bound to Preregistered Hypothesis:</span>
+                <span className="font-mono text-teal-300">{selectedPrereg.hypothesis_id} - {selectedPrereg.title}</span>
+              </div>
+              <p className="text-slate-400 text-[11px]">
+                Config Fingerprint: <code className="font-mono text-teal-200">{selectedPrereg.config_hash}</code> • Target: {selectedPrereg.target} • Universe: {selectedPrereg.universe.join(', ')}
+              </p>
+            </div>
+          </div>
+          {onClearSelectedPrereg && (
+            <button
+              onClick={onClearSelectedPrereg}
+              className="p-1.5 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              title="Unlock Custom Parameters"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {subTab === 'discovery' && (
         <StrategyDiscoverySuite
           globalTrials={globalTrials}
           onRegisterExperiment={onRegisterExperiment}
           onInspectExperiment={onInspectExperiment}
           onNavigateToPaperTrading={onNavigateToPaperTrading}
         />
-      ) : (
+      )}
+
+      {subTab === 'preflight' && (
+        <PreflightLeakageScanner />
+      )}
+
+      {subTab === 'placebo' && (
+        <PlaceboNullVisualizer
+          observedSharpe={activeSimulationResult ? activeSimulationResult.net_metrics.full_oos_sharpe : 0.424}
+          strategyName={activeSimulationResult ? activeSimulationResult.strategy : 'Walk-Forward Gradient Boosting (Baseline)'}
+        />
+      )}
+
+      {subTab === 'safeguards' && (
+        <SafeguardsPanel highwaterMark={highwaterMark} />
+      )}
+
+      {subTab === 'single' && (
         <div className="space-y-6">
           {/* Introduction banner */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
@@ -198,7 +315,32 @@ export const SimulatorTab: React.FC<SimulatorTabProps> = ({
                     const st = e.target.value as any;
                     let hypName = params.hypothesis_name;
                     let discNotes = params.discovery_notes;
-                    if (st === 'regime_conditioned_gb') {
+                    let universe = params.universe;
+                    if (st === 'h001_spillover') {
+                      hypName = 'H-001 Information Diffusion Spillover';
+                      discNotes = 'SPY/QQQ ratio z-score conditional asset selection with 9-feature panel. Tested on untouched 2021-2026 data. Full-strategy placebo p=0.667.';
+                      universe = ['SPY', 'QQQ', '^VIX'];
+                    } else if (st === 'h002_liquidity') {
+                      hypName = 'H-002-R1 Small-Cap Liquidity Provision';
+                      discNotes = 'Amended cross-sectional dollar-neutral long/short on 285 small/mid-caps. Amihud illiquidity + signed volume proxy. High turnover (72x) drag.';
+                      universe = ['285-Stock Small/Mid-Cap Universe'];
+                    } else if (st === 'h003_volatility') {
+                      hypName = 'H-003-R1 Volatility Shock Allocation';
+                      discNotes = 'Daily volatility shock allocation across 17 ETFs and VIX spot. Inverse realized volatility weighting with crisis drawdown stand-down.';
+                      universe = ['SPY', 'QQQ', 'IWM', 'EFA', 'EEM', 'VNQ', 'GLD', 'TLT', 'IEF', 'LQD', 'HYG', 'DBC', 'XLE', 'XLF', 'XLK', 'XLV', 'XLI', '^VIX'];
+                    } else if (st === 'h004_macro_yield_curve') {
+                      hypName = 'H-004 Macro Yield Curve & Credit Spread Momentum';
+                      discNotes = 'Credit risk appetite & 10Y-2Y slope leading indicator. Monthly rebalance, 1.95x annual turnover, $850M capacity. Robust to 1-2 bar delay.';
+                      universe = ['TLT', 'IEF', 'HYG', 'LQD', 'SPY'];
+                    } else if (st === 'h007_quality_minus_junk' || st === 'h005_quality_minus_junk') {
+                      hypName = 'H-007 Quality-Minus-Junk Low-Turnover Core';
+                      discNotes = 'Systematic long high-profitability low-debt vs short speculative junk. Quarterly rebalancing, 2.2x turnover, $450M capacity.';
+                      universe = ['Top 100 Liquid US Equities'];
+                    } else if (st === 'h008_microstructure_ofi' || st === 'h006_microstructure_ofi') {
+                      hypName = 'H-008 Microstructure OFI Liquidity Provision';
+                      discNotes = 'Intraday order flow imbalance (OFI) passive limit replenishment filtered by VPIN toxicity guard. High intraday turnover stress test.';
+                      universe = ['SPY', 'QQQ'];
+                    } else if (st === 'regime_conditioned_gb') {
                       hypName = 'Macro Volatility Tilt (GB)';
                       discNotes = 'Conditioned on volatility regime switches; scales down beta in turbulent regimes, captures trend in normal regimes.';
                     } else if (st === 'cross_asset_momentum') {
@@ -211,18 +353,30 @@ export const SimulatorTab: React.FC<SimulatorTabProps> = ({
                       hypName = 'Volume-Confirmed Fast Mean Reversion';
                       discNotes = 'Exploits short-term intraday overextensions filtered by 2-sigma volume spikes. High turnover stress test.';
                     }
-                    setParams({ ...params, strategyType: st, hypothesis_name: hypName, discovery_notes: discNotes });
+                    setParams({ ...params, strategyType: st, hypothesis_name: hypName, discovery_notes: discNotes, universe });
                   }}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-teal-500 focus:outline-none"
                 >
-                  <option value="regime_conditioned_gb">Regime-Conditioned Volatility Tilt (GB) — High Sharpe</option>
-                  <option value="cross_asset_momentum">Cross-Asset Dual Momentum (SPY/QQQ/GLD/TLT)</option>
-                  <option value="multi_factor_ensemble">Multi-Factor Forest Ensemble (4 Factor Families)</option>
-                  <option value="volume_mean_reversion">Volume-Confirmed Fast Mean Reversion (Turnover Stress)</option>
-                  <option value="gradient_boosting">Walk-Forward Gradient Boosting (Standard)</option>
-                  <option value="high_threshold_gb">High-Threshold GB (Conservative 0.70 threshold)</option>
-                  <option value="logistic_regression">Logistic Regression (Linear Baseline)</option>
-                  <option value="baseline">Baseline Moving Average Cross</option>
+                  <optgroup label="Phase 2 Next-Gen Institutional Hypotheses">
+                    <option value="h004_macro_yield_curve">H-004: Macro Yield Curve & Credit Momentum (1.95x Turnover, $850M Cap)</option>
+                    <option value="h007_quality_minus_junk">H-007: Quality-Minus-Junk Low-Turnover Core (2.2x Turnover, $450M Cap)</option>
+                    <option value="h008_microstructure_ofi">H-008: Microstructure OFI Liquidity Provision (Intraday Queue Depth)</option>
+                  </optgroup>
+                  <optgroup label="Institutional Research Hypotheses (Canonical)">
+                    <option value="h001_spillover">H-001: Cross-Asset Spillover (SPY/QQQ Diffusion)</option>
+                    <option value="h002_liquidity">H-002-R1: Liquidity Reversal (285 Small-Cap Stocks)</option>
+                    <option value="h003_volatility">H-003-R1: Volatility Risk Premium (17 ETFs + VIX)</option>
+                  </optgroup>
+                  <optgroup label="Exploratory Research Architectures">
+                    <option value="regime_conditioned_gb">Regime-Conditioned Volatility Tilt (GB) — High Sharpe</option>
+                    <option value="cross_asset_momentum">Cross-Asset Dual Momentum (SPY/QQQ/GLD/TLT)</option>
+                    <option value="multi_factor_ensemble">Multi-Factor Forest Ensemble (4 Factor Families)</option>
+                    <option value="volume_mean_reversion">Volume-Confirmed Fast Mean Reversion (Turnover Stress)</option>
+                    <option value="gradient_boosting">Walk-Forward Gradient Boosting (Standard)</option>
+                    <option value="high_threshold_gb">High-Threshold GB (Conservative 0.70 threshold)</option>
+                    <option value="logistic_regression">Logistic Regression (Linear Baseline)</option>
+                    <option value="baseline">Baseline Moving Average Cross</option>
+                  </optgroup>
                 </select>
               </div>
 
@@ -568,13 +722,13 @@ export const SimulatorTab: React.FC<SimulatorTabProps> = ({
             </div>
           </div>
 
-          {/* Visual Charts: Fold Breakdown & Cost Curve */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Visual Charts: Fold Breakdown, Cost Curve, and Cumulative Fold Equity */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
               <h5 className="font-semibold text-white text-xs mb-3 font-mono">
                 Walk-Forward Fold OOS Sharpe
               </h5>
-              <div className="h-48">
+              <div className="h-44">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={activeSimulationResult.folds} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -592,7 +746,7 @@ export const SimulatorTab: React.FC<SimulatorTabProps> = ({
               <h5 className="font-semibold text-white text-xs mb-3 font-mono">
                 Fee Stress Curve (Net Sharpe vs BPS)
               </h5>
-              <div className="h-48">
+              <div className="h-44">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={activeSimulationResult.robustness.cost_stress} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -602,6 +756,37 @@ export const SimulatorTab: React.FC<SimulatorTabProps> = ({
                     <ReferenceLine y={0} stroke="#64748b" />
                     <Line type="monotone" dataKey="sharpe" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
                   </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Fold-by-Fold Cumulative OOS Equity Progression */}
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+              <h5 className="font-semibold text-white text-xs mb-3 font-mono flex items-center justify-between">
+                <span>Cumulative Walk-Forward Equity</span>
+                <span className="text-[10px] text-teal-400 font-normal">Base 100</span>
+              </h5>
+              <div className="h-44">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={(() => {
+                      let eq = 100;
+                      return (activeSimulationResult.folds || []).map((f) => {
+                        eq = eq * (1 + (f.oos_net_return ?? 0));
+                        return {
+                          fold: `F${f.fold_id}`,
+                          equity: parseFloat(eq.toFixed(2)),
+                        };
+                      });
+                    })()}
+                    margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <XAxis dataKey="fold" stroke="#94a3b8" />
+                    <YAxis stroke="#94a3b8" domain={['auto', 'auto']} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155' }} />
+                    <Area type="monotone" dataKey="equity" stroke="#38bdf8" fill="#0284c7" fillOpacity={0.25} />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
