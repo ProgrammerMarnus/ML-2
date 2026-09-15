@@ -1,17 +1,16 @@
 FUTURE STEPS — INSTITUTIONAL QUANT RESEARCH ENGINE
-Current as of: 2026-09-15 (late evening; after the first protocol-bound H-005
-engine trial)
+Current as of: 2026-09-15 (late evening; after both protocol-bound H-005
+engine executions)
 
 CURRENT POSITION
-The project remains RESEARCH_ONLY for promotion, but H-005 is the first family
-with engine-protocol evidence that passes every one of its frozen gates:
-experiment 20260915T160008Z_283db198b22dc6aa (REAL_DATA, CANDIDATE) - placebo
-percentile 1.0 (adjusted p 0.0476, 20 nulls), bootstrap P(SR>0) 0.994,
-mean/median OOS Sharpe 1.514/1.544, worst OOS drawdown -3.86%, annual turnover
-2.01x, cost and delay stress survive, leakage and data-integrity clean. It is
-NOT ROBUST_OOS: the 2010-2021 window was already inspected by the standalone
-preliminary script, so an untouched locked window is still required. H-005
-budget remaining: 5 of 10 trials.
+The project remains RESEARCH_ONLY for promotion. Both H-005 engine executions
+passed every frozen gate. Execution 1 (`20260915T160008Z_283db198b22dc6aa`)
+had net Sharpe 0.997, placebo percentile 1.0 / p 0.0476; execution 2
+(`20260915T171435Z_8ab87aaf928a91ec`) had net Sharpe 1.116, placebo percentile
+0.95 / p 0.0952. Both had bootstrap P(SR>0) 0.994 and clean cost/delay,
+leakage, and integrity gates. H-005 is NOT ROBUST_OOS: both runs use the
+2010-2021 window already inspected by the standalone script, mean AUC remains
+near random, and the cumulative 10/10 selection budget is now spent.
 
 Valid rejecting evidence still stands for H-001 (net Sharpe 0.787318, placebo
 percentile 0.35, adjusted p 0.6667), H-002-R1 (gross Sharpe -0.342, 0/10
@@ -50,27 +49,25 @@ reliable round-trip is ZIP export -> diff -> port.
 
 PRIORITY ORDER
 
-1. Confirm H-005 on an untouched locked window.
-   - Extend to a genuinely unseen period (e.g. 2022-2026) with its own frozen
-     protocol and evaluate it ONCE; do not re-cut the inspected 2010-2021
-     window to search for a better variant.
-   - Spend the remaining H-005 budget (5 of 10 trials) there, and record the
-     outcome as the ROBUST_OOS promotion decision.
-
-2. Implement the cross-sectional (panel) evaluator.
+1. Implement the cross-sectional (panel) evaluator.
    - Unblocks H-006 (17-ETF weekly rank/rebalance) and is the prerequisite
      for H-007-style cross-sectional families.
    - Keep the scalar path's guard rails intact for single-target families.
 
-3. Resolve the ledger-only preregistrations H-004/H-007/H-008.
+2. Resolve the ledger-only preregistrations H-004/H-007/H-008.
    - Each needs a data-contract decision before any engine work:
      H-004 macro yield-curve/credit-spread data; H-007 fundamentals;
      H-008 intraday order-flow/microstructure data.
    - Implement the exact contract or formally close the preregistration.
 
-4. Preserve the rejecting results.
+3. Preserve the rejecting results and spent H-005 campaign.
    - H-001, H-002-R1, and H-003-R1 remain closed; do not tune on their
      observed windows and do not relabel proxies under those identifiers.
+
+4. Decide whether to authorize a separate H-005 confirmation family.
+   - Only a newly budgeted, frozen protocol on genuinely unseen data (for
+     example 2022-2026) can address the untouched-evidence gap. Do not rerun
+     or tune the spent 2010-2021 campaign.
 
 5. Repo hygiene.
    - Commit data/universe_russell3000.csv (still untracked; h002_universe.py

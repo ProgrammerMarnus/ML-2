@@ -1,7 +1,7 @@
 # Current Project Status
 
-**As of:** 2026-09-15 (late evening) — after the first protocol-bound H-005
-engine trial reached `CANDIDATE`.
+**As of:** 2026-09-15 (late evening) — after both protocol-bound H-005 engine
+executions reached `CANDIDATE` and exhausted the 10/10 selection budget.
 **Overall state:** `RESEARCH_ONLY` for promotion purposes — **H-005 is the first
 family with engine-protocol evidence passing every one of its frozen gates
 (`CANDIDATE`)**; it is not yet `ROBUST_OOS` because its evaluated window is not
@@ -13,8 +13,10 @@ historical metrics and findings are not current readiness claims.
 
 ## Repository state
 
-- Single branch: `main` = `origin/main` = `41d8db9`. GitHub PRs #1–#5 are all
-  merged, and every working/backup branch (local and remote) has been deleted.
+- Single branch: local `main` contains the H-005 engine work beginning at
+  `af7cdb0` plus this second-execution evidence and is ahead of `origin/main`.
+  GitHub PRs #1–#5 are all merged, and every working/backup branch (local and
+  remote) has been deleted.
 - The AI Studio Build app (front-end + Express backend) was exported to ZIP and
   imported onto `main`; see [docs/DASHBOARD.md](docs/DASHBOARD.md). The export
   was verified file-by-file to be a snapshot of the pre-merge `origin/main`
@@ -57,7 +59,7 @@ contains five newer families:
 
 | Family | Title (per frozen ledger) | State |
 |---|---|---|
-| H-005 | Overnight-Intraday Return Decomposition | **`CANDIDATE`** — the first protocol-bound engine trial (`20260915T160008Z_283db198b22dc6aa`, REAL_DATA) passed **all 14** frozen gates: placebo percentile 1.0 (adjusted p 0.0476, 20 nulls), bootstrap P(SR>0) 0.994, mean/median OOS Sharpe 1.514/1.544, worst OOS drawdown -3.86%, turnover 2.01x, cost/delay stress survive, leakage and data-integrity checks clean. Not `ROBUST_OOS`: the 2010–2021 window was already inspected by the earlier standalone script, so an untouched locked window is still required. Remaining budget 5/10 trials. See `H005_TRIAL_SUMMARY.md`. |
+| H-005 | Overnight-Intraday Return Decomposition | **`CANDIDATE`** — both protocol-bound engine executions passed all 14 frozen gates. Execution 1: `20260915T160008Z_283db198b22dc6aa`, net Sharpe 0.997, placebo percentile 1.0, adjusted p 0.0476. Execution 2: `20260915T171435Z_8ab87aaf928a91ec`, net Sharpe 1.116, placebo percentile 0.95, adjusted p 0.0952. Both have bootstrap P(SR>0) 0.994 and clean cost/delay, leakage, and integrity gates. Not `ROBUST_OOS`: both reused the already-inspected 2010–2021 window; mean AUC remained near random (0.505/0.501). The cumulative 10/10 fold-level selection budget is spent. See `H005_TRIAL_SUMMARY.md`. |
 | H-006 | Factor Exposure Mean Reversion | 5 features registered, config frozen. **Execution blocked**: the scalar walk-forward evaluates one target series, while H-006 needs a cross-sectional (multi-asset panel, weekly ranking/rebalance) evaluator. See `H006_FINAL_STATUS_REPORT.md` — note its engine path reference and feature counts are stale; the blocker itself is accurate. |
 | H-004 | Macro Yield Curve & Credit Spread Momentum | Ledger-only preregistration: no hypothesis document, feature module, config, or engine path yet. Requires macro (yield-curve/credit-spread) data. |
 | H-007 | Cross-Sectional Quality-Minus-Junk Low-Turnover Core | Ledger-only preregistration; needs fundamentals data plus the cross-sectional evaluator. |
@@ -116,11 +118,10 @@ Volatility Regime Filtering"; the frozen ledger title above is authoritative.
 
 ## Remaining blockers
 
-1. Give H-005 an **untouched locked window** (e.g. 2022–2026 extension) and
-   evaluate it once, so `CANDIDATE` can be confirmed or rejected as
-   `ROBUST_OOS` outside the 2010–2021 data the standalone script already saw.
-   Trials 2–5 of the remaining H-005 budget should be spent there, not by
-   re-cutting the inspected window.
+1. H-005 has no trial budget left and still lacks untouched evidence. Do not
+   rerun it. Any confirmation on 2022–2026 must be authorized and frozen as a
+   separate confirmation family/protocol before data are read; until then it
+   remains `CANDIDATE`, not `ROBUST_OOS`.
 2. Implement the cross-sectional (panel + weekly portfolio) evaluator; it
    unblocks H-006 and is prerequisite for H-007-style strategies.
 3. Implement or formally close the ledger-only preregistrations H-004, H-007,

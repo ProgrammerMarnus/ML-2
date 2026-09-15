@@ -1,9 +1,9 @@
 # Phase 1: Strategy Research Reset — Current Progress
 
 **Started:** 2026-09-13  
-**Updated:** 2026-09-15 (evening)
-**Status:** ACTIVE — H-005 is the first family with engine-protocol evidence at
-`CANDIDATE` (all frozen gates passed); H-001/H-002-R1/H-003-R1 rejected;
+**Updated:** 2026-09-15 (late evening, after H-005 execution 2)
+**Status:** ACTIVE — both H-005 engine executions are `CANDIDATE` (all frozen
+gates passed; 10/10 selection budget spent); H-001/H-002-R1/H-003-R1 rejected;
 H-006/H-004/H-007/H-008 preregistered without valid engine evidence
 **Promotion state:** `RESEARCH_ONLY` overall — H-005 `CANDIDATE` pending an
 untouched confirmation window
@@ -40,7 +40,7 @@ untouched confirmation window
 | H-002-R1 Liquidity Reversal (amended) | **REJECTED** | Valid single run on real 2010-2023 daily data (285 names). Gross Sharpe −0.342 (no edge before costs); 0/10 positive OOS folds; net Sharpe −2.656; annual turnover 72× vs 6× cap. Trial budget retired. |
 | H-003 Volatility Risk Premium | **BLOCKED BEFORE TRIAL** | Requires the preregistered multi-asset and VIX/term-structure inputs; the scalar runner cannot provide them. |
 | H-003-R1 Daily Volatility-Shock Allocation | **REJECTED** | One frozen 2008–2023 baseline: net Sharpe −0.074; 10/14 mandate gates failed; budget retired. |
-| H-005 Overnight-Intraday Decomposition | **CANDIDATE (first protocol-bound engine trial)** | `20260915T160008Z_283db198b22dc6aa`, REAL_DATA, 8 symbols incl. `^VIX`, frozen protocol `36297b79d632e5eb`: all 14 gates passed — placebo percentile 1.0 (adjusted p 0.0476, 20 nulls), bootstrap P(SR>0) 0.994, mean/median OOS Sharpe 1.514/1.544, worst OOS drawdown −3.86%, turnover 2.01×, cost/delay stress survive, leakage clean, 0 missing sessions. Not `ROBUST_OOS`: the 2010–2021 window was already inspected by the standalone script, so an untouched locked window is required. Budget 5/10 remaining. |
+| H-005 Overnight-Intraday Decomposition | **CANDIDATE (two protocol-bound engine executions)** | Both REAL_DATA runs passed all 14 gates. Execution 1 `20260915T160008Z_283db198b22dc6aa`: net Sharpe 0.997, placebo 1.0 / p 0.0476. Execution 2 `20260915T171435Z_8ab87aaf928a91ec`: net Sharpe 1.116, placebo 0.95 / p 0.0952. Both bootstrap P(SR>0) 0.994; cost/delay, leakage, and integrity gates pass. Not `ROBUST_OOS`: both use the previously inspected 2010–2021 window and mean AUC is 0.505/0.501. Budget 10/10 spent. |
 | H-006 Factor Exposure Mean Reversion | **PREREGISTERED, EXECUTION BLOCKED** | 5 features registered, config frozen; needs a cross-sectional (multi-asset panel, weekly rank/rebalance) evaluator the scalar engine lacks. |
 | H-004 Macro Yield Curve & Credit Spread Momentum | **PREREGISTERED (LEDGER ONLY)** | No module/config/engine path; needs macro yield-curve/credit-spread data. |
 | H-007 Cross-Sectional Quality-Minus-Junk Low-Turnover Core | **PREREGISTERED (LEDGER ONLY)** | Needs fundamentals data plus the cross-sectional evaluator. |
@@ -64,16 +64,17 @@ the rejected family.
 
 ## Next Research Decision
 
-H-005 is the first family to clear every gate it froze, so the next authorized
-research step is to **confirm it on untouched evidence**, not to keep working
-the window that produced it:
+H-005 cleared every gate it froze twice, but its budget was exhausted on the
+already-inspected window. It must not be run again under this campaign. The
+next authorized research steps are:
 
-1. freeze a new H-005 protocol for a genuinely unseen period (e.g. a 2022–2026
-   extension) and evaluate it once; the remaining 5 of 10 trials belong there;
-2. implement the cross-sectional (panel) evaluator that H-006 — and H-007-style
+1. implement the cross-sectional (panel) evaluator that H-006 — and H-007-style
    families — require; or
-3. implement the data contracts for ledger-only H-004/H-007/H-008 or formally
+2. implement the data contracts for ledger-only H-004/H-007/H-008 or formally
    close them.
+
+A genuinely unseen 2022–2026 H-005 confirmation now requires explicit approval
+and a separately frozen confirmation family/protocol with its own budget.
 
 Substituting generic price/volume features under the current hypothesis IDs is
 forbidden. H-001 remains rejected; its observed confirmation period must not be

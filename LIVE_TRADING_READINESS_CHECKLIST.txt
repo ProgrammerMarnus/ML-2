@@ -2,19 +2,18 @@
                     LIVE TRADING READINESS CHECKLIST
 ================================================================================
 Last Updated: 2026-09-15 (late evening)
-Current Status: RESEARCH_ONLY - H-005 (Overnight-Intraday) is the first family
-with protocol-bound engine evidence and passed every gate it froze
-(promotion_state CANDIDATE, experiment 20260915T160008Z_283db198b22dc6aa). It is
-not ROBUST_OOS: its 2010-2021 window was already inspected by the earlier
-standalone script. No live broker capability.
+Current Status: RESEARCH_ONLY - both protocol-bound H-005 engine executions
+passed every frozen gate (promotion_state CANDIDATE), but the cumulative 10/10
+selection budget was spent on the 2010-2021 window already inspected by the
+standalone script. H-005 is not ROBUST_OOS. No live broker capability.
 
 ================================================================================
 PHASE 1: STRATEGY RESEARCH (CRITICAL BLOCKER)
 ================================================================================
 Status: IN PROGRESS - pv-2.2.0 failed; H-001, H-002-R1, and H-003-R1 are
 rejected; original H-002/H-003 remain blocked by exact-data-contract gaps;
-H-005 (Overnight-Intraday) is engine-ready with PRELIMINARY standalone trials
-only; H-006 (Factor Mean Reversion) is blocked on a cross-sectional evaluator;
+H-005 (Overnight-Intraday) is CANDIDATE with its budget spent; H-006 (Factor
+Mean Reversion) is blocked on a cross-sectional evaluator;
 H-004/H-007/H-008 are ledger-only preregistrations
 
 [x] 1.1 Close failed strategy line with documentation
@@ -74,9 +73,9 @@ H-004/H-007/H-008 are ledger-only preregistrations
         Mean Sharpe 0.844, Bootstrap P(SR>0)=0.985, p-value=0.015
     [x] H-005 Trial 4: Logistic Regression (C=0.1) — PASSED all four gates:
         Mean Sharpe 0.967, Bootstrap P(SR>0)=0.993, p-value=0.007 (BEST)
-    [ ] H-005 Trials 5-10: Pending — remaining budget 5 of 10. Confirmation
-        belongs on an UNTOUCHED window (e.g. a 2022-2026 extension) with its own
-        frozen protocol, not on the inspected 2010-2021 window.
+    [x] H-005 remaining protocol selections: SPENT — execution 2 consumed the
+        remaining five fold-level threshold selections on the inspected
+        2010-2021 window. No further H-005 campaign runs are permitted.
     [x] H-005 ENGINE TRIAL 1 (protocol-bound): EXECUTED — CANDIDATE.
         Experiment 20260915T160008Z_283db198b22dc6aa (REAL_DATA), config
         configs/h005_overnight_intraday_trial1.yaml (fingerprint 2a9fa3786dad725e),
@@ -87,6 +86,15 @@ H-004/H-007/H-008 are ledger-only preregistrations
         leakage check clean, data integrity 0 missing sessions.
         Caveats: inspected window, 5 folds / 85 trades, mean OOS AUC 0.505;
         gates were H-005's preregistered ones (0.85 percentile / 0.80 bootstrap).
+    [x] H-005 ENGINE EXECUTION 2 (protocol-bound): EXECUTED — CANDIDATE.
+        Experiment 20260915T171435Z_8ab87aaf928a91ec (REAL_DATA), config
+        fingerprint a0411e90d6770bdd, protocol digest 79f8ad6e2647e7ba.
+        All 14 gates passed: net Sharpe 1.116, placebo percentile 0.95
+        (adjusted p 0.0952, 20 nulls), bootstrap P(SR>0) 0.994, worst OOS
+        drawdown -3.73%, annual turnover 4.05x, cost+delay stress survive,
+        leakage and data integrity clean. Caveats: inspected window, mean OOS
+        AUC 0.501, fold 3 Sharpe -0.638, provider snapshot revision; cumulative
+        budget 10/10 spent without untouched confirmation.
     [x] H-005 PRELIMINARY standalone-script trials 1-4: retained as PRELIMINARY
         only (not protocol evidence).
     [ ] H-006 Trial 1: BLOCKED — needs the cross-sectional (17-ETF panel,

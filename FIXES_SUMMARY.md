@@ -413,4 +413,21 @@ All deltas are machine epsilon (float64 rounding) — the executable ledger is i
   evidence but **not** an untouched confirmation window; 5 folds / 85 trades;
   mean OOS AUC 0.505; gates were the config's preregistered ones
   (percentile 0.85, bootstrap 0.80), not the engine-default ROBUST_OOS bar.
-  Remaining H-005 budget: 5 of 10 trials.
+  At that point the remaining H-005 budget was 5 of 10 selections; the second
+  execution below subsequently spent it.
+
+### H-005 second engine execution [research evidence]
+- **Action**: executed `configs/h005_overnight_intraday_trial2.yaml` through
+  `run_research_pipeline` with frozen protocol digest `79f8ad6e2647e7ba` and
+  config fingerprint `a0411e90d6770bdd`.
+- **Result**: `20260915T171435Z_8ab87aaf928a91ec` — `REAL_DATA`, `CANDIDATE`,
+  all 14 gates passed. Full-OOS net/gross Sharpe 1.116/1.308, placebo
+  percentile 0.95 (adjusted p 0.0952; 20 nulls), bootstrap P(SR>0) 0.994,
+  worst drawdown -3.73%, annual turnover 4.05x, and cost/delay, leakage, and
+  data-integrity checks all passed.
+- **Caveats / stop rule**: mean OOS AUC remained 0.501, fold 3 Sharpe was
+  -0.638, and the refreshed yfinance snapshot contains tiny provider revisions
+  (maximum relative OHLC delta 1.69e-6) versus execution 1. Both runs used the
+  already-inspected 2010-2021 window. Their two five-selection counters sum to
+  the frozen 10/10 budget, so H-005 is now closed to further campaign runs and
+  remains below `ROBUST_OOS` without an untouched confirmation.

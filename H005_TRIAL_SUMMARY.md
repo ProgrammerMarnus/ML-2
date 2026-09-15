@@ -1,28 +1,35 @@
 # H-005 Overnight-Intraday Return Decomposition - Trial Summary
 
-**Date:** 2026-09-15 (engine section added late evening)  
-**Status:** ENGINE-PROTOCOL TRIAL 1 COMPLETE — `CANDIDATE` under the frozen
-H-005 gates; the four trials below remain PRELIMINARY (standalone script)
-**Recommendation:** Extend to an untouched OOS window and re-verify before any
-`ROBUST_OOS`/paper claim
+**Date:** 2026-09-15 (engine section updated after the second execution)
+**Status:** ENGINE-PROTOCOL BUDGET COMPLETE — both engine executions are
+`CANDIDATE` under the frozen H-005 gates; the four trials below remain
+PRELIMINARY (standalone script)
+**Recommendation:** Do not rerun or tune H-005. The 10/10 protocol selections
+were spent on an already-inspected window, so a separately preregistered,
+untouched confirmation is required before any `ROBUST_OOS`/paper claim.
 
 ---
 
-## Engine-protocol trial (2026-09-15 late evening)
+## Engine-protocol executions (2026-09-15 late evening)
 
-The first H-005 trial executed through `run_research_pipeline` — not a
-standalone script — with a frozen protocol.
+Both H-005 configurations executed through `run_research_pipeline` — not the
+standalone script — with their frozen protocols.
 
-| Item | Value |
-|---|---|
-| Experiment | `20260915T160008Z_283db198b22dc6aa` |
-| Config | `configs/h005_overnight_intraday_trial1.yaml` (fingerprint `2a9fa3786dad725e`) |
-| Protocol | `artifacts/h005_trial1/h005_protocol.json` (digest `36297b79d632e5eb`, H-005, 13 features, max_trials 10) |
-| Data | yfinance daily OHLCV incl. opens, 8 symbols (`SPY, QQQ, IWM, EFA, EEM, TLT, GLD, ^VIX`), 2010-01-04..2021-12-30, 0 missing sessions |
-| Evidence status | `REAL_DATA` |
-| Promotion | **`CANDIDATE`** — 14 gates passed, **0 failed** |
+| Item | Engine execution 1 | Engine execution 2 |
+|---|---|---|
+| Experiment | `20260915T160008Z_283db198b22dc6aa` | `20260915T171435Z_8ab87aaf928a91ec` |
+| Config fingerprint | `2a9fa3786dad725e` | `a0411e90d6770bdd` |
+| Protocol digest | `36297b79d632e5eb` | `79f8ad6e2647e7ba` |
+| Model | Logistic, C=0.01, seed 44 | Logistic, C=0.1, seed 123 |
+| Dataset hash | `6475255438794934` | `57ded20a74949806` |
+| Evidence / promotion | `REAL_DATA` / **`CANDIDATE`** | `REAL_DATA` / **`CANDIDATE`** |
+| Frozen gates | 14 passed, 0 failed | 14 passed, 0 failed |
 
-Evidence behind the decision:
+Both runs used yfinance auto-adjusted daily OHLCV including opens for eight
+symbols (`SPY, QQQ, IWM, EFA, EEM, TLT, GLD, ^VIX`), the frozen 13-feature
+contract, five usable walk-forward folds, and no missing exchange sessions.
+
+Execution 1 evidence:
 
 - placebo percentile **1.0** (observed mean OOS Sharpe 1.5145 vs null p95
   1.4423, null median 1.3165), adjusted p **0.0476**, 20 valid nulls;
@@ -33,24 +40,48 @@ Evidence behind the decision:
 - cost stress and delay stress survive; feature-leakage check passed with
   0.0 future-data deltas; trial accounting consistent (5 trials).
 
+Execution 2 evidence:
+
+- placebo percentile **0.95** (observed mean OOS Sharpe 1.5054 vs null p95
+  1.4449), adjusted p **0.0952**, 20 valid nulls;
+- bootstrap P(SR>0) **0.994** (95% CI 0.234–2.038);
+- mean/median OOS Sharpe **1.5054 / 1.3967**; full-OOS net Sharpe **1.1156**
+  (gross 1.3079), worst OOS drawdown **-3.73%**;
+- annual turnover **4.05x**, 152 trades, largest positive-fold share 0.418;
+- cost stress remains positive through 20 bps fees, the configured one-bar
+  delay remains positive (Sharpe 0.852), parameter/missing-data stresses
+  survive, and leakage/data-integrity checks pass.
+
 Limitations of this evidence (must travel with the number):
 
 1. The 2010–2021 window was already inspected by the standalone script that
    produced Trials 1–4 below, so this is not an untouched confirmation window.
    A locked extension (e.g. 2022–2026) is required before `ROBUST_OOS`.
-2. Only 5 walk-forward folds / 85 trades; bootstrap CI is wide. Per-fold OOS
-   Sharpe: 1.544 / 3.412 / **-0.266** / 2.123 / 0.760 (fold 3 negative; fold 5
-   alone carries 60 of the 85 trades).
-3. Mean OOS AUC **0.505** (per-fold 0.511 / 0.534 / 0.482 / 0.471 / 0.528) —
-   the directional ranking has essentially no accuracy edge; the P&L comes from
+2. Each execution has only 5 walk-forward folds; bootstrap CIs are wide. The
+   second execution again has a negative fold (fold 3 Sharpe **-0.638**).
+3. Mean OOS AUC is **0.505** in execution 1 and **0.501** in execution 2. The
+   directional ranking has essentially no accuracy edge; the P&L comes from
    the sizing/hold overlay rather than from correct direction calls.
 4. Promotion used H-005's *preregistered* gate settings (percentile 0.85,
    bootstrap 0.80, turnover 36x). The engine-default/checklist ROBUST_OOS bar
    is stricter; the placebo percentile of 1.0 clears it, but gates 1–3 remain.
-5. Remaining H-005 trial budget: **5 of 10**.
+5. The provider revised adjusted OHLC values between downloads: the row/index
+   set is identical, but 15,062 observations across six ETFs changed by at most
+   1.69e-6 relatively (GLD, ^VIX, and all volumes were unchanged). Because
+   execution 2 also changes C and the random seed, it is not a controlled
+   one-variable comparison with execution 1.
+6. Execution 1's immutable registry record still contains the pre-fix
+   `information_sources: ["price_volume"]` stamp; execution 2 is the first real
+   artifact verifying the corrected `information_sources:
+   ["overnight_intraday"]` provenance path.
+7. Each engine execution selected one threshold in each of five usable folds,
+   and each artifact-local counter records 5 selections. Cumulatively the two
+   executions spent **10 of 10**; the shared family ledger records two completed
+   attempts. H-005 must not be run again under this campaign.
 
-Numbering: the engine run is the first *protocol* H-005 trial. Trials 1–4
-below are PRELIMINARY and are not protocol evidence.
+Numbering: the two engine executions account for ten fold-level protocol
+selections. Trials 1–4 below are PRELIMINARY standalone runs and are not
+protocol evidence.
 
 ---
 
