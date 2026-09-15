@@ -1,0 +1,99 @@
+# H-002-R1 real-data research run (yfinance; no credentials required)
+#
+# FORMAL AMENDMENT (option 2 of the Phase 1 data-contract decision):
+# The original H-002 preregistration required PIT Russell 3000 membership,
+# intraday midpoint-classified buys/sells and market-cap data, none of which
+# are obtainable without a licensed data contract.  Rather than leave the
+# hypothesis blocked, it is formally revised into a NEW research family
+# (H-002-R1) whose data/evaluation contract is restricted to what the
+# repository can actually source and verify.  The amended contract is frozen
+# and content-addressed in the protocol document referenced below; the run
+# refuses to execute if the protocol digest or config fingerprint does not
+# match.
+#
+# Documented deviations from the ORIGINAL H-002 preregistration:
+#   - data/universe_russell3000.csv        static snapshot, NOT PIT membership
+#   - src/quant_research/data/h002_universe.py  yfinance daily OHLCV, NOT intraday
+#   - src/quant_research/data/h002_sectors.json static GICS map, NOT a live feed
+#   - src/quant_research/portfolio/h002_portfolio.py  proxy LIM, NOT classified
+#   - size-decile and VIX vol-regime composite terms are omitted (no PIT mcap,
+#     no reliable free VIX series) -> composite equal-weights 5 of 7 terms
+#   - the 126-session inter-fold gaps are NOT implemented by the evaluation
+#     engine (deliberate B09 guard: gapped OOS windows would carry position
+#     state across unscored returns and need liquidation/re-entry costs that
+#     are not modelled).  The amended protocol substitutes contiguous
+#     non-overlapping 252-session test folds (step_bars == test_window), which
+#     removes test-window overlap entirely; it does not add a cooling-off gap.
+#
+# Results are valid evidence FOR H-002-R1 ONLY.  They must never be presented
+# as evidence for the original H-002 preregistration.
+
+data:
+  mode: h002
+  # The universe loader reads data/universe_russell3000.csv and pulls all
+  # available tickers + VIX. The 'assets' list is a fallback; the loader
+  # ignores it when using the H-002 universe path.
+  assets: [SPY]  # placeholder — H-002 loader uses its own universe
+  target: SPY    # placeholder
+  start: "2010-01-01"
+  end: "2023-12-31"  # H-002 prereg: 2010-2023 validation period
+  frequency: 1d
+  raw_snapshot_dir: data/raw_snapshots
+
+evaluation:
+  # H-002-R1 amended fold schedule: 1-year OOS test folds, contiguous and
+  # non-overlapping.  AMENDMENT: the original H-002 preregistration specified
+  # 126-session gaps between folds; the engine rejects gapped OOS windows
+  # (B09 guard), so the amended contract uses step_bars == test_window, which
+  # removes test-window overlap without adding a cooling-off gap.
+  train_window: 504       # 2 years
+  validation_window: 252  # 1 year for threshold selection
+  test_window: 252        # 1 year OOS test
+  step_bars: 252          # == test_window: contiguous non-overlapping folds
+  purge_bars: 5
+  embargo_bars: 5
+  expanding: true         # expanding training window
+
+execution:
+  fee_bps: 15.0     # H-002 prereg: 15 bps for small caps
+  slippage_bps: 5.0 # H-002 prereg: 5 bps
+  signal_delay_bars: 0
+  target_vol: 0.10
+  max_position: 1.0
+
+model:
+  type: logistic  # H-002 prereg: logistic regression
+  random_seed: 42
+  logreg_C: 0.1   # H-002 prereg uses C=0.1 for regularization
+  hold_bars: 5    # H-002 prereg: 1-5 day horizon
+
+features:
+  include_sources:
+    - liquidity_reversal
+    # We don't use price_volume as a separate source; the H-002 features
+    # module already includes volume-based features.
+  exclude_features: []
+
+research:
+  max_trials: 10   # H-002 prereg: 10 trials max
+  bootstrap_samples: 500
+  placebo_runs: 20
+  threshold_candidates: [0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
+  hold_candidates: [5, 10, 15, 20]
+  # Immutable amended preregistration for the H-002-R1 research family.  The
+  # protocol binds to this config's fingerprint and trial budget; the run
+  # validates both before executing.
+  protocol_path: artifacts/h002_r1/h002_r1_protocol.json
+
+promotion:
+  min_median_oos_sharpe: 0.0
+  min_mean_oos_sharpe: 0.0
+  max_oos_dd: -0.15    # H-002 prereg: max drawdown <= 15%
+  cost_stress_fee_bps: 30.0  # 2x costs stress (H-002 prereg: 2x)
+  delay_stress_bars: 1
+  min_bootstrap_positive_prob: 0.85  # H-002 prereg: >= 85%
+  min_placebo_percentile: 0.90      # H-002 prereg: >= 0.90
+  max_single_fold_share: 0.60
+  max_annual_turnover: 6.0   # H-002 prereg: <= 6x annual turnover
+
+output_dir: artifacts/h002_r1/run

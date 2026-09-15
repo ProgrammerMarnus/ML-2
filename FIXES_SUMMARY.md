@@ -1,6 +1,6 @@
 > **Historical remediation ledger.** Versioned counts and claims below record
 > successive audit/fix rounds. The current 2026-09-14 position is: E01–E10
-> fixed and the latest full run passing all 372 collected tests. See
+> fixed and the latest full run passing all 399 collected tests. See
 > [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
 
 # Audit Fix Summary — Quant Research Engine V2.1.3

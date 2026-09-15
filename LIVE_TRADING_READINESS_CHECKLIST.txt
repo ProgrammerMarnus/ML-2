@@ -1,14 +1,14 @@
 ================================================================================
                     LIVE TRADING READINESS CHECKLIST
 ================================================================================
-Last Updated: 2026-09-14
+Last Updated: 2026-09-15
 Current Status: RESEARCH_ONLY - No viable strategy, no live broker capability
 
 ================================================================================
 PHASE 1: STRATEGY RESEARCH (CRITICAL BLOCKER)
 ================================================================================
-Status: IN PROGRESS - pv-2.2.0 failed; H-001 is rejected after confirmation;
-H-002/H-003 are blocked by preregistration-to-data-contract mismatches
+Status: IN PROGRESS - pv-2.2.0 failed; H-001, H-002-R1, and H-003-R1 are
+rejected; original H-002/H-003 remain blocked by exact-data-contract gaps
 
 [x] 1.1 Close failed strategy line with documentation
     [x] Created PV220_CLOSURE_REPORT.md
@@ -25,7 +25,8 @@ H-002/H-003 are blocked by preregistration-to-data-contract mismatches
     [x] cross_asset_spillover.py (9 preregistered H-001 features)
     [x] liquidity_reversal.py (13 features)
     [x] volatility_risk_premium.py (21 features)
-    [x] All features registered in central registry (72 total)
+    [x] All features registered in central registry (77 total, including five
+        H-003-R1 amended-family definitions)
 
 [ ] 1.4 Execute research campaign (Trials 1-10 per hypothesis)
     [x] H-001 corrected Trial 1: REAL_DATA diagnostic only — SUPERSEDED because
@@ -34,10 +35,22 @@ H-002/H-003 are blocked by preregistration-to-data-contract mismatches
         valid full-strategy placebo separation (net Sharpe 0.787; percentile
         0.35; adjusted p 0.667; 20 nulls). H-001 REJECTED; no paper/live use.
     [x] H-001 remaining trial budget: RETIRED after rejecting confirmation
-    [ ] H-002 Trials 1-10: BLOCKED — registered hypothesis requires Russell
-        3000 constituent, market-cap, and intraday trade-classification data
+    [x] H-002 formally revised into new family H-002-R1 and EXECUTED once on
+        real data (2010-2023, 285-name universe, yfinance daily OHLCV).
+        Result: REJECTED — 0/10 positive OOS folds; gross Sharpe -0.342;
+        net -2.656. Trial budget retired; window spent. The amendment is
+        valid evidence for H-002-R1 ONLY, never for the original H-002.
+    [ ] H-002 original Trials 1-10: BLOCKED — registered hypothesis still
+        requires Russell 3000 constituent, market-cap, and intraday
+        trade-classification data. The amendment did NOT discharge this.
     [ ] H-003 Trials 1-10: BLOCKED — registered hypothesis requires VIX-futures
         M1-M3 term structure, 17-ETF inputs, correlations, and risk-parity path
+    [x] H-003 formally revised into new family H-003-R1 and EXECUTED once on
+        real data (2008-2023, 17 ETFs plus VIX spot, yfinance daily OHLCV).
+        Result: REJECTED — full OOS gross Sharpe 0.375, net Sharpe -0.074,
+        2/5 positive folds, annual turnover 7.42x vs 2x cap, capacity $6.76m
+        vs $500m. Ten of fourteen mandate gates failed; budget retired. This
+        is evidence for H-003-R1 ONLY, never for original H-003.
 
 [ ] 1.5 Achieve ROBUST_OOS status on at least one hypothesis
     CRITICAL GATES (all must pass):
@@ -127,7 +140,7 @@ Status: COMPLETE - all 10 P1 findings fixed with behavioral regressions
 ================================================================================
 PHASE 3: TEST SUITE REMEDIATION
 ================================================================================
-Current: latest complete 372-test run passed with no failures or teardown
+Current: latest complete 399-test run passed with no failures or teardown
 errors. It includes execution-accounting and operational-control regressions.
 See TEST_SUITE_REMEDIATION_REPORT.md.
 
@@ -383,7 +396,7 @@ SUMMARY: CRITICAL PATH TO LIVE TRADING
 ================================================================================
 
 BLOCKERS (Must Complete First):
-  1. Find viable strategy (Phase 1) - CURRENT STATUS: 0/3 hypotheses successful
+  1. Find viable strategy (Phase 1) - CURRENT STATUS: no qualifying family
   2. Fix P1 audit findings (Phase 2) - 10/10 verified complete
   3. Build live broker (Phase 5) - 0% implemented
 
@@ -394,8 +407,10 @@ DEPENDENT WORK (After Blockers):
 
 SCHEDULING NOTE:
   No delivery date is currently defensible. Phase 2 and the local Phase 3
-  baseline are complete, while Phase 1 has no qualifying strategy and the
-  H-002/H-003 data decision is unresolved. Observed paper validation itself
+  baseline are complete, while Phase 1 has no qualifying strategy. Amended
+  H-002-R1/H-003-R1 families were executed and rejected; original H-002/H-003
+  remain untested pending their exact data contracts. Observed paper validation
+  itself
   requires at least the configured session period after research qualification.
 
 RISK FACTORS:
@@ -427,26 +442,51 @@ PHASE 1 UPDATE - STEP 5 BLOCKER (Added 2026-09-14)
     Guardrails: unknown sources, missing SPY/QQQ inputs, unavailable PIT feeds,
     duplicate columns, and protocol/panel feature mismatches fail closed
 
-[ ] RECONCILE HYPOTHESIS PREREGISTRATIONS WITH EXECUTABLE DATA/MODEL CONTRACTS
+[x] RECONCILE HYPOTHESIS PREREGISTRATIONS WITH EXECUTABLE DATA/MODEL CONTRACTS
     Status: H-001 reconciliation and confirmation COMPLETE but hypothesis
-    REJECTED. H-002/H-003 remain BLOCKED by the missing contracts documented in
-    PHASE1_DATA_CONTRACT_GAP_MATRIX.md.
-    Required: Select an approved data source and implement the exact H-002 or
-    H-003 point-in-time data/evaluation path, or freeze a genuinely new family.
+    REJECTED. H-002 reconciled by amendment into H-002-R1 (see
+    HYPOTHESIS_H002_R1_LIQUIDITY_REVERSAL_AMENDED.md), executed once and
+    REJECTED. H-003 reconciled by amendment into H-003-R1 (see
+    HYPOTHESIS_H003_R1_VOLATILITY_SHOCK_AMENDED.md), executed once and
+    REJECTED. Original H-002/H-003 remain untested and blocked on their exact
+    data contracts; neither amendment is evidence for its original family.
     
 [x] EXECUTE CORRECTED H-001 PATH AND INDEPENDENT CONFIRMATION
     Status: COMPLETE — corrected Trial 1 is superseded diagnostic evidence;
     frozen 2021-2026 independent confirmation failed placebo separation.
     Decision: H-001 REJECTED; remaining trial budget retired.
     
+[x] EXECUTE H-002-R1 (amended liquidity reversal) ON REAL DATA
+    Status: COMPLETE — single preregistered run on 2010-2023 real data.
+    Protocol artifacts/h002_r1/h002_r1_protocol.json (digest 1ad57615a9619f0f);
+    config configs/h002_real_universe.yaml (fingerprint 44d1757bdd9f7a70).
+    Result: REJECTED. Gross Sharpe -0.342 (no edge before costs), 0/10
+    positive OOS folds, net Sharpe -2.656, annual turnover 72x vs 6x cap.
+    Decision: trial budget retired; the 2010-2023 window is spent for this
+    family. Note the original H-002 remains untested and still blocked on PIT
+    membership, market-cap, and midpoint-classified trade data.
+
 [ ] RE-EXECUTE H-002 Trials 1-2 with correct liquidity_reversal features  
-    Status: BLOCKED BEFORE TRIAL — existing synthetic single-target results are
-    invalid proxies and the runtime now refuses this execution path
+    Status: CLOSED — superseded by H-002-R1. The original path is still refused
+    by the runtime because its contract (PIT membership, market cap, classified
+    trades) is absent; the amended family was executed instead and rejected.
     
 [ ] EXECUTE H-003 Trials 1-5 with correct volatility_risk_premium features
-    Status: BLOCKED BEFORE TRIAL — VIX-futures, 17-ETF correlation, risk-parity,
-    weekly execution, crisis and diversification contracts are absent
+    Status: CLOSED — superseded by H-003-R1. Original H-003 remains blocked on
+    VIX-futures M1-M3 and a specified continuous-contract/risk-parity path.
+
+[x] EXECUTE H-003-R1 (amended daily volatility shock) ON REAL DATA
+    Status: COMPLETE — one protocol-frozen run on 2008-2023 yfinance data.
+    Protocol digest 0b32c50c955d3f8d; config fingerprint b28f26e136fd6dd1;
+    experiment 20260915T103928Z_e309df031a658f12.
+    Result: REJECTED — net Sharpe -0.074, 2/5 positive folds, annual turnover
+    7.42x, bootstrap P(SR>0) 0.414, capacity $6.76m. Ten of fourteen H-003-R1
+    mandate gates failed, so the remaining budget is retired. The original
+    H-003 is still untested. See H003_R1_RESULTS.md.
 
 NOTE: All earlier proxy H-001/H-002 trials are invalid. The corrected H-001
-confirmation is valid decision evidence and rejects H-001. Do not cite any
-invalid proxy or superseded candidate result as promotion evidence.
+confirmation is valid decision evidence and rejects H-001. The H-002-R1 run is
+valid decision evidence for the AMENDED family only and rejects it; it is not
+evidence about the original H-002. The same boundary applies to H-003-R1 versus
+original H-003. Do not cite any invalid proxy or superseded candidate result as
+promotion evidence.

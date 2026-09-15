@@ -1,9 +1,10 @@
 # Test Suite Remediation Report
 
-**Date:** 2026-09-14  
-**Result:** `PASS` — the latest complete run collected 372 tests and exited 0
-with no failures or teardown errors. This includes nine new execution-
-accounting and operational-control tests added after the prior 363-test state.
+**Date:** 2026-09-15
+**Result:** `PASS` — the latest complete run collected 399 tests and exited 0
+with no failures or teardown errors. This includes the H-002-R1 and H-003-R1
+portfolio, leakage, accounting, protocol, and end-to-end regressions added
+after the prior 372-test state.
 
 ## Command
 

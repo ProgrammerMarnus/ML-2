@@ -24,7 +24,7 @@ class ConfigError(ValueError):
 
 @dataclass(frozen=True)
 class DataConfig:
-    mode: str = "synthetic"  # synthetic | csv | yfinance
+    mode: str = "synthetic"  # synthetic | csv | yfinance | h002 | h003
     assets: List[str] = field(default_factory=lambda: ["SPY"])
     target: str = "SPY"
     start: str = "2012-01-01"
@@ -33,18 +33,30 @@ class DataConfig:
     exchange_calendar: str = "XNYS"
     csv_path: Optional[str] = None
     raw_snapshot_dir: str = "data/raw_snapshots"
+    # H-002 real-data exploration knobs.  ``h002_universe_path`` lets a run point
+    # at an alternative ticker list (e.g. a small smoke subset) and
+    # ``h002_max_tickers`` caps how many symbols are downloaded.  Both default
+    # to None, i.e. the full data/universe_russell3000.csv.
+    h002_universe_path: Optional[str] = None
+    h002_max_tickers: Optional[int] = None
 
     def __post_init__(self) -> None:
-        if self.mode not in {"synthetic", "csv", "yfinance"}:
-            raise ConfigError(f"data.mode must be synthetic|csv|yfinance, got {self.mode!r}")
+        if self.mode not in {"synthetic", "csv", "yfinance", "h002", "h003"}:
+            raise ConfigError(
+                "data.mode must be synthetic|csv|yfinance|h002|h003, "
+                f"got {self.mode!r}"
+            )
         if self.mode == "csv" and not self.csv_path:
             raise ConfigError("data.csv_path is required when data.mode='csv'")
-        if self.target not in self.assets:
+        if self.mode not in {"h002"} and self.target not in self.assets:
             raise ConfigError(f"target {self.target!r} must be in assets")
         if self.frequency != "1d":
             raise ConfigError("only frequency '1d' is supported (documented limitation)")
         if not isinstance(self.exchange_calendar, str) or not self.exchange_calendar.strip():
             raise ConfigError("data.exchange_calendar must be a non-empty exchange_calendars code")
+        if self.h002_max_tickers is not None:
+            if not isinstance(self.h002_max_tickers, int) or self.h002_max_tickers <= 0:
+                raise ConfigError("data.h002_max_tickers must be a positive integer or null")
 
 
 @dataclass(frozen=True)

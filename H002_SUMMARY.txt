@@ -1,0 +1,84 @@
+H-002 STATUS UPDATE - 2026-09-15
+=====================================
+
+WHAT WAS DONE (Option 2: amend H-002 into a new family H-002-R1)
+------------------------------------------------------------------
+
+1. CREATED NEW FILES
+   - configs/h002_real_universe.yaml     - config for H-002-R1 real-data run
+   - HYPOTHESIS_H002_R1_LIQUIDITY_REVERSAL_AMENDED.md - preregistration amendment
+   - src/quant_research/h002_pipeline.py - H-002-R1 pipeline (data->features->portfolio->walk-forward)
+   - src/quant_research/data/h002_universe.py - 285-name US small/mid-cap universe loader (static snapshot)
+   - src/quant_research/portfolio/h002_portfolio.py - dollar-neutral long/short portfolio constructor
+   - src/quant_research/portfolio/h002_returns.py - portfolio return/turnover/cost computation
+   - tests/test_h002_pipeline.py - 19 unit tests for composite signal, portfolio, returns
+
+2. MODIFIED EXISTING FILES
+   - src/quant_research/run.py           - H-002-R1 execution path, trial counter, finish stage
+   - src/quant_research/portfolio/risk.py - extended to accept weight matrix (not just positions)
+   - src/quant_research/data/loaders.py  - VIX availability flag (not embedded as Series)
+   - src/quant_research/data/snapshots.py - VIX availability metadata
+   - PHASE1_DATA_CONTRACT_GAP_MATRIX.md - updated H-002 entry (amended, not blocked)
+   - LIVE_TRADING_READINESS_CHECKLIST.txt - updated §37-44 (amendment decision), §438-474 (H-002-R1 executed)
+   - PHASE1_HYPOTHESIS_EXECUTION_ELIGIBILITY.md - updated H-002 row
+   - PHASE1_STRATEGY_RESET.md - updated Step 5 header
+   - CURRENT_PROJECT_STATUS.md - updated H-002 status
+   - README.md - updated status
+
+3. EXECUTED H-002-R1 ONCE
+   - Artifacts: artifacts/h002_r1/
+   - Protocol: artifacts/h002_r1/h002_r1_protocol.json (digest 1ad57615a9619f0f)
+   - Config: configs/h002_real_universe.yaml (fingerprint 44d1757bdd9f7a70)
+   - Run: artifacts/h002_r1/run/20260915T071631Z_aaa4d1a85eaf042a
+   - Evidence status: REAL_DATA
+   - Promotion state: RESEARCH_ONLY
+   - Trial budget: retired (1 trial)
+
+4. KEY DEVIATIONS FROM ORIGINAL H-002 PREREGISTRATION
+   - Universe: static 285-name snapshot (NOT PIT Russell 3000 membership)
+   - LIM proxy: return-signed volume from daily OHLCV (NOT intraday midpoint-classified trades)
+   - Composite: 5 of 7 terms (omitted Size_decile + VIX vol-regime)
+   - Folds: contiguous 252-session OOS (NOT 126-session gaps - engine doesn't support)
+   - Rebalance: every 5 sessions (NOT weekly rebalancing path with intraday fills)
+   - VIX: not embedded in snapshot metadata (availability flag only)
+   - Market cap: not available (no size-weighting)
+   - Sector map: simple GICS map (NOT proper sector feed)
+
+5. RESULTS
+   - Median OOS Sharpe (net): -3.221
+   - Mean OOS Sharpe (net): -3.131
+   - Full OOS gross Sharpe: -0.342  <-- decisive (no edge before costs)
+   - Full OOS net return: -81.07%
+   - Positive OOS folds: 0 of 10
+   - Annual turnover: 72.09x (cap 6x)
+   - Total transaction cost sum: 1.978
+     (correct attribution: fees 1.483; slippage 0.494)
+
+6. FAILED GATES (10 of 14)
+   - median_oos_sharpe_positive
+   - mean_oos_sharpe_positive
+   - worst_dd_within_limit
+   - cost_stress_survives
+   - delay_stress_survives
+   - bootstrap_positive_prob
+   - placebo_separates
+   - placebo_sample_adequate
+   - not_single_fold
+   - turnover_plausible
+   PASSED: data_integrity, lookahead_resolved, trial_accounting_consistent, family_search_within_cap
+
+7. DECISION
+   - H-002-R1: REJECTED
+   - Trial budget retired. No further tuning.
+   - Original H-002 remains unexecuted and blocked on PIT Russell 3000 data.
+   - Evidence is valid for H-002-R1 ONLY, never for original H-002.
+   - The proxy-LIM, static-universe, 5-term amendment removed the measurement
+     the hypothesis actually rested on (intraday trade classification).
+
+8. KEY INSIGHT
+   - The gross Sharpe of -0.342 means the directional signal has no edge before costs.
+   - Costs are severe (72x turnover vs 20bps = complete capital loss) but are not
+     the reason the hypothesis fails.
+   - Two readings: (1) effect doesn't exist, or (2) effect is real but destroyed by
+     the proxy. The evidence cannot distinguish them.
+   - Reading (2) is more likely - it's why the original H-002 required intraday data.

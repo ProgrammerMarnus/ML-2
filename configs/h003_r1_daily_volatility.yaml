@@ -1,0 +1,67 @@
+# H-003-R1 amended real-data research run.
+#
+# This is a NEW family.  It is not an implementation of original H-003 because
+# no VIX-futures M1-M3 curve is used and the allocator is signed inverse-vol,
+# not an equal-risk-contribution optimizer.  See the amendment document.
+
+data:
+  mode: h003
+  assets:
+    [SPY, QQQ, IWM, EFA, EEM, TLT, IEF, SHY, LQD, HYG,
+     UUP, FXE, FXY, FXB, GLD, DBC, USO, "^VIX"]
+  target: SPY
+  start: "2008-01-01"
+  end: "2023-12-31"
+  frequency: 1d
+  exchange_calendar: XNYS
+  raw_snapshot_dir: data/raw_snapshots
+
+evaluation:
+  train_window: 504
+  validation_window: 126
+  test_window: 504
+  step_bars: 504
+  purge_bars: 5
+  embargo_bars: 5
+  expanding: true
+
+execution:
+  fee_bps: 5.0
+  slippage_bps: 2.0
+  signal_delay_bars: 0
+  target_vol: 0.10
+  max_position: 0.15
+
+model:
+  type: logistic
+  random_seed: 42
+  hold_bars: 5
+
+features:
+  include_sources: [h003_r1_volatility_shock]
+  exclude_features: []
+
+research:
+  max_trials: 10
+  bootstrap_samples: 500
+  placebo_runs: 20
+  threshold_candidates: [0.5]
+  hold_candidates: [5]
+  protocol_path: artifacts/h003_r1/h003_r1_protocol.json
+
+promotion:
+  min_median_oos_sharpe: 0.0
+  min_mean_oos_sharpe: 0.0
+  max_oos_dd: -0.20
+  cost_stress_fee_bps: 10.0
+  delay_stress_bars: 3
+  min_bootstrap_positive_prob: 0.80
+  min_placebo_percentile: 0.85
+  min_placebo_runs: 20
+  max_placebo_adjusted_p: 0.20
+  max_single_fold_share: 0.60
+  max_annual_turnover: 2.0
+  selection_correction: none
+  max_family_searches: 1
+
+output_dir: artifacts/h003_r1/run

@@ -58,6 +58,11 @@ def risk_report(net_returns: pd.Series, weights: pd.Series | None = None,
     turnover.  ``benchmark`` must be the same realized interval the strategy
     actually earns (forward close-to-close).
 
+    For a CROSS-SECTIONAL book (a long/short weight matrix whose per-name net
+    position is ~0 every session) pass ``weight_matrix`` instead of ``weights``;
+    gross exposure and turnover are then derived from the matrix itself
+    (``sum(|w|)`` and ``sum(|Δw|)`` per session).
+
     Cross-sectional concentration HHI is MEANINGFUL only over a real
     per-timestamp weight MATRIX (``weight_matrix``); when it is not supplied we
     explicitly report ``concentration_hhi=None`` rather than a misleading
@@ -82,6 +87,20 @@ def risk_report(net_returns: pd.Series, weights: pd.Series | None = None,
         if len(turnover):
             turnover.iloc[0] = abs(weights.iloc[0])  # engine ledger convention
         out["annual_turnover"] = float(turnover.sum() / max(len(weights) / TRADING_DAYS, 1e-9))
+    elif weight_matrix is not None and len(weight_matrix) > 0:
+        # Cross-sectional book (e.g. a dollar-neutral long/short portfolio):
+        # the per-name NET position is ~0 every day, so a single-series ledger
+        # would understate exposure and turnover.  Derive both from the actual
+        # matrix: gross exposure is sum(|w|) per session and turnover is
+        # sum(|Δw|) per session, with the first session charged its entry.
+        wm = weight_matrix.astype("float64").replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        gross_exposure = wm.abs().sum(axis=1)
+        turnover = wm.diff().abs().sum(axis=1)
+        if len(turnover):
+            turnover.iloc[0] = gross_exposure.iloc[0]  # entry charged in full
+        out["avg_gross_exposure"] = float(gross_exposure.mean())
+        out["max_gross_exposure"] = float(gross_exposure.max())
+        out["annual_turnover"] = float(turnover.sum() / max(len(wm) / TRADING_DAYS, 1e-9))
     # Cross-sectional concentration only when a real weight matrix is present.
     if weight_matrix is not None and len(weight_matrix) > 0 and weight_matrix.shape[1] >= 1:
         hhi = cross_sectional_hhi(weight_matrix)

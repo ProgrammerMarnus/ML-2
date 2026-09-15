@@ -7,7 +7,7 @@ CURRENT STATE
 -------------
 Promotion state: RESEARCH_ONLY
 Research evidence: H-001 rejected; H-002 and H-003 blocked before valid trial
-Test baseline: all 372 collected tests pass in the latest complete run
+Test baseline: all 399 collected tests pass in the latest complete run
 PaperBroker: hardened local simulator (phase 4.1 complete)
 Validation framework: implemented; no accepted observed-paper evidence
 Live adapter: none

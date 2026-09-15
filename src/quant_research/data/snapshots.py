@@ -103,6 +103,35 @@ def load_snapshot(path: str | Path) -> pd.DataFrame:
     return pd.read_csv(path, float_precision="round_trip")
 
 
+def _serialise_predictions(predictions: pd.DataFrame) -> Dict[str, list]:
+    """Serialise a predictions frame for the reproducibility manifest.
+
+    Scalar-target strategies emit ``prob``/``y``/``fwd``/``fold`` columns.  A
+    cross-sectional portfolio strategy (H-002) has no per-name probability or
+    binary label, so it carries only the observation index.  Absent columns are
+    reported as empty lists rather than raising ``KeyError`` so that both
+    strategy families produce a valid manifest.
+    """
+    block: Dict[str, list] = {"index": [str(ts) for ts in predictions.index]}
+    if "prob" in predictions.columns:
+        block["prob"] = [float(v) if pd.notna(v) else None for v in predictions["prob"]]
+    else:
+        block["prob"] = []
+    if "y" in predictions.columns:
+        block["y"] = [int(v) if pd.notna(v) else None for v in predictions["y"]]
+    else:
+        block["y"] = []
+    if "fwd" in predictions.columns:
+        block["fwd"] = [float(v) if pd.notna(v) else None for v in predictions["fwd"]]
+    else:
+        block["fwd"] = []
+    if "fold" in predictions.columns:
+        block["fold"] = [str(v) for v in predictions["fold"]]
+    else:
+        block["fold"] = []
+    return block
+
+
 def create_run_manifest(
     cfg: Any,
     ohlcv: pd.DataFrame,
@@ -218,13 +247,7 @@ def create_run_manifest(
                 for _, row in baseline.folds.iterrows()
             ],
         },
-        "predictions": {
-            "index": [str(ts) for ts in baseline.predictions.index],
-            "prob": [float(v) if pd.notna(v) else None for v in baseline.predictions["prob"]],
-            "y": [int(v) if pd.notna(v) else None for v in baseline.predictions["y"]],
-            "fwd": [float(v) if pd.notna(v) else None for v in baseline.predictions["fwd"]],
-            "fold": [str(v) for v in baseline.predictions["fold"]],
-        },
+        "predictions": _serialise_predictions(baseline.predictions),
         "positions": {
             "index": [str(ts) for ts in baseline.oos_positions.index],
             "position": [float(v) if pd.notna(v) else 0.0 for v in baseline.oos_positions],

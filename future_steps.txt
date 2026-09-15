@@ -10,7 +10,7 @@ available to the scalar single-asset runner. The runtime correctly refuses
 generic price/volume proxy executions.
 
 Engineering defects E01-E10 are fixed and regression-tested. The latest full
-suite passed all 372 collected tests with no failures or teardown errors.
+suite passed all 399 collected tests with no failures or teardown errors.
 PaperBroker hardening phase 4.1 is complete, including order lifecycle,
 safeguards, persistence/restart integrity, and a 250-order load smoke test.
 This simulator evidence is not paper-market or live-broker evidence.
@@ -42,7 +42,7 @@ PRIORITY ORDER
    - Simulator calls alone cannot promote a strategy.
 
 5. Establish repeatable CI evidence.
-   - Keep the current 372-test collection green in isolated local and hosted CI.
+   - Keep the current 399-test collection green in isolated local and hosted CI.
    - Retain machine-readable results and separate expected synthetic-window
      warnings from actionable warnings.
 

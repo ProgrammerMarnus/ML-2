@@ -2,9 +2,12 @@
 
 A point-in-time, leakage-safe, walk-forward quantitative research platform.
 
-> **Current status (2026-09-14):** `RESEARCH_ONLY`. H-001 is rejected after a
-> corrected independent confirmation; H-002/H-003 are blocked by missing data
-> and portfolio contracts; no live-broker adapter exists. See
+> **Current status (2026-09-15):** `RESEARCH_ONLY`. H-001 is rejected after a
+> corrected independent confirmation; **H-002 is amended, executed under the new
+> H-002-R1 family, and REJECTED (valid evidence, no edge, trial budget retired)**
+> in `HYPOTHESIS_H002_R1_LIQUIDITY_REVERSAL_AMENDED.md`; H-003-R1 was likewise
+> amended, executed, and rejected (net Sharpe −0.074, 10/14 mandate gates
+> failed), while original H-003 remains untested; no live-broker adapter exists. See
 > [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
 
 `raw data -> PIT data -> features -> TRAIN/VAL/OOS walk-forward -> robustness
@@ -31,7 +34,7 @@ src/quant_research/
   experiments/              registry, leaderboard, promotion
   execution/                paper simulator, safeguards, operational controls
   run.py                    one-command research pipeline (CLI)
-tests/                      pytest suite (372 passing tests)
+tests/                      pytest suite (399 passing tests)
 configs/                    baseline.yaml (synthetic), real_spy.yaml (yfinance)
 Institutional_Quant_Research_Engine_V2.1.ipynb   thin orchestration notebook
 ```

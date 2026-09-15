@@ -1,6 +1,6 @@
 # Reproducible research workflow
 
-**Reviewed:** 2026-09-14. The current repository collects 372 tests and the
+**Reviewed:** 2026-09-15. The current repository collects 399 tests and the
 latest complete run passed. This is validation context, not strategy evidence.
 
 The engine records data hashes and experiment metadata. DVC adds content-addressed

@@ -1,6 +1,6 @@
 # Phase 1, Step 5: Research Campaign Status
 
-**Updated:** 2026-09-14  
+**Updated:** 2026-09-15
 **Promotion state:** `RESEARCH_ONLY`
 
 ## Resolution of the Original Framework Blocker
@@ -20,6 +20,10 @@ hypothesis trial.
   contract is unavailable to the scalar runner.
 - **H-003:** **blocked before trial** because its multi-asset/VIX data contract
   is unavailable to the scalar runner.
+- **H-002-R1:** amended daily-data family executed once and **rejected**; gross
+  Sharpe −0.342, 0/10 positive folds, and 72× turnover. Budget retired.
+- **H-003-R1:** amended daily-data family executed once and **rejected**; net
+  Sharpe −0.074, 7.42× turnover, and 10/14 mandate gates failed. Budget retired.
 
 The identical early -0.41 results remain invalid framework diagnostics and
 must not be cited as evidence against the three economic hypotheses.

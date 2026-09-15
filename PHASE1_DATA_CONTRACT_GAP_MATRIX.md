@@ -1,24 +1,37 @@
 # Phase 1 Data and Evaluation Contract Gap Matrix
 
-**Status:** H-001 is rejected after confirmation. H-002 and H-003 are blocked
-before any trial can consume research budget.
+**Status:** H-001 is rejected after confirmation. H-002 has been formally revised
+into a new family (H-002-R1), executed once on real data, and **rejected**;
+the original H-002 contract remains unexecuted. H-003 has likewise been amended
+into H-003-R1, executed once, and rejected; original H-003 remains unexecuted.
 
 | Hypothesis | Preregistered requirement | Present repository capability | Required before a new protocol can be approved |
 |---|---|---|---|
 | H-002 Liquidity Reversal | Point-in-time monthly Russell 3000 membership; daily adjusted OHLCV; market capitalisation; intraday buys/sells classified at the midpoint; VIX; daily cross-sectional, equal-weight dollar-neutral long/short portfolio | Single-target daily OHLCV panel. The feature module uses return-signed volume as a proxy; no membership, market-cap, classified-trade, sector, or cross-sectional portfolio path exists. | Licensed or otherwise approved PIT data source and retention policy; normalized membership, market-cap, intraday-trade and VIX schemas; Lee-Ready-or-equivalent classification specification; universe filters; sector-neutral, dollar-neutral portfolio and capacity evaluator; locked 2010–2023 fold schedule with 126-session gaps. |
+| H-002-R1 Liquidity Reversal (amended) | **RESOLVED — no longer blocked.** Contract restricted to repository-sourceable data: static universe snapshot, yfinance daily OHLCV, proxy LIM, 5-of-7 composite terms, contiguous 252-session folds. Frozen in `artifacts/h002_r1/h002_r1_protocol.json`. | Implemented: `configs/h002_real_universe.yaml`, `h002_pipeline.py`, `portfolio/h002_portfolio.py`, `portfolio/h002_returns.py`. | **None. Executed and REJECTED** (0/10 positive folds; gross Sharpe −0.342; net −2.656). Trial budget retired, window spent. See `HYPOTHESIS_H002_R1_LIQUIDITY_REVERSAL_AMENDED.md`. |
 | H-003 Volatility Risk Premium | Daily OHLCV for 17 named ETFs; VIX futures M1–M3 term structure; 20-day pairwise correlations; weekly risk-parity allocation with 0.5 leverage; 2008–2023 folds separated by one year | Scalar target daily OHLCV panel. The feature module can compute realised-volatility proxies and optional VIX/VXN spot features, but has no VIX-futures curve, correlation panel, risk-parity allocator, weekly portfolio ledger, or crisis/correlation gates. | Approved VIX-futures continuous-contract methodology and data source; normalized 17-ETF/VIX-futures data contract; correlation and risk-parity implementation; weekly rebalance and 0.5x leverage evaluator; explicit crisis-alpha and diversification gates; locked 2008–2023 fold schedule with 252-session gaps. |
+| H-003-R1 Daily Volatility-Shock Allocation (amended) | **RESOLVED — no longer blocked.** Frozen five-term daily-data signal over 17 ETFs; VIX spot stand-down; Wednesday signed inverse-vol portfolio; 0.5 gross/10% vol caps; contiguous 504-session OOS folds; portfolio-native cost, delay, placebo, crisis, capacity, and diversification gates. | Implemented in `h003_pipeline.py`, `portfolio/h003_portfolio.py`, and `configs/h003_r1_daily_volatility.yaml`; immutable protocol `artifacts/h003_r1/h003_r1_protocol.json`. | **None. Executed and REJECTED:** net OOS Sharpe −0.074, 2/5 positive folds, turnover 7.42x, capacity $6.76m, 10/14 mandate gates failed. Trial budget retired. See `H003_R1_RESULTS.md`. |
 
 ## Enforcement
 
-`run_research_pipeline` now rejects `liquidity_reversal` and
-`volatility_risk_premium` feature sources. This prevents the existing proxy
-YAML files from creating experiment records that could be mistaken for
-preregistered H-002/H-003 evidence. The feature modules remain usable in
-isolated tests; the refusal applies only to research execution.
+`run_research_pipeline` rejects `liquidity_reversal` and
+`volatility_risk_premium` feature sources on the default scalar path. This
+prevents the proxy YAML files from creating experiment records that could be
+mistaken for preregistered H-002/H-003 evidence. The feature modules remain
+usable in isolated tests; the refusal applies only to research execution.
 
-## Decision required
+The refusal has two explicit amended-family routes: `data.mode == "h002"` for
+H-002-R1 and `data.mode == "h003"` for H-003-R1. Each route uses its own
+portfolio evaluator and frozen protocol/config binding. Neither route relaxes
+the refusal for the original hypothesis feature source on the scalar engine.
 
-Select an approved data source and implementation path for one hypothesis, or
-formally retire/revise that hypothesis into a new research family. Either
-choice requires a new immutable protocol and review before any real-data test
-window is unlocked.
+## Decision status
+
+H-002-R1 and H-003-R1 are **closed** by amendment, single baseline execution,
+and rejection. Original H-002 and H-003 remain untested and blocked on their
+respective external data contracts.
+
+Revising a hypothesis into a new family does **not** discharge the original
+contract. Original H-002 remains untested; if its mechanism is to be evaluated,
+it still requires licensed PIT membership, market-cap, and midpoint-classified
+trade data.

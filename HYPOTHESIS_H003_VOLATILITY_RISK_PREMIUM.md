@@ -5,6 +5,11 @@ the VIX-futures M1–M3 curve, complete 17-ETF correlation panel, weekly
 risk-parity evaluator, and crisis/diversification gates this preregistration
 requires. The scalar daily-OHLCV runtime refuses proxy H-003 execution.
 
+**Amendment boundary (2026-09-15):** the separate H-003-R1 daily-data family
+was frozen, executed once, and rejected. That result does not test this
+VIX-futures/risk-parity contract, which remains unexecuted and blocked. See
+`HYPOTHESIS_H003_R1_VOLATILITY_SHOCK_AMENDED.md` and `H003_R1_RESULTS.md`.
+
 ## 1. Economic Mechanism
 
 **Hypothesis:** Assets experiencing elevated realized volatility relative to their historical norm command a risk premium as volatility-averse investors reduce exposure, creating return opportunities for volatility sellers.

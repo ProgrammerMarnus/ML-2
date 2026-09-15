@@ -121,10 +121,27 @@ def volatility_risk_premium_feature_specs() -> List[FeatureSpec]:
     return [FeatureSpec(**spec) for spec in specs_dict]
 
 
+def h003_r1_feature_specs() -> List[FeatureSpec]:
+    """H-003-R1 amended cross-sectional daily-data signal definitions."""
+    source = "h003_r1_volatility_shock"
+    version = "h003.r1.0"
+    rule = "trailing data through close t; target weights execute no earlier than t+1"
+    missing = "NaN until every frozen lookback is available; all five terms required"
+    norm = "cross-sectional z-score at decision timestamp"
+    return [
+        FeatureSpec("h003r1_vshock_1d", "positive 20d RV z-score vs lagged-year norm, shifted one session", source, 274, rule, missing, norm, version),
+        FeatureSpec("h003r1_vshock_5d", "5-session mean of lagged positive RV shock", source, 278, rule, missing, norm, version),
+        FeatureSpec("h003r1_vol_mean_rev", "20d realized volatility / lagged-year mean", source, 273, rule, missing, norm, version),
+        FeatureSpec("h003r1_skewness_20d", "20-session return skewness", source, 21, rule, missing, norm, version),
+        FeatureSpec("h003r1_correlation_spike", "20d mean correlation to peers minus trailing 252-session norm", source, 272, rule, missing, norm, version),
+    ]
+
+
 def registry() -> List[FeatureSpec]:
     return (price_volume_feature_specs() + signal_extension_feature_specs()
             + information_feature_specs() + cross_asset_spillover_feature_specs()
-            + liquidity_reversal_feature_specs() + volatility_risk_premium_feature_specs())
+            + liquidity_reversal_feature_specs() + volatility_risk_premium_feature_specs()
+            + h003_r1_feature_specs())
 
 
 def registry_hash(names: List[str]) -> str:

@@ -1,9 +1,9 @@
 # Phase 1 Hypothesis Execution Eligibility Audit
 
 **Date:** 2026-09-14  
-**Decision:** `DO_NOT_EXECUTE` — H-001 is rejected after independent
-confirmation, and H-002/H-003 may not consume research budget until their
-discrepancies are resolved in new immutable protocols.
+**Decision:** `DO_NOT_PROMOTE` — H-001, H-002-R1, and H-003-R1 are rejected.
+Original H-002/H-003 may not consume research budget until their exact external
+data contracts are supplied; their amended-family evidence does not transfer.
 
 ## Scope
 
@@ -17,8 +17,9 @@ selected correctly yet still fail to represent the preregistered hypothesis.
 | Hypothesis | Preregistered contract | Current executable contract | Decision |
 |---|---|---|---|
 | H-001 Cross-Asset Spillover | Nine ratio/VIX/volume features; adjusted SPY, QQQ, VIX, and risk-free data from 2010–2026 | The nine feature formulas, selected SPY/QQQ leg, two-sided switching cost, walk-forward replay, and robustness path are implemented. A frozen 2021–2026 independent confirmation was run after correcting its full-strategy feature placebo. It failed placebo separation (percentile 0.35, adjusted p 0.667; 20 nulls). | Rejected — do not rerun or promote |
-| H-002 Liquidity Reversal | Seven cross-sectional features over Russell 3000 constituents, with intraday trade classification, market cap, and VIX | Thirteen single-asset OHLCV proxies. The available trial YAML targets SPY and has neither constituent history, market cap, intraday trade data, nor VIX. | Do not execute |
+| H-002 Liquidity Reversal | Seven cross-sectional features over Russell 3000 constituents, with intraday trade classification, market cap, and VIX. 126-session inter-fold gaps and a weekly rebalance contract. | **Amended and executed (H-002-R1 family):** 13-feature cross-sectional panel over a 285-name US small/mid-cap universe; five-term equal-weighted cross-sectional z-score composite (daily LIM proxies, 5d/20d rolling moments, volume ratio, Amihud illiquidity); dollar-neutral top/bottom-decile long/short portfolio; 2010–2023 contiguous weekly rebalance walk-forward with 7 folds and 52-session gaps; full documented deviations (no PIT membership, no market cap, no intraday classification, no VIX, proxies substitute for LIM, weekly rebalance instead of weekly rebalancing path with intraday fills). See `HYPOTHESIS_H002_R1_LIQUIDITY_REVERSAL_AMENDED.md`. | **REJECTED** — H-002-R1 executed under a formally revised family; valid evidence, no edge, trial budget spent |
 | H-003 Volatility Risk Premium | Seven-feature tactical allocation across 17 ETFs, with VIX futures M1–M3 term structure, correlations, and risk-parity construction | Twenty-one mostly single-target realized-volatility features; optional VIX/VXN *spot* inputs only. The engine has no VIX-futures, correlation, or multi-asset risk-parity input path. | Do not execute |
+| H-003-R1 Daily Volatility-Shock Allocation | Five sign-aligned daily-data terms across the same 17 ETFs; VIX spot stand-down; Wednesday signed inverse-vol allocation; 0.5 gross cap; portfolio-native placebo, cost, delay, crisis, capacity, and diversification gates | Implemented and protocol-frozen as a separate amended family. Baseline experiment `20260915T103928Z_e309df031a658f12` produced net Sharpe −0.074, 7.42x turnover, $6.76m capacity, and failed 10/14 mandate gates. | Rejected; budget retired |
 
 ## Consequences
 
@@ -32,6 +33,8 @@ selected correctly yet still fail to represent the preregistered hypothesis.
   confirmation is the valid decision evidence and rejects H-001.
 - Synthetic data can exercise software only. It cannot satisfy any of the
   market-data preregistrations above or produce promotable strategy evidence.
+- H-003-R1's valid rejecting evidence is scoped to its daily-data/inverse-vol
+  amendment. It does not test original H-003's VIX-futures curve mechanism.
 
 ## Required before H-002/H-003 execution or a new research family
 

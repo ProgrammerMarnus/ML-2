@@ -251,8 +251,27 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
     B05 FIX: Validate that all requested assets are present in the loaded data
     and that the data covers the requested period. Missing assets and truncated
     history are now explicitly detected.
+
+    For ``mode='h002'``, redirects to the H-002 universe loader.
     """
-    if cfg.mode == "synthetic":
+    if cfg.mode == "h002":
+        from .h002_universe import load_h002_universe
+        ohlcv, vix, sector_map, meta = load_h002_universe(
+            cfg.start, cfg.end,
+            universe_path=getattr(cfg, "h002_universe_path", None),
+            max_tickers=getattr(cfg, "h002_max_tickers", None),
+        )
+        # H-002 returns (ohlcv, vix, sector_map, meta) but load_market_data
+        # expects (ohlcv, metadata).  Flatten the extra outputs into metadata.
+        meta["vix_available"] = not vix.empty
+        meta["vix_n_obs"] = len(vix)
+        meta["sector_map_n"] = len(sector_map)
+        # JSON-safe extras consumed downstream by the H-002 pipeline.  The VIX
+        # Series is deliberately not embedded here (it would be repr-coerced and
+        # inflate the snapshot metadata).
+        meta["sector_map"] = sector_map
+        return ohlcv, meta
+    elif cfg.mode == "synthetic":
         ohlcv = generate_synthetic_ohlcv(
             cfg.assets, cfg.start, cfg.end, seed=42,
             exchange_calendar=cfg.exchange_calendar,
@@ -261,11 +280,13 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
     elif cfg.mode == "csv":
         ohlcv = load_csv_ohlcv(cfg.csv_path, cfg.assets)  # type: ignore[arg-type]
         assumption = "user-provided csv; corporate-action basis is the user's responsibility"
-    elif cfg.mode == "yfinance":
+    elif cfg.mode in {"yfinance", "h003"}:
         ohlcv = load_yfinance_ohlcv(cfg.assets, cfg.start, cfg.end)
         assumption = (
             "yfinance daily bars, auto_adjust=True: split/dividend-adjusted OHLC "
             "(documented corporate-action basis)"
+            + ("; H-003-R1 amended 17-ETF plus VIX-spot contract"
+               if cfg.mode == "h003" else "")
         )
     else:  # pragma: no cover - DataConfig validates modes
         raise DataValidationError(f"unsupported data mode {cfg.mode!r}")

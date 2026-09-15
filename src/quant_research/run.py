@@ -55,6 +55,8 @@ from .features.point_in_time import validate_events
 from .features.registry import registry_hash
 from .portfolio.risk import risk_report
 from .strategies.baseline import run_walk_forward, summarize_experiment
+from .h002_pipeline import run_h002_pipeline
+from .h003_pipeline import run_h003_pipeline
 
 SYNTHETIC_EVENT_NOTE = "synthetic events for offline exercise of the PIT layer; NOT market evidence"
 
@@ -67,10 +69,25 @@ def _assert_preregistered_execution_supported(cfg: AppConfig) -> list[str]:
     their registered feature source through this path would create an invalid
     result with a deceptively official-looking experiment record.  The feature
     functions remain available for isolated development tests.
+
+    When ``data.mode == 'h002'``, the H-002 real-data pipeline is used instead,
+    so ``liquidity_reversal`` is permitted (the cross-sectional portfolio path
+    replaces the scalar backtest).
     """
     sources = selected_sources(
         cfg.features, events_available=cfg.data.mode == "synthetic",
     )
+    if cfg.data.mode == "h002":
+        # H-002 real-data pipeline: liquidity_reversal features are used in the
+        # cross-sectional portfolio constructor, not the scalar backtest.
+        return sources
+    if cfg.data.mode == "h003":
+        if sources != ["h003_r1_volatility_shock"]:
+            raise DataValidationError(
+                "H-003-R1 mode requires the single frozen feature source "
+                "'h003_r1_volatility_shock'"
+            )
+        return sources
     missing_contracts = {
         "liquidity_reversal": (
             "H-002 cannot run in the scalar daily-OHLCV engine: it requires "
@@ -157,6 +174,80 @@ def run_research_pipeline(cfg: AppConfig, output_dir: Optional[str] = None) -> D
     report["data_meta"] = data_meta
     report["snapshot_metadata"] = snapshot_meta
     report["ohlcv"] = ohlcv
+
+    # --- H-002 real-data pipeline branch ----------------------------------------
+    if cfg.data.mode == "h002":
+        data_meta["missing_data_report"] = missing
+        data_meta["snapshot_metadata"] = snapshot_meta
+        h002_report = run_h002_pipeline(
+            cfg, ohlcv, data_meta, out, None, None, 0,
+            dataset_version, None, None,
+        )
+        # Merge H-002 report into the main report
+        report.update(h002_report)
+        report["data_integrity_report"] = missing
+        report["snapshot_metadata"] = snapshot_meta
+        report["data_meta"] = data_meta
+        # Skip the scalar walk-forward and go to _finish_pipeline
+        baseline = h002_report["baseline"]
+        summary = h002_report["baseline_summary"]
+        close = h002_report["close"]
+        volume = h002_report["volume"]
+        features = h002_report["features"]
+        price_feats = h002_report["price_feats"]
+        info_cols = h002_report["info_cols"]
+        y = h002_report["y"]
+        fwd = h002_report["fwd"]
+        events = h002_report["events"]
+        asset_forward_returns = h002_report["asset_forward_returns"]
+        selected_asset = h002_report["selected_asset"]
+        feature_version = h002_report["feature_version"]
+        locked_test = None  # No locked test for H-002 initial exploration
+        # The H-002 cross-sectional run is a research trial in its own right.
+        # Record it in the persistent monotonic counter so the search-effort
+        # gates see it, and expose it to the finish stage.
+        counter = TrialCounter(Path(out) / "trial_counter.json")
+        start_count = counter.count
+        counter.increment()
+        report["trial_counter"] = counter
+        report["start_count"] = start_count
+        eval_fp = str(cfg.evaluation)
+        integrity_ok = True
+        ledger = None
+        family_id = None
+        # Skip to _finish_pipeline
+        return _finish_pipeline(
+            cfg, out, report, close, volume, price_feats, features,
+            info_cols, y, fwd, baseline, summary, locked_test,
+            counter, start_count, dataset_version, feature_version,
+            integrity_ok, ledger, family_id,
+        )
+
+    # --- H-003-R1 amended multi-asset pipeline branch ------------------------
+    if cfg.data.mode == "h003":
+        h003_report = run_h003_pipeline(cfg, ohlcv, out, dataset_version)
+        report.update(h003_report)
+        report["data_integrity_report"] = missing
+        report["snapshot_metadata"] = snapshot_meta
+        report["data_meta"] = data_meta
+        counter = TrialCounter(Path(out) / "trial_counter.json")
+        start_count = counter.count
+        counter.increment()
+        report["trial_counter"] = counter
+        report["start_count"] = start_count
+        report["strategy_name"] = "h003_r1_volatility_shock_portfolio"
+        report["information_sources_override"] = [
+            "adjusted_daily_ohlcv", "vix_spot"
+        ]
+        return _finish_pipeline(
+            cfg, out, report,
+            h003_report["close"], h003_report["volume"],
+            h003_report["price_feats"], h003_report["features"],
+            h003_report["info_cols"], h003_report["y"], h003_report["fwd"],
+            h003_report["baseline"], h003_report["baseline_summary"], None,
+            counter, start_count, dataset_version,
+            h003_report["feature_version"], integrity_ok, None, None,
+        )
 
     # --- 2. point-in-time validation ------------------------------------------
     events = None
@@ -288,7 +379,25 @@ def _finish_pipeline(cfg, out, report, close, volume, price_feats, features, inf
                      y, fwd, baseline, summary, locked_test, counter, start_count,
                      dataset_version, feature_version, integrity_ok,
                      ledger=None, family_id=None) -> Dict:
-    """Pipeline stages 5-8: robustness, statistics, ablation, placebo."""
+    """Pipeline stages 5-8: robustness, statistics, ablation, placebo.
+
+    When ``baseline.execution_contract == 'h002_cross_sectional_portfolio'``,
+    the scalar robustness/placebo/ablation paths do not apply.  A simplified
+    cost-stress + bootstrap path is used instead.
+    """
+
+    is_h002 = (baseline is not None and
+                getattr(baseline, "execution_contract", "") == "h002_cross_sectional_portfolio")
+    is_h003 = (baseline is not None and
+                getattr(baseline, "execution_contract", "") == "h003_r1_multi_asset_portfolio")
+
+    if is_h002:
+        return _finish_h002_pipeline(cfg, out, report, close, volume, features,
+                                      baseline, summary, dataset_version)
+    if is_h003:
+        return _finish_h003_pipeline(cfg, out, report, close, volume, features,
+                                      baseline, summary, dataset_version,
+                                      integrity_ok)
 
     # --- 5. robustness on the exact OOS execution path ------------------------
     battery = robustness_battery(features, y, fwd, cfg, baseline, locked_test)
@@ -475,6 +584,437 @@ def _finish_pipeline(cfg, out, report, close, volume, price_feats, features, inf
                                 ledger, family_id)
 
 
+def _finish_h002_pipeline(
+    cfg: AppConfig,
+    out: Path,
+    report: Dict,
+    close: pd.DataFrame,
+    volume: pd.DataFrame,
+    features: pd.DataFrame,
+    baseline: ExperimentResult,
+    summary: dict,
+    dataset_version: str,
+) -> Dict:
+    """Simplified finish path for H-002 cross-sectional portfolio.
+
+    Skips scalar robustness/placebo/ablation (which don't apply to a
+    cross-sectional portfolio strategy) and instead does:
+      - Cost stress: re-run portfolio with higher fees
+      - Bootstrap Sharpe on portfolio OOS returns
+      - Assemble final report and pass to _register_and_decide
+    """
+
+    from .evaluation.bootstrap import bootstrap_sharpe
+    from .evaluation.metrics import max_drawdown, sharpe_ratio
+    from .portfolio.h002_portfolio import (
+        H002_PREREG_PORTFOLIO_PARAMS,
+        construct_h002_portfolio,
+    )
+    from .portfolio.h002_returns import portfolio_returns
+
+    # Trial accounting: the H-002 path allocates its own persistent counter in
+    # run_research_pipeline and hands it through the report.
+    counter = report.get("trial_counter")
+    if counter is None:  # pragma: no cover - defensive fallback
+        from .experiments.registry import TrialCounter
+        counter = TrialCounter(Path(out) / "trial_counter.json")
+        counter.increment()
+    start_count = int(report.get("start_count", 0))
+
+    # --- Cost stress: re-run portfolio with escalating fees ---
+    cost_stress_rows = []
+    base_fee = cfg.execution.fee_bps
+    base_slip = cfg.execution.slippage_bps
+
+    # Reconstruct the signal panel from features
+    # (features columns are ticker_featurename; extract per-ticker signals)
+    signal_panel = report.get("h002_signal_panel")
+    if signal_panel is None:
+        # Fallback: rebuild the composite from each ticker's own feature frame
+        # (carried in ``report["h002_feature_frames"]``) using the exact same
+        # constructor as the main pipeline, so stress results are comparable.
+        from .h002_pipeline import _build_h002_composite_signal
+        frames = report.get("h002_feature_frames")
+        if frames is not None:
+            signal_panel = _build_h002_composite_signal(
+                frames, volume, list(close.columns), close.index)
+
+    if signal_panel is None:
+        raise DataValidationError(
+            "H-002 finish stage: no composite signal panel available; the "
+            "pipeline report must carry 'h002_signal_panel' or "
+            "'h002_feature_frames'"
+        )
+
+    signal_panel = signal_panel.dropna(axis=1, how="all")
+
+    # Protocol feature contract (H-002-R1).  The generic engine compares the
+    # protocol's feature_names against the scaled panel columns, but that check
+    # is never reached in H-002 mode (this function returns first).  Enforce the
+    # equivalent guarantee here: every feature the amended preregistration
+    # declares must actually be present in the computed panel, so the run can
+    # never silently drop a registered feature from the strategy it claims to
+    # be testing.
+    _proto = report.get("research_protocol")
+    if _proto:
+        from .experiments.protocol import ResearchProtocol
+        _declared = set(ResearchProtocol.load(_proto["path"]).feature_names)
+        _computed = {c[len(sym) + 1:] for sym in close.columns
+                     for c in features.columns if c.startswith(f"{sym}_")}
+        _absent = sorted(_declared - _computed)
+        if _absent:
+            raise DataValidationError(
+                f"research protocol declares features that the H-002 pipeline "
+                f"did not compute: {_absent}"
+            )
+
+    # Load sector map
+    from .data.h002_universe import _load_sector_map
+    sector_map_raw = _load_sector_map()
+
+    # The weights are fee-independent, so construct the book once and only
+    # re-price it across the fee/slippage grid.  (Reconstructing inside the loop
+    # tripled the cost of the most expensive stage for identical output.)
+    weights = construct_h002_portfolio(
+        signal_panel, sector_map_raw, **H002_PREREG_PORTFOLIO_PARAMS,
+    )
+
+    for fee_mult in (1.0, 2.0, 3.0):
+        fee_bps = base_fee * fee_mult
+        slip_bps = base_slip * fee_mult
+        rets = portfolio_returns(weights, close, fee_bps=fee_bps, slippage_bps=slip_bps)
+        net = rets["net_returns"]
+        gross = rets["gross_returns"]
+        cost_stress_rows.append({
+            "fee_bps": fee_bps,
+            "slippage_bps": slip_bps,
+            "sharpe": float(sharpe_ratio(net)),
+            "gross_sharpe": float(sharpe_ratio(gross)),
+            "net_return": float((1 + net.fillna(0)).prod() - 1) if len(net) else float("nan"),
+            "gross_return": float((1 + gross.fillna(0)).prod() - 1) if len(gross) else float("nan"),
+            "max_dd": float(max_drawdown(net)),
+            "annual_turnover": float(rets["turnover"].sum() / max(len(net) / 252.0, 1e-9)),
+            "fee_cost": float(rets["costs"].sum() * fee_bps / (fee_bps + slip_bps)) if (fee_bps + slip_bps) > 0 else 0.0,
+            "slippage_cost": float(rets["costs"].sum() * slip_bps / (fee_bps + slip_bps)) if (fee_bps + slip_bps) > 0 else 0.0,
+        })
+
+    cost_stress = pd.DataFrame(cost_stress_rows)
+
+    # --- Delay stress: re-run the portfolio on a stale signal -----------------
+    # A delay of N bars means the portfolio is formed from the signal as it
+    # stood N sessions earlier.  This is the H-002 execution-delay stress and
+    # it feeds the ``survives_delay_stress`` promotion gate.
+    delay_stress_rows = []
+    delays = sorted({0, int(cfg.promotion.delay_stress_bars),
+                     int(cfg.promotion.delay_stress_bars) * 2})
+    for delay in delays:
+        sig_delayed = signal_panel if delay <= 0 else signal_panel.shift(delay)
+        weights_d = construct_h002_portfolio(
+            sig_delayed, sector_map_raw, **H002_PREREG_PORTFOLIO_PARAMS,
+        )
+        rets_d = portfolio_returns(weights_d, close,
+                                   fee_bps=base_fee, slippage_bps=base_slip)
+        net_d = rets_d["net_returns"]
+        delay_stress_rows.append({
+            "delay_bars": int(delay),
+            "sharpe": float(sharpe_ratio(net_d)),
+            "net_return": float((1 + net_d.fillna(0)).prod() - 1) if len(net_d) else float("nan"),
+            "max_dd": float(max_drawdown(net_d)),
+            "annual_turnover": float(rets_d["turnover"].sum()
+                                     / max(len(net_d) / 252.0, 1e-9)),
+        })
+
+    delay_stress = pd.DataFrame(delay_stress_rows)
+
+    # --- Bootstrap Sharpe ---
+    boot = bootstrap_sharpe(baseline.oos_returns, seed=cfg.model.random_seed,
+                            research=cfg.research)
+
+    # --- Assemble robustness report ---
+    robustness = {
+        "cost_stress": cost_stress.to_dict("records"),
+        "slippage_stress": cost_stress.to_dict("records"),  # same as cost stress for portfolio
+        "delay_stress": delay_stress.to_dict("records"),
+        "parameter_perturbation": [],  # Not applicable
+        "missing_data": [],  # Not applicable
+    }
+    robustness.update(stress_survival(robustness, cfg.promotion))
+    report["robustness"] = robustness
+    report["cost_stress"] = cost_stress
+    report["slippage_stress"] = cost_stress
+    report["delay_stress"] = delay_stress
+    report["parameter_perturbation"] = pd.DataFrame()
+    report["missing_data_stress"] = pd.DataFrame()
+
+    # --- Risk report ---
+    # H-002 is a cross-sectional dollar-neutral book, so exposure, turnover and
+    # concentration must come from the executed weight MATRIX.  The scalar
+    # per-timestamp net position is ~0 every session and would understate both
+    # gross exposure and turnover.
+    from .portfolio.risk import risk_report
+    exec_weights = report.get("h002_executed_weights")
+    oos_idx = baseline.oos_returns.index
+    risk = risk_report(
+        baseline.oos_returns,
+        weight_matrix=(exec_weights.reindex(oos_idx)
+                       if exec_weights is not None else None),
+        benchmark=None,
+    )
+    report["risk"] = risk
+
+    # --- Placeholder for ablation/placebo (not applicable) ---
+    # Note: the ``*_permute_*``/``placebo_null`` keys are listed in
+    # ``_write_artifacts.frame_keys`` and must therefore be DataFrames (empty is
+    # fine), not bare dicts.
+    report["ablation"] = pd.DataFrame()
+    report["placebo_null"] = pd.DataFrame()
+    report["placebo_permute_target"] = pd.DataFrame()
+    report["placebo_block_permute"] = pd.DataFrame()
+    report["placebo_statistics"] = {"percentile": float("nan"), "p_value": float("nan")}
+    report["placebo_mode_statistics"] = {}
+    report["bootstrap"] = boot
+
+    return _register_and_decide(cfg, out, report, baseline, summary, robustness, boot,
+                                {}, counter, start_count, dataset_version,
+                                report.get("feature_version"), [], True, features,
+                                None, None)
+
+
+def _finish_h003_pipeline(
+    cfg: AppConfig,
+    out: Path,
+    report: Dict,
+    close: pd.DataFrame,
+    volume: pd.DataFrame,
+    features: pd.DataFrame,
+    baseline: ExperimentResult,
+    summary: dict,
+    dataset_version: str,
+    integrity_ok: bool,
+) -> Dict:
+    """Finish H-003-R1 with portfolio-native stresses and mandate gates."""
+    from .evaluation.metrics import max_drawdown, sharpe_ratio, sortino_ratio
+    from .evaluation.placebo import placebo_statistics
+    from .portfolio.h002_returns import portfolio_returns
+    from .portfolio.h003_portfolio import (
+        H003_R1_PORTFOLIO_PARAMS,
+        construct_h003_portfolio,
+    )
+    from .h003_pipeline import (
+        H003_R1_ASSET_CLASSES,
+        H003_R1_FEATURES,
+    )
+
+    counter = report["trial_counter"]
+    start_count = int(report.get("start_count", 0))
+    signal = report.get("h003_signal_panel")
+    vix = report.get("vix")
+    if signal is None or vix is None:
+        raise DataValidationError("H-003-R1 finish stage requires signal and VIX panels")
+
+    # The protocol binds the compact feature definitions, not the 17x expanded
+    # diagnostic matrix.  Any mismatch fails before the result is registered.
+    proto_meta = report.get("research_protocol")
+    if proto_meta:
+        from .experiments.protocol import ResearchProtocol
+        declared = set(ResearchProtocol.load(proto_meta["path"]).feature_names)
+        if declared != set(H003_R1_FEATURES):
+            raise DataValidationError(
+                "H-003-R1 protocol feature contract does not match the frozen pipeline"
+            )
+
+    oos_idx = baseline.oos_returns.index
+    target_weights = report["h003_weights"]
+    executed_weights = report["h003_executed_weights"].reindex(oos_idx).fillna(0.0)
+    base_fee = float(cfg.execution.fee_bps)
+    base_slip = float(cfg.execution.slippage_bps)
+
+    cost_rows = []
+    for multiple in (1.0, 2.0, 3.0):
+        result = portfolio_returns(
+            target_weights, close,
+            fee_bps=base_fee * multiple,
+            slippage_bps=base_slip * multiple,
+        )
+        net = result["net_returns"].reindex(oos_idx).fillna(0.0)
+        gross = result["gross_returns"].reindex(oos_idx).fillna(0.0)
+        turn = result["turnover"].reindex(oos_idx).fillna(0.0)
+        cost_rows.append({
+            "multiple": multiple,
+            "fee_bps": base_fee * multiple,
+            "slippage_bps": base_slip * multiple,
+            "all_in_bps": (base_fee + base_slip) * multiple,
+            "sharpe": sharpe_ratio(net),
+            "gross_sharpe": sharpe_ratio(gross),
+            "net_return": float((1.0 + net).prod() - 1.0),
+            "gross_return": float((1.0 + gross).prod() - 1.0),
+            "max_dd": max_drawdown(net),
+            "annual_turnover": float(turn.sum() / max(len(net) / 252.0, 1e-9)),
+        })
+    cost_stress = pd.DataFrame(cost_rows)
+
+    delay_rows = []
+    for delay in sorted({0, int(cfg.promotion.delay_stress_bars), 3}):
+        delayed_targets = target_weights.shift(delay) if delay else target_weights
+        result = portfolio_returns(
+            delayed_targets, close, fee_bps=base_fee, slippage_bps=base_slip,
+        )
+        net = result["net_returns"].reindex(oos_idx).fillna(0.0)
+        turn = result["turnover"].reindex(oos_idx).fillna(0.0)
+        delay_rows.append({
+            "delay_bars": delay,
+            "sharpe": sharpe_ratio(net),
+            "net_return": float((1.0 + net).prod() - 1.0),
+            "max_dd": max_drawdown(net),
+            "annual_turnover": float(turn.sum() / max(len(net) / 252.0, 1e-9)),
+        })
+    delay_stress = pd.DataFrame(delay_rows)
+
+    # Full-strategy placebo: permute complete cross-sectional signal rows,
+    # rebuild the weekly risk portfolio, then price the resulting book.
+    valid_idx = signal.dropna(how="any").index
+    rng = np.random.default_rng(cfg.model.random_seed)
+    null_rows = []
+    for run_id in range(cfg.research.placebo_runs):
+        permuted = signal.copy()
+        order = rng.permutation(len(valid_idx))
+        permuted.loc[valid_idx] = signal.loc[valid_idx].iloc[order].to_numpy()
+        null_weights = construct_h003_portfolio(
+            permuted, close, H003_R1_ASSET_CLASSES, vix,
+            **H003_R1_PORTFOLIO_PARAMS,
+        )
+        null_result = portfolio_returns(
+            null_weights, close, fee_bps=base_fee, slippage_bps=base_slip,
+        )
+        null_net = null_result["net_returns"].reindex(oos_idx).fillna(0.0)
+        null_rows.append({"run": run_id, "oos_sharpe": sharpe_ratio(null_net)})
+    placebo_null = pd.DataFrame(null_rows)
+    placebo = placebo_statistics(
+        summary["full_oos_net_sharpe"], placebo_null, metric="oos_sharpe",
+    )
+
+    boot = bootstrap_sharpe(
+        baseline.oos_returns, seed=cfg.model.random_seed, research=cfg.research,
+    )
+    robustness = {
+        "cost_stress": cost_stress.to_dict("records"),
+        "slippage_stress": cost_stress.to_dict("records"),
+        "delay_stress": delay_stress.to_dict("records"),
+        "parameter_perturbation": [],
+        "missing_data": [],
+    }
+    robustness.update(stress_survival(robustness, cfg.promotion))
+
+    benchmark = close["SPY"].pct_change(fill_method=None).shift(-1).reindex(oos_idx)
+    from .portfolio.risk import risk_report
+    risk = risk_report(
+        baseline.oos_returns,
+        weight_matrix=executed_weights,
+        benchmark=benchmark,
+    )
+
+    net = baseline.oos_returns
+    sortino = sortino_ratio(net)
+    annual_turnover = float(
+        report["h003_portfolio_returns"]["turnover"].reindex(oos_idx).fillna(0.0).sum()
+        / max(len(oos_idx) / 252.0, 1e-9)
+    )
+    capacity = float(report.get("capacity_millions", float("nan")))
+    common_corr = net.index.intersection(benchmark.dropna().index)
+    corr_spy = (
+        float(net.loc[common_corr].corr(benchmark.loc[common_corr]))
+        if len(common_corr) > 1
+        and net.loc[common_corr].std() > 0
+        and benchmark.loc[common_corr].std() > 0
+        else float("nan")
+    )
+    mid = len(net) // 2
+    first_half_sharpe = sharpe_ratio(net.iloc[:mid])
+    second_half_sharpe = sharpe_ratio(net.iloc[mid:])
+    vix_oos = vix.reindex(oos_idx)
+    top_vix_idx = vix_oos.nlargest(min(5, vix_oos.notna().sum())).index
+    top_vix_return = float((1.0 + net.reindex(top_vix_idx).fillna(0.0)).prod() - 1.0)
+    y2020 = net[(net.index >= pd.Timestamp("2020-01-01", tz="UTC"))
+                & (net.index < pd.Timestamp("2021-01-01", tz="UTC"))]
+    crisis_2020_return = (
+        float((1.0 + y2020).prod() - 1.0) if len(y2020) else float("nan")
+    )
+    try:
+        quartiles = pd.qcut(vix_oos.rank(method="first"), 4, labels=False)
+        regime_sharpes = [sharpe_ratio(net[quartiles.eq(q)]) for q in range(4)]
+    except ValueError:
+        regime_sharpes = [float("nan")] * 4
+    positive_regimes = sum(np.isfinite(x) and x > 0 for x in regime_sharpes)
+    cost_2x = cost_stress.loc[cost_stress["multiple"].eq(2.0), "sharpe"].iloc[0]
+    delay_3 = delay_stress.loc[delay_stress["delay_bars"].eq(3), "sharpe"].iloc[0]
+
+    custom_checks = [
+        {"name": "h003_sharpe_at_least_0_8", "passed": summary["full_oos_net_sharpe"] >= 0.8,
+         "detail": f"full OOS net Sharpe={summary['full_oos_net_sharpe']:.6g} >= 0.8"},
+        {"name": "h003_sortino_at_least_1_2", "passed": np.isfinite(sortino) and sortino >= 1.2,
+         "detail": f"full OOS Sortino={sortino:.6g} >= 1.2"},
+        {"name": "h003_drawdown_within_20pct", "passed": summary["full_oos_max_dd"] >= -0.20,
+         "detail": f"full OOS max drawdown={summary['full_oos_max_dd']:.6g} >= -0.20"},
+        {"name": "h003_turnover_at_most_2x", "passed": annual_turnover <= 2.0,
+         "detail": f"annual turnover={annual_turnover:.6g} <= 2.0"},
+        {"name": "h003_capacity_at_least_500m", "passed": np.isfinite(capacity) and capacity >= 500.0,
+         "detail": f"5th-percentile 1%-ADV capacity=${capacity:.6g}m >= $500m"},
+        {"name": "h003_cost_2x_sharpe", "passed": np.isfinite(cost_2x) and cost_2x >= 0.4,
+         "detail": f"2x-cost Sharpe={cost_2x:.6g} >= 0.4"},
+        {"name": "h003_delay_3d_sharpe", "passed": np.isfinite(delay_3) and delay_3 >= 0.4,
+         "detail": f"3-session-delay Sharpe={delay_3:.6g} >= 0.4"},
+        {"name": "h003_bootstrap_positive_prob", "passed": boot.get("positive_prob", 0.0) >= 0.80,
+         "detail": f"bootstrap P(Sharpe>0)={boot.get('positive_prob')} >= 0.80"},
+        {"name": "h003_placebo_percentile", "passed": placebo.get("percentile", 0.0) >= 0.85,
+         "detail": f"placebo percentile={placebo.get('percentile')} >= 0.85"},
+        {"name": "h003_crisis_alpha", "passed": bool(
+            np.isfinite(crisis_2020_return) and crisis_2020_return > 0 and top_vix_return > 0),
+         "detail": f"2020 return={crisis_2020_return:.6g}; top-five-VIX-day return={top_vix_return:.6g}"},
+        {"name": "h003_regime_consistent", "passed": positive_regimes >= 3,
+         "detail": f"positive Sharpe in {positive_regimes}/4 VIX quartiles; values={regime_sharpes}"},
+        {"name": "h003_subperiod_stable", "passed": first_half_sharpe > 0 and second_half_sharpe > 0,
+         "detail": f"half Sharpes={first_half_sharpe:.6g}, {second_half_sharpe:.6g}"},
+        {"name": "h003_transaction_cost_alpha", "passed": np.isfinite(cost_2x) and cost_2x > 0,
+         "detail": f"Sharpe after {(base_fee + base_slip) * 2:.6g}bps all-in={cost_2x:.6g} > 0"},
+        {"name": "h003_correlation_diversification", "passed": np.isfinite(corr_spy) and corr_spy < 0.5,
+         "detail": f"portfolio correlation to SPY={corr_spy:.6g} < 0.5"},
+    ]
+
+    report.update({
+        "robustness": robustness,
+        "cost_stress": cost_stress,
+        "slippage_stress": cost_stress,
+        "delay_stress": delay_stress,
+        "parameter_perturbation": pd.DataFrame(),
+        "missing_data_stress": pd.DataFrame(),
+        "ablation": pd.DataFrame(),
+        "placebo_null": placebo_null,
+        "placebo_permute_target": pd.DataFrame(),
+        "placebo_block_permute": pd.DataFrame(),
+        "placebo_statistics": placebo,
+        "placebo_mode_statistics": {"shuffle_signal_rows": placebo},
+        "bootstrap": boot,
+        "risk": risk,
+        "h003_gate_metrics": {
+            "sortino": sortino,
+            "annual_turnover": annual_turnover,
+            "capacity_millions": capacity,
+            "correlation_to_spy": corr_spy,
+            "first_half_sharpe": first_half_sharpe,
+            "second_half_sharpe": second_half_sharpe,
+            "crisis_2020_return": crisis_2020_return,
+            "top_five_vix_days_return": top_vix_return,
+            "vix_quartile_sharpes": regime_sharpes,
+        },
+        "additional_gate_checks": custom_checks,
+    })
+    return _register_and_decide(
+        cfg, out, report, baseline, summary, robustness, boot, placebo,
+        counter, start_count, dataset_version, report.get("feature_version"),
+        [], integrity_ok, features, None, None,
+    )
+
+
 def _register_and_decide(cfg, out, report, baseline, summary, robustness, boot,
                          placebo, counter, start_count, dataset_version, feature_version,
                          info_cols, integrity_ok, features, ledger, family_id) -> Dict:
@@ -489,13 +1029,24 @@ def _register_and_decide(cfg, out, report, baseline, summary, robustness, boot,
         # rather than family_search_count (only completed/aborted outcomes).
         n_family_searches=(ledger.family_attempt_count(family_id) if ledger else 0),
     )
+    if report.get("additional_gate_checks"):
+        from .experiments.promotion import GateCheck
+        checks.extend(
+            GateCheck(item["name"], bool(item["passed"]), str(item["detail"]))
+            for item in report["additional_gate_checks"]
+        )
     decision = promotion_decision(checks)
     folds = baseline.folds
     record = {
-        "strategy": "walk_forward_baseline",
+        "strategy": report.get("strategy_name", "walk_forward_baseline"),
         "data_mode": cfg.data.mode,
-        "features": sorted(features.columns),
-        "universe": cfg.data.assets,
+        # H-002 (cross-sectional portfolio) reports a traded universe of many
+        # names rather than ``data.assets``, and a compact set of feature
+        # DEFINITIONS rather than the ticker-expanded panel columns.  Prefer the
+        # report-supplied values so the record describes what was actually
+        # traded, not the scalar fallback placeholders.
+        "features": report.get("feature_names") or sorted(features.columns),
+        "universe": report.get("traded_universe") or cfg.data.assets,
         "target": cfg.data.target,
         "timeframe": cfg.data.frequency,
         "train_period": [str(folds["train_start"].min()), str(folds["train_end"].max())],
@@ -527,7 +1078,11 @@ def _register_and_decide(cfg, out, report, baseline, summary, robustness, boot,
         "bootstrap_interval": boot,
         "robustness": robustness,
         "placebo_statistics": placebo,
-        "information_sources": ["price_volume"] + (["information"] if info_cols else []),
+        "information_sources": report.get(
+            "information_sources_override",
+            ["price_volume"] + (["information"] if info_cols else []),
+        ),
+        "additional_gate_checks": report.get("additional_gate_checks", []),
         "promotion_state": decision["state"],
         "failed_gates": decision["failed_gates"],
         # B11: research-family identity + durable search-ledger locator, so the
@@ -596,7 +1151,15 @@ def _write_artifacts(out: Path, report: Dict) -> None:
     serializable = {k: v for k, v in report.items() if k not in skip}
     for k in frame_keys:
         if k in report:
-            serializable[k] = report[k].to_dict("records")
+            value = report[k]
+            # Frame keys are normally DataFrames, but an alternative execution
+            # path may legitimately supply an empty dict for a table it does not
+            # compute (e.g. H-002 has no placebo null).  Only DataFrames need
+            # conversion; anything already JSON-shaped is passed through.
+            serializable[k] = (
+                value.to_dict("records") if isinstance(value, pd.DataFrame)
+                else value
+            )
     serializable["leaderboard"] = report["leaderboard"].to_dict("records")
 
     def _default(o):

@@ -1,5 +1,8 @@
 > **Historical implementation plan.** Steps 1–4 were completed. Current Step 5
-> status is H-001 rejected and H-002/H-003 blocked before valid trial; use
+> status: H-001 rejected after independent confirmation; **H-002 amended and
+> executed as the H-002-R1 family and REJECTED; **H-003-R1 likewise amended,
+> executed, and REJECTED, while original H-003 remains blocked on its exact
+> VIX-futures contract; no live-broker adapter exists.** Use
 > [PHASE1_PROGRESS.md](PHASE1_PROGRESS.md) rather than the old schedule or
 > unchecked deliverables below.
 

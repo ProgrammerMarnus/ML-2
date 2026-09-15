@@ -1,6 +1,6 @@
 HISTORICAL ENGINEERING PLAN — SUPERSEDED
 This file records the V2.1.3 correctness-freeze work. It is not the current
-execution plan. As of 2026-09-14, E01-E10 are fixed, 372 tests pass, H-001
+execution plan. As of 2026-09-15, E01-E10 are fixed, 399 tests pass, H-001
 is rejected, and H-002/H-003 are blocked before valid trials. See
 CURRENT_PROJECT_STATUS.md and future_steps.txt.
 
