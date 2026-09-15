@@ -1,8 +1,9 @@
 # Phase 1: Strategy Research Reset — Current Progress
 
 **Started:** 2026-09-13  
-**Updated:** 2026-09-15
-**Status:** ACTIVE, NO QUALIFYING FAMILY (H-002-R1/H-003-R1 CLOSED BY REJECTION)
+**Updated:** 2026-09-15 (evening)
+**Status:** ACTIVE, NO QUALIFYING FAMILY (H-001/H-002-R1/H-003-R1 rejected;
+H-005/H-006/H-004/H-007/H-008 preregistered but not validly executed)
 **Promotion state:** `RESEARCH_ONLY`
 
 ## Completed
@@ -20,6 +21,13 @@
 - Amended H-003 into the new family H-003-R1, froze the five-term daily-data
   and weekly portfolio contract before retrieval, executed one real-data
   baseline, and rejected it under the prospective stopping rule.
+- Merged the parallel AI Studio branches (PRs #4/#5): the H-005 and H-006
+  feature modules, configs, and tests are on main, and the full-stack research
+  dashboard (Express backend + 8 panels) was imported from the AI Studio
+  export.
+- Preregistered five newer families in
+  `data/research_ledgers/preregistrations.jsonl`: H-005 and H-006 (with
+  feature modules and frozen configs) and ledger-only H-004, H-007, H-008.
 
 ## Scientific Results
 
@@ -30,6 +38,11 @@
 | H-002-R1 Liquidity Reversal (amended) | **REJECTED** | Valid single run on real 2010-2023 daily data (285 names). Gross Sharpe −0.342 (no edge before costs); 0/10 positive OOS folds; net Sharpe −2.656; annual turnover 72× vs 6× cap. Trial budget retired. |
 | H-003 Volatility Risk Premium | **BLOCKED BEFORE TRIAL** | Requires the preregistered multi-asset and VIX/term-structure inputs; the scalar runner cannot provide them. |
 | H-003-R1 Daily Volatility-Shock Allocation | **REJECTED** | One frozen 2008–2023 baseline: net Sharpe −0.074; 10/14 mandate gates failed; budget retired. |
+| H-005 Overnight-Intraday Decomposition | **PREREGISTERED, NOT ENGINE-EXECUTED** | 13 features registered and wired into the engine panel; configs executable. The four completed trials came from a standalone script outside the protocol (PRELIMINARY only); trials 5–10 must run through the engine. Configs omit ^VIX so `vix_regime` is dropped. |
+| H-006 Factor Exposure Mean Reversion | **PREREGISTERED, EXECUTION BLOCKED** | 5 features registered, config frozen; needs a cross-sectional (multi-asset panel, weekly rank/rebalance) evaluator the scalar engine lacks. |
+| H-004 Macro Yield Curve & Credit Spread Momentum | **PREREGISTERED (LEDGER ONLY)** | No module/config/engine path; needs macro yield-curve/credit-spread data. |
+| H-007 Cross-Sectional Quality-Minus-Junk Low-Turnover Core | **PREREGISTERED (LEDGER ONLY)** | Needs fundamentals data plus the cross-sectional evaluator. |
+| H-008 Microstructure Order Flow Imbalance | **PREREGISTERED (LEDGER ONLY)** | Needs intraday order-flow/microstructure data. |
 
 Earlier runs that produced identical generic price/volume results were invalid
 proxy executions. They consume audit history but are not scientific evidence
@@ -49,11 +62,15 @@ the rejected family.
 
 ## Next Research Decision
 
-No current family qualifies. The next authorized research step is either:
+No family qualifies yet. Five newer families are preregistered; the next
+authorized research steps are:
 
-1. obtain and freeze the exact original H-002 or H-003 external data contract;
-2. formally close those original hypotheses without a trial; or
-3. preregister a genuinely new economic mechanism on an untouched window.
+1. run H-005 trials 5–10 through the engine protocol (add ^VIX to the configs
+   first; the standalone Trials 1–4 are PRELIMINARY only);
+2. implement the cross-sectional (panel) evaluator that H-006 — and H-007-style
+   families — require; or
+3. implement the data contracts for ledger-only H-004/H-007/H-008 or formally
+   close them.
 
 Substituting generic price/volume features under the current hypothesis IDs is
 forbidden. H-001 remains rejected; its observed confirmation period must not be

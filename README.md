@@ -7,7 +7,11 @@ A point-in-time, leakage-safe, walk-forward quantitative research platform.
 > H-002-R1 family, and REJECTED (valid evidence, no edge, trial budget retired)**
 > in `HYPOTHESIS_H002_R1_LIQUIDITY_REVERSAL_AMENDED.md`; H-003-R1 was likewise
 > amended, executed, and rejected (net Sharpe −0.074, 10/14 mandate gates
-> failed), while original H-003 remains untested; no live-broker adapter exists. See
+> failed), while original H-003 remains untested. Newer preregistered families
+> await implementation or execution: **H-005** (overnight-intraday — registered
+> and engine-ready), **H-006** (factor mean reversion — registered, blocked on a
+> cross-sectional evaluator), and ledger-only **H-004/H-007/H-008**. No
+> live-broker adapter exists. See
 > [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
 
 `raw data -> PIT data -> features -> TRAIN/VAL/OOS walk-forward -> robustness
@@ -26,7 +30,9 @@ promoted only when every explicit evidence gate passes.
 src/quant_research/
   config.py                 typed YAML configuration + fingerprinting
   data/                     schemas, loaders, snapshots, validation
-  features/                 PIT events, price/volume, information, leakage, registry
+  features/                 PIT events, price/volume, information, leakage,
+                            registry (95 specs / 8 sources, incl. H-005
+                            overnight_intraday and H-006 factor_mean_reversion)
   evaluation/               metrics, backtest, walk_forward, bootstrap, placebo,
                             multiple_testing, overfitting, robustness
   strategies/               baseline, discovery
@@ -34,8 +40,10 @@ src/quant_research/
   experiments/              registry, leaderboard, promotion
   execution/                paper simulator, safeguards, operational controls
   run.py                    one-command research pipeline (CLI)
-tests/                      pytest suite (399 passing tests)
-configs/                    baseline.yaml (synthetic), real_spy.yaml (yfinance)
+server.ts                   Express 5 backend for the research dashboard
+tests/                      pytest suite (451 passing tests)
+configs/                    baseline.yaml (synthetic), real_spy.yaml (yfinance),
+                            plus frozen h002/h003/h005/h006 family configs
 Institutional_Quant_Research_Engine_V2.1.ipynb   thin orchestration notebook
 ```
 
@@ -48,6 +56,21 @@ pip install -e .[dev]
 pytest                        # full test suite
 python -m quant_research.run --config configs/baseline.yaml --output artifacts
 ```
+
+### Research dashboard (full-stack)
+
+The AI Studio app was imported: an Express 5 backend (`server.ts`) serves a
+local research dashboard together with the React UI on one port. It reads this
+repository's real ledgers (trial counters, preregistrations, audits) and adds
+simulated broker/market/risk panels; it creates **no** promotion evidence.
+
+```bash
+npm install
+npm run server                # API + UI on http://0.0.0.0:3000
+```
+
+Endpoints, panels, and the AI Studio round-trip procedure are documented in
+[docs/DASHBOARD.md](docs/DASHBOARD.md).
 
 ### Research run
 
@@ -368,3 +391,25 @@ the loader raises `DataValidationError`; there is no fabricated success path.
 - H-002/H-003 preregistered portfolio contracts are intentionally refused by
   the scalar daily-OHLCV research path until their required data and evaluators
   exist.
+- The dashboard's broker/market/operator endpoints are local simulations backed
+  by in-memory state; they are not live connectivity.
+- AI Studio's *Save to GitHub* is broken upstream; app changes arrive via its
+  ZIP export and are diffed/ported by hand (see docs/DASHBOARD.md).
+
+---
+
+## Documentation map
+
+**Living documents** (kept current): `CURRENT_PROJECT_STATUS.md` (canonical
+status), `future_steps.txt`, `LIVE_TRADING_READINESS_CHECKLIST.txt`,
+`PHASE1_PROGRESS.md`, `docs/DASHBOARD.md`, `docs/REPRODUCIBILITY.md`,
+`docs/PAPER_OPERATIONS_RUNBOOK.md`, `FIXES_SUMMARY.md` (append-only fix log),
+and the `HYPOTHESIS_*.md` preregistrations (frozen contracts).
+
+**Historical records** (preserved as written, not current claims):
+`DEEP_AUDIT_*.md`, `PHASE1_STEP*`, `PHASE1_STRATEGY_RESET.md`,
+`H001_CORRECTED_TRIAL_1_RESULTS.md`, `H002_SUMMARY.txt`, `H003_R1_RESULTS.md`,
+`H005_TRIAL_SUMMARY.md`, `H006_*`, `RESEARCH_HANDBOVER_2026-09-15.md`,
+`PV220_CLOSURE_REPORT.md`, `DISCOVERY_ANALYSIS.txt`,
+`INSTITUTIONAL_QUANT_RESEARCH_ENGINE_FULL_AUDIT.txt`, `Plan.txt`, and
+`closed_strategies/`.

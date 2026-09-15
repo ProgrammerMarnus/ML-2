@@ -1,13 +1,16 @@
 =================================================================
 PAPER TRADING PLAN — CURRENT
-As of: 2026-09-14
+As of: 2026-09-15 (evening)
 =================================================================
 
 CURRENT STATE
 -------------
 Promotion state: RESEARCH_ONLY
-Research evidence: H-001 rejected; H-002 and H-003 blocked before valid trial
-Test baseline: all 399 collected tests pass in the latest complete run
+Research evidence: H-001, H-002-R1 and H-003-R1 rejected; original H-002/H-003
+  blocked before valid trial; H-005 engine-ready with PRELIMINARY standalone
+  trials only, H-006 blocked on a cross-sectional evaluator; H-004/H-007/H-008
+  ledger-only preregistrations
+Test baseline: all 451 collected tests pass in the latest complete run
 PaperBroker: hardened local simulator (phase 4.1 complete)
 Validation framework: implemented; no accepted observed-paper evidence
 Live adapter: none

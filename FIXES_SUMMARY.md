@@ -1,6 +1,7 @@
 > **Historical remediation ledger.** Versioned counts and claims below record
-> successive audit/fix rounds. The current 2026-09-14 position is: E01–E10
-> fixed and the latest full run passing all 399 collected tests. See
+> successive audit/fix rounds. The current 2026-09-15 (evening) position is:
+> E01–E10 fixed, the latest full run passing all 451 collected tests, PRs
+> #4/#5 merged, and the AI Studio dashboard imported. See
 > [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
 
 # Audit Fix Summary — Quant Research Engine V2.1.3
@@ -321,3 +322,48 @@ All deltas are machine epsilon (float64 rounding) — the executable ledger is i
 - **Fix**: Use `turnover_full` instead of `turnover`.
 - **Verify**: Covered by robustness replay tests
 - `.gitignore` — `data/research_ledgers/`
+
+---
+
+## 2026-09-15 (evening) — post-merge integration and AI Studio import
+
+### PR #4/#5 merge conflicts
+- **Problem**: the parallel AI Studio branches both rewrote `.gitignore`, both
+  edited `features/registry.py`, and 39 tracked `__pycache__/*.pyc` binaries
+  conflicted on every merge.
+- **Fix**: union resolution for `registry.py` (H-005 and H-006 both
+  registered); a rewritten scoped `.gitignore` (blanket `*.csv/*.json/*.parquet`
+  rules dropped, stray markdown fences removed, `node_modules/` restored);
+  binary conflicts resolved, then all 84 tracked bytecode files untracked
+  (`chore: stop tracking __pycache__ bytecode`).
+
+### Registry hash stability [regression]
+- **Problem**: PR #4's new `FeatureSpec.hypothesis` field entered the
+  `asdict()` payload and moved audited `registry_hash` pins
+  (`momentum_63` → a different digest); `test_preexisting_registry_hashes_unchanged`
+  failed on PR #4's own branch.
+- **Fix**: `_hashable_spec` omits empty optional metadata from the payload;
+  pre-existing pins are byte-stable and H-006 keeps its `hypothesis` tag.
+
+### H-005 engine wiring [integration]
+- **Problem**: PR #5 registered 13 `overnight_intraday` specs but
+  `build_feature_panel` had no branch for the source, so
+  `configs/h005_overnight_intraday_trial*.yaml` aborted with "feature selection
+  resolved to no feature panels".
+- **Fix**: panel branch computing the target's overnight/intraday
+  decomposition; `vix_regime` dropped when VIX is absent and `_VIX_FEATURES`
+  extended so `planned_feature_names` stays exactly equal to the produced
+  panel; two regression tests added (VIX-present and VIX-absent).
+
+### AI Studio dashboard import
+- **Problem**: AI Studio's Save-to-GitHub is broken upstream, so the app's
+  changes were stranded in AI Studio.
+- **Fix**: ZIP export diffed against `main`; `server.ts` (Express 5 backend),
+  8 dashboard panels, `apiService.ts`, and the preregistrations ledger
+  imported; `package.json` merged (express/@types/express/@types/node/tsx/
+  react-markdown added). The export's `index.html`, `tsconfig.json`,
+  `.gitignore`, `bun.lock`, and `.env.local` were deliberately skipped. See
+  `docs/DASHBOARD.md`.
+- **Verify**: `tsc --noEmit` clean; `vite build` clean; live smoke —
+  `/api/health` ok, `/api/trial-counter` read 681 trials across 25 real
+  ledgers, `/api/preregistrations` served the new ledger.

@@ -87,17 +87,18 @@ Priority order for completion:
 
 ### Phase 1: Strategy Research
 - [x] Hypothesis preregistration framework operational
-- [x] Feature modules implemented (90 total features across 5 hypotheses)
-- [ ] Full trial execution (H-005: 4/10 complete; H-004: pending)
+- [x] Feature modules implemented (95 total features across 8 sources)
+- [ ] Full trial execution (H-005: 4/10 PRELIMINARY standalone; H-006 blocked
+      on a cross-sectional evaluator; H-004/H-007/H-008 not started)
 - [ ] ROBUST_OOS designation achieved (NONE YET)
 
 ### Phase 2: Audit Fixes (P1 Critical)
 - [x] All 10 P1 findings fixed with regression tests
-- [x] Test suite: 399 tests passing locally
+- [x] Test suite: 451 tests passing locally
 - [ ] External CI green (configured but not verified)
 
 ### Phase 3: Test Suite
-- [x] 399-test suite passing with no failures/teardown errors
+- [x] 451-test suite passing with no failures/teardown errors
 - [x] Execution accounting regressions added
 - [x] Operational control regressions added
 - [ ] External CI evidence (GitHub Actions configured, awaiting run)
@@ -167,7 +168,8 @@ Priority order for completion:
 ├── liquidity_reversal.py (H-002, 13 features)
 ├── volatility_risk_premium.py (H-003, 21 features)
 ├── overnight_intraday.py (H-005, 13 features) NEW
-└── registry.py (90 total features registered)
+├── factor_mean_reversion.py (H-006, 5 features) NEW
+└── registry.py (95 total features registered)
 ```
 
 ### Summary Documents
@@ -288,3 +290,33 @@ Priority order for completion:
 *Document Version: 1.0*  
 *Last Updated: 2026-09-15*  
 *Next Review: Upon H-005 Trial 5-10 completion or H-004 Trial 1 results*
+
+---
+
+## Addendum (2026-09-15 evening)
+
+This handover was written before the afternoon's repository operations; the
+following points supersede parts of it:
+
+- PRs #4 (H-006) and #5 (H-005) were merged into `main`; both GitHub PRs are
+  closed as merged, and every working/backup branch (local and remote) was
+  deleted. `main` = `origin/main` = `41d8db9`.
+- The full-stack AI Studio dashboard (Express backend `server.ts` + 8 panels)
+  was imported from the app's ZIP export; see `docs/DASHBOARD.md`. Its
+  broker/market/operator endpoints are local simulations, not live
+  connectivity.
+- The preregistrations ledger now also contains H-006 (factor mean reversion)
+  and ledger-only H-004, H-007, and H-008. The frozen ledger titles H-004 as
+  "Macro Yield Curve & Credit Spread Momentum" — not "Sector Rotation with
+  Volatility Regime Filtering" as stated above; the ledger is authoritative.
+- H-005's Trials 1–4 are standalone-script runs outside the engine protocol
+  (PRELIMINARY). Trials 5–10 must run through `run_research_pipeline`, after
+  adding ^VIX to the h005 configs so the preregistered `vix_regime` feature is
+  produced.
+- H-006 execution remains blocked on a cross-sectional (panel) evaluator. The
+  engine path cited in `H006_FINAL_STATUS_REPORT.md` is incorrect (the actual
+  walk-forward lives in `src/quant_research/evaluation/walk_forward.py` with
+  the pipeline in `src/quant_research/run.py`), and its registry count is
+  stale — the registry holds 95 specs across 8 sources.
+- Test suite: 451 tests collected, exit 0 (see
+  `TEST_SUITE_REMEDIATION_REPORT.md`).

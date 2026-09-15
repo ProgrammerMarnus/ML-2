@@ -2,16 +2,19 @@
                     LIVE TRADING READINESS CHECKLIST
 ================================================================================
 Last Updated: 2026-09-15
-Current Status: RESEARCH_ONLY - H-005 shows promising early results (Trials 1-4 
-passed bootstrap significance), but requires additional validation before 
-ROBUST_OOS designation. No live broker capability.
+Current Status: RESEARCH_ONLY - H-005 is preregistered and engine-ready; its
+four completed trials were produced by a standalone script outside the engine
+protocol (PRELIMINARY only) and must be re-run through the engine. No live
+broker capability.
 
 ================================================================================
 PHASE 1: STRATEGY RESEARCH (CRITICAL BLOCKER)
 ================================================================================
 Status: IN PROGRESS - pv-2.2.0 failed; H-001, H-002-R1, and H-003-R1 are
 rejected; original H-002/H-003 remain blocked by exact-data-contract gaps;
-H-005 (Overnight-Intraday Return Decomposition) showing preliminary promise
+H-005 (Overnight-Intraday) is engine-ready with PRELIMINARY standalone trials
+only; H-006 (Factor Mean Reversion) is blocked on a cross-sectional evaluator;
+H-004/H-007/H-008 are ledger-only preregistrations
 
 [x] 1.1 Close failed strategy line with documentation
     [x] Created PV220_CLOSURE_REPORT.md
@@ -22,8 +25,12 @@ H-005 (Overnight-Intraday Return Decomposition) showing preliminary promise
     [x] H-001: Cross-Asset Spillover (SPY/QQQ information diffusion)
     [x] H-002: Liquidity Reversal (small-cap liquidity provision)
     [x] H-003: Volatility Risk Premium (multi-asset vol bearing)
-    [x] H-004: Sector Rotation with Volatility Regime Filtering (in progress)
+    [x] H-004: Macro Yield Curve & Credit Spread Momentum (ledger-only
+        preregistration; earlier bot documents mislabelled it Sector Rotation)
     [x] H-005: Overnight-Intraday Return Decomposition (NEW - 2026-09-15)
+    [x] H-006: Factor Exposure Mean Reversion (NEW - 2026-09-15)
+    [x] H-007: Cross-Sectional Quality-Minus-Junk Low-Turnover Core (ledger-only)
+    [x] H-008: Microstructure Order Flow Imbalance (ledger-only)
     [x] All hypotheses preregistered with locked protocols
 
 [x] 1.3 Implement feature modules for all hypotheses
@@ -31,7 +38,8 @@ H-005 (Overnight-Intraday Return Decomposition) showing preliminary promise
     [x] liquidity_reversal.py (13 features)
     [x] volatility_risk_premium.py (21 features)
     [x] overnight_intraday.py (13 H-005 features) - NEW
-    [x] All features registered in central registry (90 total features)
+    [x] factor_mean_reversion.py (5 H-006 features) - NEW
+    [x] All features registered in central registry (95 total features)
 
 [ ] 1.4 Execute research campaign (Trials 1-10 per hypothesis)
     [x] H-001 corrected Trial 1: REAL_DATA diagnostic only — SUPERSEDED because
@@ -65,9 +73,14 @@ H-005 (Overnight-Intraday Return Decomposition) showing preliminary promise
         Mean Sharpe 0.844, Bootstrap P(SR>0)=0.985, p-value=0.015
     [x] H-005 Trial 4: Logistic Regression (C=0.1) — PASSED all four gates:
         Mean Sharpe 0.967, Bootstrap P(SR>0)=0.993, p-value=0.007 (BEST)
-    [ ] H-005 Trials 5-10: Pending — hyperparameter refinement, placebo tests,
-        out-of-sample extension, and regime analysis needed
-    [ ] H-004 Trials: In progress — sector rotation with volatility filtering
+    [ ] H-005 Trials 5-10: Pending — must run through the engine protocol;
+        Trials 1-4 above came from a standalone script (PRELIMINARY only).
+        Add ^VIX to configs/h005_*.yaml first so vix_regime is produced.
+    [ ] H-006 Trial 1: BLOCKED — needs the cross-sectional (17-ETF panel,
+        weekly rank/rebalance) evaluator before execution
+    [ ] H-004/H-007/H-008 Trials: NOT STARTED — ledger-only preregistrations;
+        each needs its data contract (macro yield curve, fundamentals,
+        intraday order flow) before any engine work
 
 [ ] 1.5 Achieve ROBUST_OOS status on at least one hypothesis
     CRITICAL GATES (all must pass):
@@ -157,8 +170,9 @@ Status: COMPLETE - all 10 P1 findings fixed with behavioral regressions
 ================================================================================
 PHASE 3: TEST SUITE REMEDIATION
 ================================================================================
-Current: latest complete 399-test run passed with no failures or teardown
-errors. It includes execution-accounting and operational-control regressions.
+Current: latest complete 451-test run passed with no failures or teardown
+errors. It includes execution-accounting, operational-control, H-005
+feature-panel wiring, and H-006 feature regressions.
 See TEST_SUITE_REMEDIATION_REPORT.md.
 
 [x] 3.1 Identify and fix 6 failing tests

@@ -1,65 +1,82 @@
 FUTURE STEPS — INSTITUTIONAL QUANT RESEARCH ENGINE
-Current as of: 2026-09-14
+Current as of: 2026-09-15 (evening; post PR #4/#5 merge and AI Studio import)
 
 CURRENT POSITION
-The project remains RESEARCH_ONLY. H-001 has completed a corrected,
-hypothesis-specific confirmation and was rejected: net Sharpe 0.787318,
-placebo percentile 0.35, adjusted p-value 0.6667. H-002 and H-003 have not
-produced valid trials because their preregistered data contracts are not
-available to the scalar single-asset runner. The runtime correctly refuses
-generic price/volume proxy executions.
+The project remains RESEARCH_ONLY. Valid rejecting evidence exists for H-001
+(net Sharpe 0.787318, placebo percentile 0.35, adjusted p 0.6667), H-002-R1
+(gross Sharpe -0.342, 0/10 positive folds, net -2.656, 72x turnover), and
+H-003-R1 (net Sharpe -0.074, 10/14 mandate gates failed). Original H-002/H-003
+remain unexecuted and blocked on their exact preregistered contracts.
 
-Engineering defects E01-E10 are fixed and regression-tested. The latest full
-suite passed all 399 collected tests with no failures or teardown errors.
-PaperBroker hardening phase 4.1 is complete, including order lifecycle,
-safeguards, persistence/restart integrity, and a 250-order load smoke test.
-This simulator evidence is not paper-market or live-broker evidence.
+New preregistered families await implementation or execution:
+  H-005  Overnight-Intraday Decomposition - 13 features registered AND wired
+         into the engine feature panel; configs/h005_*.yaml are executable.
+         The 4 completed trials were produced by a standalone script outside
+         the engine protocol (PRELIMINARY only). Configs omit ^VIX, so
+         vix_regime is dropped until they are updated.
+  H-006  Factor Exposure Mean Reversion - 5 features registered, config
+         frozen, but execution is BLOCKED: the scalar walk-forward evaluates
+         one target; H-006 needs a cross-sectional (17-ETF panel, weekly
+         rank/rebalance) evaluator.
+  H-004  Macro Yield Curve & Credit Spread Momentum - ledger-only
+         preregistration (no module/config/engine path; needs macro data).
+  H-007  Cross-Sectional Quality-Minus-Junk Low-Turnover Core - ledger-only
+         (needs fundamentals plus the cross-sectional evaluator).
+  H-008  Microstructure Order Flow Imbalance & Intraday Liquidity
+         Replenishment - ledger-only (needs intraday order-flow data).
+
+Engineering: the latest complete suite collected 451 tests and exited 0
+(includes the H-005 panel-wiring and H-006 feature regressions). The feature
+registry holds 95 specs across 8 sources. registry_hash pins for pre-existing
+features are byte-stable (empty optional metadata is excluded from the
+payload). Tracked __pycache__ bytecode was removed from the index and
+.gitignore was rewritten without the blanket *.csv/*.json/*.parquet rules.
+
+The AI Studio full-stack dashboard (Express backend server.ts + 8 new React
+panels) is imported on main; run it with `npm run server`. See
+docs/DASHBOARD.md. AI Studio's GitHub sync is currently broken upstream; the
+reliable round-trip is ZIP export -> diff -> port (the procedure used today).
 
 PRIORITY ORDER
 
-1. Resolve the H-002/H-003 scientific data decision.
-   - H-002 needs a cross-sectional small/mid-cap universe plus liquidity inputs.
-   - H-003 needs a multi-asset panel plus VIX/term-structure inputs.
-   - Either implement those exact contracts or close the hypotheses before
-     creating a newly preregistered, scalar-compatible family.
-   - Do not run substitutes under the existing H-002/H-003 identifiers.
+1. Execute H-005 trials 5-10 through the engine protocol.
+   - First add ^VIX to configs/h005_overnight_intraday_trial*.yaml so the
+     preregistered vix_regime feature is produced.
+   - Trials 1-4 (standalone script) are PRELIMINARY only and must be re-based
+     on engine evidence before any claim is made.
 
-2. Preserve H-001 as a rejecting result.
-   - Keep the corrected config, immutable experiment record, exact dataset
-     identity, and placebo output together.
-   - Do not tune the hypothesis against the observed confirmation period.
+2. Implement the cross-sectional (panel) evaluator.
+   - Unblocks H-006 (17-ETF weekly rank/rebalance) and is the prerequisite
+     for H-007-style cross-sectional families.
+   - Keep the scalar path's guard rails intact for single-target families.
 
-3. Complete external operational integration (phase 6). Local accounting,
-   monitoring, alerts, settlement evidence, and emergency controls exist.
-   - Add approved market/broker connectivity, external alert delivery, named
-     operators, credential checks, and deployment-specific limit approval.
+3. Resolve the ledger-only preregistrations H-004/H-007/H-008.
+   - Each needs a data-contract decision before any engine work:
+     H-004 macro yield-curve/credit-spread data; H-007 fundamentals;
+     H-008 intraday order-flow/microstructure data.
+   - Implement the exact contract or formally close the preregistration.
 
-4. Build observed paper-validation evidence only after a strategy reaches the
-   required research state.
-   - Use unique sessions and event-derived evidence.
-   - Test restarts, duplicate requests, partial fills, stale data, kill-switch
-     persistence, and emergency flattening.
-   - Simulator calls alone cannot promote a strategy.
+4. Preserve the rejecting results.
+   - H-001, H-002-R1, and H-003-R1 remain closed; do not tune on their
+     observed windows and do not relabel proxies under those identifiers.
 
-5. Establish repeatable CI evidence.
-   - Keep the current 399-test collection green in isolated local and hosted CI.
-   - Retain machine-readable results and separate expected synthetic-window
-     warnings from actionable warnings.
+5. Repo hygiene.
+   - Decide whether to commit the untracked H-002 inputs
+     (src/quant_research/data/h002_sectors.json,
+     data/universe_russell3000.csv) - h002_universe.py requires both.
+   - Regenerate src/quant_research.egg-info/SOURCES.txt (stale generated
+     manifest; does not yet list overnight_intraday.py /
+     factor_mean_reversion.py).
+   - Fix information_sources provenance in experiment records (currently
+     defaults to ["price_volume"] for non-H-003 runs).
 
-6. Defer any live broker adapter and capital deployment.
-   - Select and integrate a broker only after research and observed-paper gates
-     pass and operational ownership, credentials, monitoring, and rollback are
-     defined.
-
-DO NOT DO
-- Do not reinterpret the invalid early H-001/H-002 proxy runs as hypothesis
-  evidence.
-- Do not loosen placebo gates or spend additional trials to chase a pass.
-- Do not claim PAPER_READY, PAPER_VALIDATED, or LIVE_ELIGIBLE from simulator
-  tests.
-- Do not send live orders or provide credentials while status is RESEARCH_ONLY.
+6. Complete external operational integration (phase 6). Local accounting,
+   safeguards, and monitoring are simulator evidence only; external alert
+   delivery, authenticated operator identity, real feeds, named operators,
+   and observed-paper evidence remain open. Do not send live orders or
+   provide credentials while status is RESEARCH_ONLY.
 
 CANONICAL STATUS
-See CURRENT_PROJECT_STATUS.md and LIVE_TRADING_READINESS_CHECKLIST.txt. Older
-audit, milestone, and execution documents are historical snapshots and are
-labelled accordingly.
+See CURRENT_PROJECT_STATUS.md, docs/DASHBOARD.md, and
+LIVE_TRADING_READINESS_CHECKLIST.txt. Older audit, milestone, and execution
+documents are historical snapshots and are labelled accordingly.

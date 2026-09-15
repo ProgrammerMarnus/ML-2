@@ -1,12 +1,22 @@
 # Current Project Status
 
-**As of:** 2026-09-15
+**As of:** 2026-09-15 (evening) — after merging PRs #4/#5 and importing the
+AI Studio full-stack dashboard.
 **Overall state:** `RESEARCH_ONLY` — no viable strategy and no live-broker
 adapter.
 
 This is the canonical status page. Dated audits, trial logs, closure reports,
 and archived artifacts preserve what was known when they were written; their
 historical metrics and findings are not current readiness claims.
+
+## Repository state
+
+- Single branch: `main` = `origin/main` = `41d8db9`. GitHub PRs #1–#5 are all
+  merged, and every working/backup branch (local and remote) has been deleted.
+- The AI Studio Build app (front-end + Express backend) was exported to ZIP and
+  imported onto `main`; see [docs/DASHBOARD.md](docs/DASHBOARD.md). The export
+  was verified file-by-file to be a snapshot of the pre-merge `origin/main`
+  plus app-side work only, so no engine code was clobbered.
 
 ## Strategy research
 
@@ -37,13 +47,46 @@ historical metrics and findings are not current readiness claims.
   explicit `h002` and `h003` modes route only to their separately frozen R1
   portfolio contracts; neither is evidence for the original hypothesis.
 
+### Newly preregistered families (not yet validly executed)
+
+The preregistration ledger `data/research_ledgers/preregistrations.jsonl`
+(authoritative; served by the dashboard at `/api/preregistrations`) now also
+contains five newer families:
+
+| Family | Title (per frozen ledger) | State |
+|---|---|---|
+| H-005 | Overnight-Intraday Return Decomposition | 13 features registered and wired into the engine feature panel; `configs/h005_overnight_intraday_trial*.yaml` are now executable. The four completed "trials" in `H005_TRIAL_SUMMARY.md` were produced by a standalone script outside the engine protocol and are labelled PRELIMINARY — they are not protocol evidence. Trials 5–10 must run through `run_research_pipeline`. The configs omit `^VIX`, so `vix_regime` is currently dropped. |
+| H-006 | Factor Exposure Mean Reversion | 5 features registered, config frozen. **Execution blocked**: the scalar walk-forward evaluates one target series, while H-006 needs a cross-sectional (multi-asset panel, weekly ranking/rebalance) evaluator. See `H006_FINAL_STATUS_REPORT.md` — note its engine path reference and feature counts are stale; the blocker itself is accurate. |
+| H-004 | Macro Yield Curve & Credit Spread Momentum | Ledger-only preregistration: no hypothesis document, feature module, config, or engine path yet. Requires macro (yield-curve/credit-spread) data. |
+| H-007 | Cross-Sectional Quality-Minus-Junk Low-Turnover Core | Ledger-only preregistration; needs fundamentals data plus the cross-sectional evaluator. |
+| H-008 | Microstructure Order Flow Imbalance & Intraday Liquidity Replenishment | Ledger-only preregistration; needs intraday order-flow/microstructure data that the repository does not have. |
+
+Note: some AI Studio-generated documents call H-004 "Sector Rotation with
+Volatility Regime Filtering"; the frozen ledger title above is authoritative.
+
 ## Engineering and validation
 
 - All ten P1 findings E01–E10 from the 2026-09-11 audit are fixed and covered
   by behavioral regressions.
-- The latest complete suite run collected 399 tests and exited successfully
-  with no failure or teardown error. It includes the new execution-accounting
-  and operational-control regressions.
+- The latest complete suite run collected **451 tests** and exited 0 with no
+  failures or teardown errors. New coverage includes the H-005 feature-panel
+  wiring contract (VIX-present and VIX-absent) and the H-006 feature tests.
+- The feature registry holds **95 specs across 8 sources** (price_volume 21,
+  volatility_risk_premium 21, liquidity_reversal 13, overnight_intraday 13,
+  cross_asset_spillover 9, information 8, h003_r1_volatility_shock 5,
+  factor_mean_reversion 5). `registry_hash` now serialises specs without empty
+  optional metadata, so audited pre-existing pins (e.g. `momentum_63`) are
+  byte-stable while H-006 tags its specs with `hypothesis`.
+- Tracked `__pycache__/*.pyc` bytecode was removed from the index (84 files):
+  it was CPython 3.12 output, is regenerated locally, and had caused every
+  binary merge conflict. `.gitignore` was rewritten — the blanket
+  `*.csv/*.json/*.parquet` rules are gone (replaced by scoped `artifacts/`,
+  `artifacts_*/`, `data_cache/`, `logs/` rules) so new research files are no
+  longer silently ignored; already-tracked artifacts remain tracked.
+- The full-stack dashboard (Express backend `server.ts` + eight new React
+  panels) runs locally via `npm run server`; see
+  [docs/DASHBOARD.md](docs/DASHBOARD.md). It reads the repository's real
+  ledgers but creates no promotion evidence.
 - PaperBroker hardening 4.1 is complete: lifecycle, latency, cash/exposure
   reservations, idempotency, reduce-only emergency exits, kill-switch pending
   cancellation, verified persistence, reconciliation, audit-chain validation,
@@ -67,17 +110,28 @@ historical metrics and findings are not current readiness claims.
 
 ## Remaining blockers
 
-1. Produce a genuinely new preregistered research family or obtain the exact
-   external contracts for original H-002/H-003. Both R1 amendments were
-   executed and rejected; neither original hypothesis has been tested.
-2. Produce a strategy that achieves every `ROBUST_OOS` gate on untouched
-   evidence.
-3. Complete remaining paper/order-flow accounting and operational work in the
-   live-readiness checklist.
-4. Select and implement a real broker adapter; none exists today.
-5. Accumulate the required observed paper sessions only after a strategy is
+1. Run H-005 trials 5–10 through the engine protocol (add `^VIX` to
+   `configs/h005_overnight_intraday_trial*.yaml` first so the preregistered
+   `vix_regime` feature is produced). The standalone trial script must not be
+   cited as protocol evidence.
+2. Implement the cross-sectional (panel + weekly portfolio) evaluator; it
+   unblocks H-006 and is prerequisite for H-007-style strategies.
+3. Implement or formally close the ledger-only preregistrations H-004, H-007,
+   and H-008 (H-008 needs intraday order-flow data; H-004 needs macro
+   yield-curve/credit-spread data; H-007 needs fundamentals).
+4. Decide whether to commit the untracked H-002 inputs
+   (`src/quant_research/data/h002_sectors.json`,
+   `data/universe_russell3000.csv`) — required by `h002_universe.py` but never
+   committed.
+5. Fix `information_sources` provenance in experiment records (it defaults to
+   `["price_volume"]` for every non-H-003 run; see `run.py`).
+6. Produce a strategy that achieves every `ROBUST_OOS` gate on untouched
+   evidence; complete remaining paper/order-flow accounting and operational
+   work in the live-readiness checklist; select and implement a real broker
+   adapter; accumulate observed paper sessions only after a strategy is
    research-qualified.
 
 See `LIVE_TRADING_READINESS_CHECKLIST.txt` for the detailed work queue,
-`PHASE1_DATA_CONTRACT_GAP_MATRIX.md` for research blockers, and
+`PHASE1_DATA_CONTRACT_GAP_MATRIX.md` for research blockers,
+[docs/DASHBOARD.md](docs/DASHBOARD.md) for the full-stack dashboard, and
 `TEST_SUITE_REMEDIATION_REPORT.md` for test evidence.
