@@ -1,0 +1,75 @@
+# H-006 Factor Mean Reversion real-data research run.
+#
+# This is a NEW hypothesis family testing factor exposure mean reversion
+# across a multi-asset ETF universe. Unlike H-001/H-002-R1/H-003-R1, this
+# strategy uses purely rules-based signal combination without ML fitting.
+
+data:
+  mode: h006
+  assets:
+    [SPY, QQQ, IWM, DIA, EFA, EEM, VEA, VWO, TLT, IEF, SHY, LQD, HYG, GLD, DBC, USO, VNQ]
+  target: SPY
+  start: "2010-01-01"
+  end: "2023-12-31"
+  frequency: 1d
+  exchange_calendar: XNYS
+  raw_snapshot_dir: data/raw_snapshots
+
+evaluation:
+  train_window: 504
+  validation_window: 126
+  test_window: 504
+  step_bars: 504
+  purge_bars: 5
+  embargo_bars: 5
+  expanding: true
+
+execution:
+  fee_bps: 5.0
+  slippage_bps: 3.0
+  signal_delay_bars: 0
+  target_vol: 0.10
+  max_position: 0.12
+  gross_leverage_cap: 1.0
+  net_exposure_cap: 0.40
+
+model:
+  type: none  # No ML model; pure signal combination
+  random_seed: 42
+  hold_bars: 5
+  rebalance_day: wednesday  # Weekly rebalance on Wednesday close
+
+features:
+  include_sources: [factor_mean_reversion]
+  exclude_features: []
+
+research:
+  max_trials: 10
+  bootstrap_samples: 500
+  placebo_runs: 100
+  threshold_candidates: []  # No threshold search for H-006
+  hold_candidates: [5]
+  protocol_path: artifacts/h006/h006_protocol.json
+
+promotion:
+  min_median_oos_sharpe: 0.0
+  min_mean_oos_sharpe: 0.0
+  max_oos_dd: -0.20
+  cost_stress_fee_bps: 10.0
+  cost_stress_slippage_bps: 5.0
+  delay_stress_bars: 1
+  slippage_stress_multiplier: 2.0
+  parameter_robustness_pct: 0.20
+  missing_data_pct: 0.05
+  min_bootstrap_positive_prob: 0.80
+  min_placebo_percentile: 0.95
+  min_placebo_runs: 100
+  max_placebo_adjusted_p: 0.05
+  max_single_fold_share: 0.50
+  max_annual_turnover: 12.0
+  min_capacity_aum: 50000000  # $50M minimum capacity
+  selection_correction: none
+  max_family_searches: 10
+
+output_dir: artifacts/h006/run
+

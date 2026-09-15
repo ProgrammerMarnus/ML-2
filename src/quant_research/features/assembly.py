@@ -7,6 +7,7 @@ import pandas as pd
 from ..config import FeatureConfig
 from ..data.schemas import DataValidationError
 from .cross_asset_spillover import compute_spillover_features
+from .factor_mean_reversion import compute_factor_mean_reversion_features
 from .information import build_information_features
 from .liquidity_reversal import compute_liquidity_features
 from .price_volume import build_price_volume_features, build_signal_extensions
@@ -17,6 +18,53 @@ from .volatility_risk_premium import compute_volatility_risk_features
 KNOWN_SOURCES = frozenset(spec.source for spec in registry())
 _VIX_FEATURES = frozenset({"vrp_vix", "vrp_vix_norm", "vrp_zscore"})
 _VXN_FEATURES = frozenset({"vrp_vxn", "vrp_vxn_norm"})
+
+
+def compute_factor_mean_reversion_features_multi_asset(
+    close: pd.DataFrame,
+    high: pd.DataFrame,
+    low: pd.DataFrame,
+    volume: pd.DataFrame,
+    benchmark_close: pd.Series,
+    vix: pd.Series = None,
+) -> pd.DataFrame:
+    """Compute H-006 factor mean reversion features for multiple assets.
+    
+    Args:
+        close: DataFrame of close prices for multiple assets
+        high: DataFrame of high prices
+        low: DataFrame of low prices
+        volume: DataFrame of volumes
+        benchmark_close: Series of benchmark close prices (e.g., SPY)
+        vix: Optional VIX series
+        
+    Returns:
+        DataFrame with multi-index (asset, date) and H-006 features
+    """
+    all_features = []
+    
+    for asset in close.columns:
+        asset_features = compute_factor_mean_reversion_features(
+            close=close[asset],
+            high=high[asset],
+            low=low[asset],
+            volume=volume[asset],
+            benchmark_close=benchmark_close,
+            vix=vix,
+        )
+        # Add asset identifier as column level
+        asset_features.columns = pd.MultiIndex.from_product(
+            [[asset], asset_features.columns]
+        )
+        all_features.append(asset_features)
+    
+    # Concatenate all assets
+    combined = pd.concat(all_features, axis=1)
+    # Stack to get multi-index format (asset, date)
+    stacked = combined.stack(level=0, future_stack=True)
+    # Reorder levels to (asset, date) - already in this order from stack
+    stacked = stacked.sort_index()
+    return stacked
 
 
 def h001_selected_legs(features: pd.DataFrame) -> pd.Series:
@@ -136,6 +184,14 @@ def build_feature_panel(
         panels.append(compute_volatility_risk_features(
             close[target], high[target], low[target], vix=vix, vxn=vxn
         ).reindex(close.index))
+    if "factor_mean_reversion" in sources:
+        # H-006: Factor mean reversion features require benchmark data
+        # Use SPY as default benchmark for all assets
+        benchmark_close = close.get("SPY", close.iloc[:, 0])
+        vix = close.get("VIX", None)
+        panels.append(compute_factor_mean_reversion_features_multi_asset(
+            close, high, low, volume, benchmark_close=benchmark_close, vix=vix
+        ))
     if not panels:
         raise DataValidationError("feature selection resolved to no feature panels")
     features = _registered_columns(pd.concat(panels, axis=1))

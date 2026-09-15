@@ -1,51 +1,43 @@
-```
-# Dependencies
-node_modules/
-
-# Python cache
-__pycache__/
+```gitignore
+# Python compiled files
 *.pyc
-*.pyo
-*.pyd
-
-# Build artifacts
-dist/
-build/
-*.egg-info/
-
-# Environment files
-.env
-.env.local
-.env.*
+__pycache__/
 
 # Logs
 *.log
 
-# Data files that might be temporary
-*.csv
-*.json
-*.parquet
+# Artifacts and data
+artifacts/
+data/raw_snapshots/
+logs/
+
+# Dependencies (if any virtual environments exist)
+.venv/
+venv/
+.env
+.env.local
+*.env.*
+
+# Build/dist directories (if they exist)
+dist/
+build/
+target/
 
 # Coverage reports
+.coverage
 coverage/
 htmlcov/
 
-# OS generated files
+# Editors/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
 .DS_Store
 Thumbs.db
 
-# Artifacts directory
-artifacts/
-
-# Data snapshots
-data/raw_snapshots/*.meta.json
-data/raw_snapshots/*.parquet
-
-# Temporary run logs
-**/run_log.txt
-
-# Lock files for counters
-**/trial_counter.json.lock
-**/test_lock.json
-
+# Research specific
+src/quant_research.egg-info/
 ```

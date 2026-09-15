@@ -1,0 +1,19 @@
+{
+  "config_fingerprint": "75f15ef6cca5abdd",
+  "created_at": "2026-09-15T11:53:58.486304+00:00",
+  "development_data": "h006:2010-01-01..2023-12-31:train_validation",
+  "economic_mechanism": "Factor exposure mean reversion driven by crowding unwinds, style rotation, and risk parity adjustments across multi-asset ETF universe",
+  "evaluation_data": "h006:2010-01-01..2023-12-31:locked_oos",
+  "feature_names": [
+    "h006_beta_zscore",
+    "h006_momentum_deviation",
+    "h006_volatility_percentile",
+    "h006_correlation_extreme",
+    "h006_drawdown_recovery"
+  ],
+  "hypothesis_id": "h006_factor_mean_reversion",
+  "max_trials": 10,
+  "primary_metric": "full_oos_net_sharpe",
+  "protocol_digest": "f064c35a2bfd9de5",
+  "target": "SPY"
+}

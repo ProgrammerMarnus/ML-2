@@ -280,13 +280,15 @@ def load_market_data(cfg: DataConfig) -> Tuple[pd.DataFrame, dict]:
     elif cfg.mode == "csv":
         ohlcv = load_csv_ohlcv(cfg.csv_path, cfg.assets)  # type: ignore[arg-type]
         assumption = "user-provided csv; corporate-action basis is the user's responsibility"
-    elif cfg.mode in {"yfinance", "h003"}:
+    elif cfg.mode in {"yfinance", "h003", "h006"}:
         ohlcv = load_yfinance_ohlcv(cfg.assets, cfg.start, cfg.end)
         assumption = (
             "yfinance daily bars, auto_adjust=True: split/dividend-adjusted OHLC "
             "(documented corporate-action basis)"
             + ("; H-003-R1 amended 17-ETF plus VIX-spot contract"
                if cfg.mode == "h003" else "")
+            + ("; H-006 17-ETF factor mean reversion universe"
+               if cfg.mode == "h006" else "")
         )
     else:  # pragma: no cover - DataConfig validates modes
         raise DataValidationError(f"unsupported data mode {cfg.mode!r}")

@@ -1,0 +1,19 @@
+OpenBLAS WARNING - could not determine the L2 cache size on this system, assuming 256k
+OpenBLAS WARNING - could not determine the L2 cache size on this system, assuming 256k
+/workspace/src/quant_research/data/loaders.py:237: DataQualityWarning: Clipped 77 yfinance OHLC containment violation(s) into [low, high] (provider rounding artifact; documented repair)
+  warnings.warn(
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/src/quant_research/run.py", line 1197, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/workspace/src/quant_research/run.py", line 1186, in main
+    report = run_research_pipeline(cfg, args.output)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/quant_research/run.py", line 265, in run_research_pipeline
+    features = build_feature_panel(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/quant_research/features/assembly.py", line 140, in build_feature_panel
+    raise DataValidationError("feature selection resolved to no feature panels")
+src.quant_research.data.schemas.DataValidationError: feature selection resolved to no feature panels
