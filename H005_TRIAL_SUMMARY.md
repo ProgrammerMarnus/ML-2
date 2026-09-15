@@ -1,10 +1,62 @@
 # H-005 Overnight-Intraday Return Decomposition - Trial Summary
 
-**Date:** 2026-09-15  
-**Status:** PRELIMINARY_VALIDATION_COMPLETE (4/10 trials executed)  
-**Recommendation:** Proceed to Trials 5-10 with placebo testing and OOS extension
+**Date:** 2026-09-15 (engine section added late evening)  
+**Status:** ENGINE-PROTOCOL TRIAL 1 COMPLETE — `CANDIDATE` under the frozen
+H-005 gates; the four trials below remain PRELIMINARY (standalone script)
+**Recommendation:** Extend to an untouched OOS window and re-verify before any
+`ROBUST_OOS`/paper claim
 
 ---
+
+## Engine-protocol trial (2026-09-15 late evening)
+
+The first H-005 trial executed through `run_research_pipeline` — not a
+standalone script — with a frozen protocol.
+
+| Item | Value |
+|---|---|
+| Experiment | `20260915T160008Z_283db198b22dc6aa` |
+| Config | `configs/h005_overnight_intraday_trial1.yaml` (fingerprint `2a9fa3786dad725e`) |
+| Protocol | `artifacts/h005_trial1/h005_protocol.json` (digest `36297b79d632e5eb`, H-005, 13 features, max_trials 10) |
+| Data | yfinance daily OHLCV incl. opens, 8 symbols (`SPY, QQQ, IWM, EFA, EEM, TLT, GLD, ^VIX`), 2010-01-04..2021-12-30, 0 missing sessions |
+| Evidence status | `REAL_DATA` |
+| Promotion | **`CANDIDATE`** — 14 gates passed, **0 failed** |
+
+Evidence behind the decision:
+
+- placebo percentile **1.0** (observed mean OOS Sharpe 1.5145 vs null p95
+  1.4423, null median 1.3165), adjusted p **0.0476**, 20 valid nulls;
+- bootstrap P(SR>0) **0.994** (95% CI 0.198–1.986);
+- mean/median OOS Sharpe **1.5145 / 1.5443**; full-OOS net Sharpe 0.9971
+  (gross 1.0867), worst OOS drawdown **-3.86%**;
+- annual turnover **2.01x** (cap 36x in config, 6x target metric);
+- cost stress and delay stress survive; feature-leakage check passed with
+  0.0 future-data deltas; trial accounting consistent (5 trials).
+
+Limitations of this evidence (must travel with the number):
+
+1. The 2010–2021 window was already inspected by the standalone script that
+   produced Trials 1–4 below, so this is not an untouched confirmation window.
+   A locked extension (e.g. 2022–2026) is required before `ROBUST_OOS`.
+2. Only 5 walk-forward folds / 85 trades; bootstrap CI is wide. Per-fold OOS
+   Sharpe: 1.544 / 3.412 / **-0.266** / 2.123 / 0.760 (fold 3 negative; fold 5
+   alone carries 60 of the 85 trades).
+3. Mean OOS AUC **0.505** (per-fold 0.511 / 0.534 / 0.482 / 0.471 / 0.528) —
+   the directional ranking has essentially no accuracy edge; the P&L comes from
+   the sizing/hold overlay rather than from correct direction calls.
+4. Promotion used H-005's *preregistered* gate settings (percentile 0.85,
+   bootstrap 0.80, turnover 36x). The engine-default/checklist ROBUST_OOS bar
+   is stricter; the placebo percentile of 1.0 clears it, but gates 1–3 remain.
+5. Remaining H-005 trial budget: **5 of 10**.
+
+Numbering: the engine run is the first *protocol* H-005 trial. Trials 1–4
+below are PRELIMINARY and are not protocol evidence.
+
+---
+
+## Preliminary results (standalone script — NOT protocol evidence)
+
+**Date:** 2026-09-15
 
 ## Executive Summary
 

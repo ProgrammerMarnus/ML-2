@@ -1,8 +1,8 @@
 # Reproducible research workflow
 
-**Reviewed:** 2026-09-15 (evening). The current repository collects 451 tests and
-the latest complete run passed with exit 0. This is validation context, not
-strategy evidence.
+**Reviewed:** 2026-09-15 (evening). The current repository collects 410 tests
+(`pytest -o addopts= -q -p no:cacheprovider`) and the latest complete run passed
+with exit 0. This is validation context, not strategy evidence.
 
 The engine records data hashes and experiment metadata. DVC adds content-addressed
 storage and a replayable dependency graph around those artifacts; it does not

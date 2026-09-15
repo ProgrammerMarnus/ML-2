@@ -1,0 +1,17 @@
+{
+  "snapshot_id": "20260915T155944Z_yfinance_ohlcv_6475255438794934",
+  "path": "data/raw_snapshots/20260915T155944Z_yfinance_ohlcv_6475255438794934.csv.gz",
+  "dataset_hash": "6475255438794934",
+  "n_rows": 24160,
+  "symbols": [
+    "EEM",
+    "EFA",
+    "GLD",
+    "IWM",
+    "QQQ",
+    "SPY",
+    "TLT",
+    "^VIX"
+  ],
+  "created_utc": "20260915T155944Z"
+}

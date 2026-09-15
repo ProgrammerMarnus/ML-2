@@ -207,3 +207,43 @@ def test_overnight_contract_omits_the_regime_column_without_vix(close_panel, vol
     assert sorted(features.columns) == planned
     assert "vix_regime" not in features
     assert "overnight_vol_ratio" in features
+
+
+def test_overnight_source_accepts_the_real_data_vix_symbol(close_panel, volume_panel):
+    """The preregistered regime feature must survive the provider's ``^VIX`` name.
+
+    Real yfinance panels carry the index as ``^VIX``; a config declaring that
+    symbol previously dropped ``vix_regime`` from both the plan and the panel,
+    silently running a 12-feature contract against a 13-feature preregistration.
+    """
+    close = close_panel.copy()
+    close["^VIX"] = 20.0 + pd.RangeIndex(len(close)) / 100.0
+    volume = volume_panel.copy()
+    volume["^VIX"] = volume["SPY"]
+    open_, high, low, volume = _ohlc(close, volume)
+    config = FeatureConfig(include_sources=["overnight_intraday"])
+    features = build_feature_panel(
+        close, volume, "SPY", config, open_=open_, high=high, low=low,
+    )
+    planned = planned_feature_names(config, events_available=False, assets=["SPY", "^VIX"])
+    assert sorted(features.columns) == planned
+    assert "vix_regime" in features
+    assert features["vix_regime"].notna().any()
+    assert features["overnight_ret_1d"].notna().any()
+
+
+def test_overnight_vix_indicator_must_be_unambiguous(close_panel, volume_panel):
+    """Two VIX columns would let a run use a different series than it declared."""
+    close = close_panel.copy()
+    close["VIX"] = 20.0
+    close["^VIX"] = 21.0
+    volume = volume_panel.copy()
+    volume["VIX"] = volume["SPY"]
+    volume["^VIX"] = volume["SPY"]
+    open_, high, low, volume = _ohlc(close, volume)
+    with pytest.raises(DataValidationError, match="ambiguous"):
+        build_feature_panel(
+            close, volume, "SPY",
+            FeatureConfig(include_sources=["overnight_intraday"]),
+            open_=open_, high=high, low=low,
+        )

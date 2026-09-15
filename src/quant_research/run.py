@@ -1080,7 +1080,12 @@ def _register_and_decide(cfg, out, report, baseline, summary, robustness, boot,
         "placebo_statistics": placebo,
         "information_sources": report.get(
             "information_sources_override",
-            ["price_volume"] + (["information"] if info_cols else []),
+            # Provenance must name the feature families the run actually
+            # consumed, not a generic price/volume default: a hypothesis run
+            # recorded as ["price_volume"] would misdescribe its own inputs.
+            selected_sources(
+                cfg.features, events_available=cfg.data.mode == "synthetic"
+            ),
         ),
         "additional_gate_checks": report.get("additional_gate_checks", []),
         "promotion_state": decision["state"],

@@ -1,22 +1,35 @@
 FUTURE STEPS — INSTITUTIONAL QUANT RESEARCH ENGINE
-Current as of: 2026-09-15 (evening; post PR #4/#5 merge and AI Studio import)
+Current as of: 2026-09-15 (late evening; after the first protocol-bound H-005
+engine trial)
 
 CURRENT POSITION
-The project remains RESEARCH_ONLY. Valid rejecting evidence exists for H-001
-(net Sharpe 0.787318, placebo percentile 0.35, adjusted p 0.6667), H-002-R1
-(gross Sharpe -0.342, 0/10 positive folds, net -2.656, 72x turnover), and
-H-003-R1 (net Sharpe -0.074, 10/14 mandate gates failed). Original H-002/H-003
-remain unexecuted and blocked on their exact preregistered contracts.
+The project remains RESEARCH_ONLY for promotion, but H-005 is the first family
+with engine-protocol evidence that passes every one of its frozen gates:
+experiment 20260915T160008Z_283db198b22dc6aa (REAL_DATA, CANDIDATE) - placebo
+percentile 1.0 (adjusted p 0.0476, 20 nulls), bootstrap P(SR>0) 0.994,
+mean/median OOS Sharpe 1.514/1.544, worst OOS drawdown -3.86%, annual turnover
+2.01x, cost and delay stress survive, leakage and data-integrity clean. It is
+NOT ROBUST_OOS: the 2010-2021 window was already inspected by the standalone
+preliminary script, so an untouched locked window is still required. H-005
+budget remaining: 5 of 10 trials.
 
-New preregistered families await implementation or execution:
-  H-005  Overnight-Intraday Decomposition - 13 features registered AND wired
-         into the engine feature panel; configs/h005_*.yaml are executable.
-         The 4 completed trials were produced by a standalone script outside
-         the engine protocol (PRELIMINARY only). Configs omit ^VIX, so
-         vix_regime is dropped until they are updated.
+Valid rejecting evidence still stands for H-001 (net Sharpe 0.787318, placebo
+percentile 0.35, adjusted p 0.6667), H-002-R1 (gross Sharpe -0.342, 0/10
+positive folds, net -2.656, 72x turnover), and H-003-R1 (net Sharpe -0.074,
+10/14 mandate gates failed). Original H-002/H-003 remain unexecuted and blocked
+on their exact preregistered contracts.
+
+Two engine defects were fixed to make the H-005 run valid: the overnight
+branch/plan filter now accept the real-data "^VIX" symbol (previously
+vix_regime was silently dropped, i.e. a 12-feature run against a 13-feature
+preregistration), and information_sources provenance now records the feature
+families actually consumed instead of defaulting to ["price_volume"]. Both have
+regression tests. The H-005 protocols are frozen at
+artifacts/h005_trial{1,2}/h005_protocol.json.
+
+New preregistered families awaiting implementation or execution:
   H-006  Factor Exposure Mean Reversion - 5 features registered, config
-         frozen, but execution is BLOCKED: the scalar walk-forward evaluates
-         one target; H-006 needs a cross-sectional (17-ETF panel, weekly
+         frozen, execution BLOCKED on a cross-sectional (17-ETF panel, weekly
          rank/rebalance) evaluator.
   H-004  Macro Yield Curve & Credit Spread Momentum - ledger-only
          preregistration (no module/config/engine path; needs macro data).
@@ -25,25 +38,24 @@ New preregistered families await implementation or execution:
   H-008  Microstructure Order Flow Imbalance & Intraday Liquidity
          Replenishment - ledger-only (needs intraday order-flow data).
 
-Engineering: the latest complete suite collected 451 tests and exited 0
-(includes the H-005 panel-wiring and H-006 feature regressions). The feature
-registry holds 95 specs across 8 sources. registry_hash pins for pre-existing
-features are byte-stable (empty optional metadata is excluded from the
-payload). Tracked __pycache__ bytecode was removed from the index and
-.gitignore was rewritten without the blanket *.csv/*.json/*.parquet rules.
+Engineering: the feature registry holds 95 specs across 8 sources. registry_hash
+pins for pre-existing features are byte-stable. Tracked __pycache__ bytecode was
+removed from the index and .gitignore was rewritten without the blanket
+*.csv/*.json/*.parquet rules.
 
 The AI Studio full-stack dashboard (Express backend server.ts + 8 new React
 panels) is imported on main; run it with `npm run server`. See
 docs/DASHBOARD.md. AI Studio's GitHub sync is currently broken upstream; the
-reliable round-trip is ZIP export -> diff -> port (the procedure used today).
+reliable round-trip is ZIP export -> diff -> port.
 
 PRIORITY ORDER
 
-1. Execute H-005 trials 5-10 through the engine protocol.
-   - First add ^VIX to configs/h005_overnight_intraday_trial*.yaml so the
-     preregistered vix_regime feature is produced.
-   - Trials 1-4 (standalone script) are PRELIMINARY only and must be re-based
-     on engine evidence before any claim is made.
+1. Confirm H-005 on an untouched locked window.
+   - Extend to a genuinely unseen period (e.g. 2022-2026) with its own frozen
+     protocol and evaluate it ONCE; do not re-cut the inspected 2010-2021
+     window to search for a better variant.
+   - Spend the remaining H-005 budget (5 of 10 trials) there, and record the
+     outcome as the ROBUST_OOS promotion decision.
 
 2. Implement the cross-sectional (panel) evaluator.
    - Unblocks H-006 (17-ETF weekly rank/rebalance) and is the prerequisite
@@ -61,20 +73,20 @@ PRIORITY ORDER
      observed windows and do not relabel proxies under those identifiers.
 
 5. Repo hygiene.
-   - Decide whether to commit the untracked H-002 inputs
-     (src/quant_research/data/h002_sectors.json,
-     data/universe_russell3000.csv) - h002_universe.py requires both.
+   - Commit data/universe_russell3000.csv (still untracked; h002_universe.py
+     needs it together with the committed h002_sectors.json).
+   - Append H-005/H-006 to data/research_ledgers/preregistrations.jsonl (the
+     authoritative ledger served at /api/preregistrations currently lists only
+     H-001/H-002/H-003/H-004/H-007/H-008) or correct the docs that claim they
+     are present.
    - Regenerate src/quant_research.egg-info/SOURCES.txt (stale generated
-     manifest; does not yet list overnight_intraday.py /
-     factor_mean_reversion.py).
-   - Fix information_sources provenance in experiment records (currently
-     defaults to ["price_volume"] for non-H-003 runs).
+     manifest; does not list overnight_intraday.py / factor_mean_reversion.py).
 
 6. Complete external operational integration (phase 6). Local accounting,
    safeguards, and monitoring are simulator evidence only; external alert
    delivery, authenticated operator identity, real feeds, named operators,
    and observed-paper evidence remain open. Do not send live orders or
-   provide credentials while status is RESEARCH_ONLY.
+   provide credentials while no strategy is ROBUST_OOS.
 
 CANONICAL STATUS
 See CURRENT_PROJECT_STATUS.md, docs/DASHBOARD.md, and

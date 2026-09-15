@@ -10,7 +10,8 @@ Research evidence: H-001, H-002-R1 and H-003-R1 rejected; original H-002/H-003
   blocked before valid trial; H-005 engine-ready with PRELIMINARY standalone
   trials only, H-006 blocked on a cross-sectional evaluator; H-004/H-007/H-008
   ledger-only preregistrations
-Test baseline: all 451 collected tests pass in the latest complete run
+Test baseline: all 410 collected tests pass in the latest complete run
+  (pytest -o addopts= -q -p no:cacheprovider, 2026-09-15 evening)
 PaperBroker: hardened local simulator (phase 4.1 complete)
 Validation framework: implemented; no accepted observed-paper evidence
 Live adapter: none

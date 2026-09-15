@@ -231,6 +231,9 @@ def test_full_pipeline_end_to_end(small_config, tmp_output):
     assert lines[0]["experiment_id"] == rec["experiment_id"]
     assert lines[0]["promotion_state"] in {"RESEARCH_ONLY", "CANDIDATE"}
     assert lines[0]["evidence_status"] == "SYNTHETIC_OFFLINE"
+    # Provenance: no declared sources keeps the legacy price/volume default
+    # (plus the information family when a PIT event feed is available).
+    assert lines[0]["information_sources"] == ["price_volume", "information"]
     # artifacts written
     folds_csv = tmp_output / f"{rec['experiment_id']}_folds.csv"
     results_json = tmp_output / f"{rec['experiment_id']}_results.json"
@@ -250,6 +253,46 @@ def test_full_pipeline_end_to_end(small_config, tmp_output):
     # promotion decision visible with explicit failed gates
     assert "promotion" in report
     assert isinstance(report["promotion"]["failed_gates"], list)
+
+
+def test_pipeline_records_the_declared_feature_sources_as_provenance(small_config, tmp_output):
+    """A run must name the feature families it consumed, not a generic default.
+
+    The H-005 engine trial that first passed every gate was recorded as
+    ``["price_volume"]`` although it consumed the registered
+    ``overnight_intraday`` panel; provenance must follow the declared contract.
+    """
+    from dataclasses import replace
+
+    from quant_research.config import FeatureConfig
+
+    cfg = replace(small_config, features=FeatureConfig(include_sources=["price_volume"]))
+    report = run_research_pipeline(cfg, str(tmp_output))
+    rec = report["experiment_record"]
+    assert rec["information_sources"] == ["price_volume"]
+
+    reg_file = tmp_output / "experiment_registry.jsonl"
+    line = json.loads(reg_file.read_text().strip().splitlines()[0])
+    assert line["information_sources"] == ["price_volume"]
+
+
+def test_pipeline_records_overnight_intraday_provenance(small_config, tmp_output):
+    """The H-005 path must record its own registered source family."""
+    from dataclasses import replace
+
+    from quant_research.config import DataConfig, FeatureConfig
+
+    cfg = replace(
+        small_config,
+        data=DataConfig(
+            mode="synthetic", assets=["SPY", "^VIX"], target="SPY",
+            start="2020-01-01", end="2022-01-01",
+            raw_snapshot_dir=small_config.data.raw_snapshot_dir,
+        ),
+        features=FeatureConfig(include_sources=["overnight_intraday"]),
+    )
+    report = run_research_pipeline(cfg, str(tmp_output))
+    assert report["experiment_record"]["information_sources"] == ["overnight_intraday"]
 
 
 def test_pipeline_second_run_appends_new_record(small_config, tmp_output):

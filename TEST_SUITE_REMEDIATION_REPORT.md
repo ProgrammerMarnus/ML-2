@@ -1,12 +1,15 @@
 # Test Suite Remediation Report
 
 **Date:** 2026-09-15 (evening re-run)
-**Result:** `PASS` — the latest complete run collected 451 tests and exited 0
-with no failures or teardown errors. This includes the H-002-R1 and H-003-R1
+**Result:** `PASS` — the latest complete run (`pytest -o addopts= -q -p
+no:cacheprovider`, 2026-09-15 evening, 20:04 wall time) collected 410 tests and
+exited 0 with no failures, skips, or teardown errors. (An earlier "451
+collected" figure was not reproducible from this tree; 410 is the verified
+count.) This includes the H-002-R1 and H-003-R1
 portfolio, leakage, accounting, protocol, and end-to-end regressions added
 after the prior 372-test state, plus the H-005 feature-panel wiring contract
-(VIX-present and VIX-absent) and the H-006 feature tests that arrived with
-PRs #4/#5.
+(VIX-present via `VIX` and `^VIX`, and VIX-absent) and the H-006 feature tests
+that arrived with PRs #4/#5.
 
 ## Command
 

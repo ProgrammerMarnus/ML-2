@@ -1,0 +1,27 @@
+{
+  "config_fingerprint": "2a9fa3786dad725e",
+  "created_at": "2026-09-15T15:59:16.465009+00:00",
+  "development_data": "yfinance auto-adjusted daily OHLCV including opens for SPY/QQQ/IWM/EFA/EEM/TLT/GLD plus ^VIX, 2010-01-01..2021-12-31: expanding walk-forward folds 1-6 (train/validation only)",
+  "economic_mechanism": "Equity returns decompose into an overnight (close-to-open) risk premium and an intraday (open-to-close) liquidity-provision reversal; a daily classifier on the target's overnight/intraday decomposition earns the overnight drift and the intraday reversion.",
+  "evaluation_data": "yfinance auto-adjusted daily OHLCV including opens for SPY/QQQ/IWM/EFA/EEM/TLT/GLD plus ^VIX, 2010-01-01..2021-12-31: held-out final-fold OOS window",
+  "feature_names": [
+    "gap_size",
+    "intraday_fill_ratio",
+    "intraday_ret_1d",
+    "intraday_ret_5d",
+    "intraday_ret_5d_lag1",
+    "overnight_ret_1d",
+    "overnight_ret_20d",
+    "overnight_ret_20d_lag1",
+    "overnight_ret_5d",
+    "overnight_ret_5d_lag1",
+    "overnight_skew",
+    "overnight_vol_ratio",
+    "vix_regime"
+  ],
+  "hypothesis_id": "H-005",
+  "max_trials": 10,
+  "primary_metric": "full_oos_net_sharpe",
+  "protocol_digest": "36297b79d632e5eb",
+  "target": "SPY"
+}

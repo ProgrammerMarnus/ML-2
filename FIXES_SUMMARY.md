@@ -1,6 +1,6 @@
 > **Historical remediation ledger.** Versioned counts and claims below record
 > successive audit/fix rounds. The current 2026-09-15 (evening) position is:
-> E01–E10 fixed, the latest full run passing all 451 collected tests, PRs
+> E01–E10 fixed, the latest full run passing all 410 collected tests, PRs
 > #4/#5 merged, and the AI Studio dashboard imported. See
 > [CURRENT_PROJECT_STATUS.md](CURRENT_PROJECT_STATUS.md).
 
@@ -367,3 +367,50 @@ All deltas are machine epsilon (float64 rounding) — the executable ledger is i
 - **Verify**: `tsc --noEmit` clean; `vite build` clean; live smoke —
   `/api/health` ok, `/api/trial-counter` read 681 trials across 25 real
   ledgers, `/api/preregistrations` served the new ledger.
+---
+
+## 2026-09-15 (late evening) — H-005 engine execution
+
+### H-005 VIX indicator alias [integration]
+- **Problem**: `build_feature_panel`'s `overnight_intraday` branch read
+  `close["VIX"]` and `planned_feature_names` gated `_VIX_FEATURES` on
+  `"VIX" in assets`. Real yfinance panels carry the index as `^VIX` (the repo's
+  own H-001 config and H-003 pipeline use `^VIX`), so adding `^VIX` to the
+  H-005 configs as the status docs instructed dropped `vix_regime` from **both**
+  the plan and the panel — a silent 12-feature run against a 13-feature
+  preregistration, with `plan == panel` so no guard fired.
+- **Fix**: `_VIX_SYMBOLS`/`_vix_indicator()`/`_assets_declare_vix()` in
+  `features/assembly.py` accept exactly one of `VIX`/`^VIX` and raise on
+  ambiguity; the VRP, factor-mean-reversion and overnight branches plus the
+  plan filter all use them.
+- **Verify**: `tests/test_feature_assembly.py` gains `^VIX`-present and
+  both-symbols-present regressions (14 tests pass); both H-005 configs now plan
+  13 features including `vix_regime`; the frozen protocols record 13 features.
+
+### `information_sources` provenance [correctness]
+- **Problem**: every non-H-003 experiment record was stamped
+  `["price_volume"] (+["information"])` regardless of the feature families
+  actually consumed, so the H-005 run that passed every gate described its own
+  inputs incorrectly.
+- **Fix**: provenance now comes from `selected_sources(cfg.features, ...)`, the
+  same resolver the pipeline uses to build the panel.
+- **Verify**: `tests/test_pipeline.py` adds declared-source and
+  `overnight_intraday` provenance regressions; the undeclared synthetic default
+  still records `["price_volume", "information"]`.
+
+### H-005 protocol-bound engine trial [research evidence]
+- **Action**: froze `artifacts/h005_trial{1,2}/h005_protocol.json` (13
+  features, `H-005`, `full_oos_net_sharpe`, max_trials 10) bound to config
+  fingerprints `2a9fa3786dad725e` / `a0411e90d6770bdd`, added `^VIX` to both
+  configs, and executed trial 1 through `run_research_pipeline`.
+- **Result**: `20260915T160008Z_283db198b22dc6aa` — `REAL_DATA`,
+  `promotion_state: CANDIDATE`, **no failed gates** (placebo percentile 1.0,
+  adjusted p 0.0476, bootstrap P(SR>0) 0.994, mean/median OOS Sharpe
+  1.514/1.544, worst OOS drawdown -3.86%, annual turnover 2.01x, cost and
+  delay stress survive, leakage check passed, 0 missing sessions).
+- **Caveats recorded**: the 2010-2021 window was already inspected by the
+  standalone preliminary script (Trials 1-4), so this is protocol-bound engine
+  evidence but **not** an untouched confirmation window; 5 folds / 85 trades;
+  mean OOS AUC 0.505; gates were the config's preregistered ones
+  (percentile 0.85, bootstrap 0.80), not the engine-default ROBUST_OOS bar.
+  Remaining H-005 budget: 5 of 10 trials.

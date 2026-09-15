@@ -1,11 +1,12 @@
 ================================================================================
                     LIVE TRADING READINESS CHECKLIST
 ================================================================================
-Last Updated: 2026-09-15
-Current Status: RESEARCH_ONLY - H-005 is preregistered and engine-ready; its
-four completed trials were produced by a standalone script outside the engine
-protocol (PRELIMINARY only) and must be re-run through the engine. No live
-broker capability.
+Last Updated: 2026-09-15 (late evening)
+Current Status: RESEARCH_ONLY - H-005 (Overnight-Intraday) is the first family
+with protocol-bound engine evidence and passed every gate it froze
+(promotion_state CANDIDATE, experiment 20260915T160008Z_283db198b22dc6aa). It is
+not ROBUST_OOS: its 2010-2021 window was already inspected by the earlier
+standalone script. No live broker capability.
 
 ================================================================================
 PHASE 1: STRATEGY RESEARCH (CRITICAL BLOCKER)
@@ -73,9 +74,21 @@ H-004/H-007/H-008 are ledger-only preregistrations
         Mean Sharpe 0.844, Bootstrap P(SR>0)=0.985, p-value=0.015
     [x] H-005 Trial 4: Logistic Regression (C=0.1) — PASSED all four gates:
         Mean Sharpe 0.967, Bootstrap P(SR>0)=0.993, p-value=0.007 (BEST)
-    [ ] H-005 Trials 5-10: Pending — must run through the engine protocol;
-        Trials 1-4 above came from a standalone script (PRELIMINARY only).
-        Add ^VIX to configs/h005_*.yaml first so vix_regime is produced.
+    [ ] H-005 Trials 5-10: Pending — remaining budget 5 of 10. Confirmation
+        belongs on an UNTOUCHED window (e.g. a 2022-2026 extension) with its own
+        frozen protocol, not on the inspected 2010-2021 window.
+    [x] H-005 ENGINE TRIAL 1 (protocol-bound): EXECUTED — CANDIDATE.
+        Experiment 20260915T160008Z_283db198b22dc6aa (REAL_DATA), config
+        configs/h005_overnight_intraday_trial1.yaml (fingerprint 2a9fa3786dad725e),
+        protocol artifacts/h005_trial1/h005_protocol.json (digest 36297b79d632e5eb).
+        All 14 gates passed: placebo percentile 1.0 (adjusted p 0.0476, 20 nulls),
+        bootstrap P(SR>0) 0.994, mean/median OOS Sharpe 1.514/1.544, worst OOS
+        drawdown -3.86%, annual turnover 2.01x, cost+delay stress survive,
+        leakage check clean, data integrity 0 missing sessions.
+        Caveats: inspected window, 5 folds / 85 trades, mean OOS AUC 0.505;
+        gates were H-005's preregistered ones (0.85 percentile / 0.80 bootstrap).
+    [x] H-005 PRELIMINARY standalone-script trials 1-4: retained as PRELIMINARY
+        only (not protocol evidence).
     [ ] H-006 Trial 1: BLOCKED — needs the cross-sectional (17-ETF panel,
         weekly rank/rebalance) evaluator before execution
     [ ] H-004/H-007/H-008 Trials: NOT STARTED — ledger-only preregistrations;

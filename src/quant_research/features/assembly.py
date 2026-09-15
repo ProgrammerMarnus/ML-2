@@ -19,6 +19,28 @@ from .volatility_risk_premium import compute_volatility_risk_features
 KNOWN_SOURCES = frozenset(spec.source for spec in registry())
 _VIX_FEATURES = frozenset({"vrp_vix", "vrp_vix_norm", "vrp_zscore", "vix_regime"})
 _VXN_FEATURES = frozenset({"vrp_vxn", "vrp_vxn_norm"})
+# The real-data convention is the provider symbol ``^VIX`` (yfinance), while
+# synthetic panels and older fixtures name the column ``VIX``.  Both are
+# accepted, but never together: two columns would let a manifest claim the
+# preregistered regime feature while a different series was actually used.
+_VIX_SYMBOLS = ("VIX", "^VIX")
+
+
+def _vix_indicator(frame: pd.DataFrame) -> pd.Series | None:
+    """Return the single declared VIX indicator column, or None if absent."""
+    present = [symbol for symbol in _VIX_SYMBOLS if symbol in frame.columns]
+    if not present:
+        return None
+    if len(present) > 1:
+        raise DataValidationError(
+            "VIX indicator is ambiguous: panel declares both VIX and ^VIX"
+        )
+    return frame[present[0]]
+
+
+def _assets_declare_vix(assets: list[str]) -> bool:
+    """Whether the declared data universe contains a VIX indicator asset."""
+    return any(symbol in _VIX_SYMBOLS for symbol in assets)
 
 
 def compute_factor_mean_reversion_features_multi_asset(
@@ -114,7 +136,7 @@ def planned_feature_names(
     names = {spec.feature_name for spec in registry() if spec.source in sources}
     # Registered independently, not included by the wide-panel assembly yet.
     names.discard("parkinson_vol_20_lag1")
-    if "VIX" not in assets:
+    if not _assets_declare_vix(assets):
         names.difference_update(_VIX_FEATURES)
     if "VXN" not in assets:
         names.difference_update(_VXN_FEATURES)
@@ -180,7 +202,7 @@ def build_feature_panel(
             high[target], low[target], close[target], volume[target]
         ).reindex(close.index))
     if "volatility_risk_premium" in sources:
-        vix = close["VIX"] if "VIX" in close else None
+        vix = _vix_indicator(close)
         vxn = close["VXN"] if "VXN" in close else None
         panels.append(compute_volatility_risk_features(
             close[target], high[target], low[target], vix=vix, vxn=vxn
@@ -189,7 +211,7 @@ def build_feature_panel(
         # H-006: Factor mean reversion features require benchmark data
         # Use SPY as default benchmark for all assets
         benchmark_close = close.get("SPY", close.iloc[:, 0])
-        vix = close.get("VIX", None)
+        vix = _vix_indicator(close)
         panels.append(compute_factor_mean_reversion_features_multi_asset(
             close, high, low, volume, benchmark_close=benchmark_close, vix=vix
         ))
@@ -199,7 +221,7 @@ def build_feature_panel(
         # the target-only handling of liquidity_reversal and the VRP source.
         # VIX is optional; when it is absent the regime feature is dropped, the
         # same contract _VIX_FEATURES applies to planned_feature_names.
-        vix = close["VIX"] if "VIX" in close else None
+        vix = _vix_indicator(close)
         overnight = compute_overnight_intraday_features(
             open_[target], high[target], low[target], close[target], volume[target],
             vix=vix,

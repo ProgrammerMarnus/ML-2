@@ -94,7 +94,7 @@ Priority order for completion:
 
 ### Phase 2: Audit Fixes (P1 Critical)
 - [x] All 10 P1 findings fixed with regression tests
-- [x] Test suite: 451 tests passing locally
+- [x] Test suite: 410 tests passing locally
 - [ ] External CI green (configured but not verified)
 
 ### Phase 3: Test Suite
@@ -318,5 +318,6 @@ following points supersede parts of it:
   walk-forward lives in `src/quant_research/evaluation/walk_forward.py` with
   the pipeline in `src/quant_research/run.py`), and its registry count is
   stale — the registry holds 95 specs across 8 sources.
-- Test suite: 451 tests collected, exit 0 (see
-  `TEST_SUITE_REMEDIATION_REPORT.md`).
+- Test suite: 410 tests collected, exit 0 (see
+  `TEST_SUITE_REMEDIATION_REPORT.md`; an earlier "451 collected" figure was
+  not reproducible and was corrected).

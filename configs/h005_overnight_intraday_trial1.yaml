@@ -3,7 +3,9 @@
 
 data:
   mode: yfinance
-  assets: [SPY, QQQ, IWM, EFA, EEM, TLT, GLD]
+  # ^VIX is the preregistered regime indicator (yfinance provider symbol) and is
+  # required for the frozen 13-feature contract's `vix_regime` term.
+  assets: [SPY, QQQ, IWM, EFA, EEM, TLT, GLD, ^VIX]
   target: SPY
   start: "2010-01-01"
   end: "2021-12-31"
