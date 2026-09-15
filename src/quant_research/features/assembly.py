@@ -10,13 +10,14 @@ from .cross_asset_spillover import compute_spillover_features
 from .factor_mean_reversion import compute_factor_mean_reversion_features
 from .information import build_information_features
 from .liquidity_reversal import compute_liquidity_features
+from .overnight_intraday import compute_overnight_intraday_features
 from .price_volume import build_price_volume_features, build_signal_extensions
 from .registry import registry
 from .volatility_risk_premium import compute_volatility_risk_features
 
 
 KNOWN_SOURCES = frozenset(spec.source for spec in registry())
-_VIX_FEATURES = frozenset({"vrp_vix", "vrp_vix_norm", "vrp_zscore"})
+_VIX_FEATURES = frozenset({"vrp_vix", "vrp_vix_norm", "vrp_zscore", "vix_regime"})
 _VXN_FEATURES = frozenset({"vrp_vxn", "vrp_vxn_norm"})
 
 
@@ -192,6 +193,20 @@ def build_feature_panel(
         panels.append(compute_factor_mean_reversion_features_multi_asset(
             close, high, low, volume, benchmark_close=benchmark_close, vix=vix
         ))
+    if "overnight_intraday" in sources:
+        # H-005 (PR #5): the scalar engine evaluates one target series, so the
+        # panel carries that target's overnight/intraday decomposition, matching
+        # the target-only handling of liquidity_reversal and the VRP source.
+        # VIX is optional; when it is absent the regime feature is dropped, the
+        # same contract _VIX_FEATURES applies to planned_feature_names.
+        vix = close["VIX"] if "VIX" in close else None
+        overnight = compute_overnight_intraday_features(
+            open_[target], high[target], low[target], close[target], volume[target],
+            vix=vix,
+        )
+        if vix is None:
+            overnight = overnight.drop(columns=["vix_regime"], errors="ignore")
+        panels.append(overnight.reindex(close.index))
     if not panels:
         raise DataValidationError("feature selection resolved to no feature panels")
     features = _registered_columns(pd.concat(panels, axis=1))

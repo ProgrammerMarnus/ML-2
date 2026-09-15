@@ -176,3 +176,34 @@ def test_preregistered_h002_h003_cannot_run_as_scalar_ohlcv_proxies(
     )
     with pytest.raises(DataValidationError, match=required_contract):
         run_research_pipeline(cfg)
+def test_overnight_intraday_source_reaches_the_model_panel(close_panel, volume_panel):
+    """H-005's registered overnight/intraday decomposition must be buildable."""
+    close = close_panel.copy()
+    close["VIX"] = 20.0 + pd.RangeIndex(len(close)) / 100.0
+    volume = volume_panel.copy()
+    volume["VIX"] = volume["SPY"]
+    open_, high, low, volume = _ohlc(close, volume)
+    config = FeatureConfig(include_sources=["overnight_intraday"])
+    features = build_feature_panel(
+        close, volume, "SPY", config, open_=open_, high=high, low=low,
+    )
+    planned = planned_feature_names(config, events_available=False, assets=["SPY", "VIX"])
+    assert sorted(features.columns) == planned
+    assert "overnight_ret_20d_lag1" in features
+    assert "intraday_ret_5d_lag1" in features
+    assert "vix_regime" in features
+    assert features["overnight_ret_1d"].notna().any()
+    assert features["intraday_ret_1d"].notna().any()
+
+
+def test_overnight_contract_omits_the_regime_column_without_vix(close_panel, volume_panel):
+    """Without a VIX series the regime feature is absent from plan and panel."""
+    open_, high, low, volume = _ohlc(close_panel, volume_panel)
+    config = FeatureConfig(include_sources=["overnight_intraday"])
+    features = build_feature_panel(
+        close_panel, volume, "SPY", config, open_=open_, high=high, low=low,
+    )
+    planned = planned_feature_names(config, events_available=False, assets=["SPY"])
+    assert sorted(features.columns) == planned
+    assert "vix_regime" not in features
+    assert "overnight_vol_ratio" in features
