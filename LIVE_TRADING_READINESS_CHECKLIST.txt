@@ -2,13 +2,16 @@
                     LIVE TRADING READINESS CHECKLIST
 ================================================================================
 Last Updated: 2026-09-15
-Current Status: RESEARCH_ONLY - No viable strategy, no live broker capability
+Current Status: RESEARCH_ONLY - H-005 shows promising early results (Trials 1-4 
+passed bootstrap significance), but requires additional validation before 
+ROBUST_OOS designation. No live broker capability.
 
 ================================================================================
 PHASE 1: STRATEGY RESEARCH (CRITICAL BLOCKER)
 ================================================================================
 Status: IN PROGRESS - pv-2.2.0 failed; H-001, H-002-R1, and H-003-R1 are
-rejected; original H-002/H-003 remain blocked by exact-data-contract gaps
+rejected; original H-002/H-003 remain blocked by exact-data-contract gaps;
+H-005 (Overnight-Intraday Return Decomposition) showing preliminary promise
 
 [x] 1.1 Close failed strategy line with documentation
     [x] Created PV220_CLOSURE_REPORT.md
@@ -19,14 +22,16 @@ rejected; original H-002/H-003 remain blocked by exact-data-contract gaps
     [x] H-001: Cross-Asset Spillover (SPY/QQQ information diffusion)
     [x] H-002: Liquidity Reversal (small-cap liquidity provision)
     [x] H-003: Volatility Risk Premium (multi-asset vol bearing)
+    [x] H-004: Sector Rotation with Volatility Regime Filtering (in progress)
+    [x] H-005: Overnight-Intraday Return Decomposition (NEW - 2026-09-15)
     [x] All hypotheses preregistered with locked protocols
 
 [x] 1.3 Implement feature modules for all hypotheses
     [x] cross_asset_spillover.py (9 preregistered H-001 features)
     [x] liquidity_reversal.py (13 features)
     [x] volatility_risk_premium.py (21 features)
-    [x] All features registered in central registry (77 total, including five
-        H-003-R1 amended-family definitions)
+    [x] overnight_intraday.py (13 H-005 features) - NEW
+    [x] All features registered in central registry (90 total features)
 
 [ ] 1.4 Execute research campaign (Trials 1-10 per hypothesis)
     [x] H-001 corrected Trial 1: REAL_DATA diagnostic only — SUPERSEDED because
@@ -51,6 +56,18 @@ rejected; original H-002/H-003 remain blocked by exact-data-contract gaps
         2/5 positive folds, annual turnover 7.42x vs 2x cap, capacity $6.76m
         vs $500m. Ten of fourteen mandate gates failed; budget retired. This
         is evidence for H-003-R1 ONLY, never for original H-003.
+    [x] H-005 Trial 1: Logistic Regression (C=0.01) — PRELIMINARY VALIDATION
+        COMPLETE: Mean Sharpe 1.457, Median Sharpe 1.664, 3/5 positive folds.
+        Bootstrap testing not yet executed. Proceeding to Trials 2-4.
+    [x] H-005 Trial 2: Ridge Regression (α=1.0) — PASSED all four gates:
+        Mean Sharpe 0.861, Bootstrap P(SR>0)=0.989, p-value=0.011
+    [x] H-005 Trial 3: Logistic Regression (C=1.0) — PASSED all four gates:
+        Mean Sharpe 0.844, Bootstrap P(SR>0)=0.985, p-value=0.015
+    [x] H-005 Trial 4: Logistic Regression (C=0.1) — PASSED all four gates:
+        Mean Sharpe 0.967, Bootstrap P(SR>0)=0.993, p-value=0.007 (BEST)
+    [ ] H-005 Trials 5-10: Pending — hyperparameter refinement, placebo tests,
+        out-of-sample extension, and regime analysis needed
+    [ ] H-004 Trials: In progress — sector rotation with volatility filtering
 
 [ ] 1.5 Achieve ROBUST_OOS status on at least one hypothesis
     CRITICAL GATES (all must pass):

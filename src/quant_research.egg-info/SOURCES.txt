@@ -2,6 +2,8 @@ README.md
 pyproject.toml
 src/quant_research/__init__.py
 src/quant_research/config.py
+src/quant_research/h002_pipeline.py
+src/quant_research/h003_pipeline.py
 src/quant_research/run.py
 src/quant_research.egg-info/PKG-INFO
 src/quant_research.egg-info/SOURCES.txt
@@ -10,6 +12,7 @@ src/quant_research.egg-info/requires.txt
 src/quant_research.egg-info/top_level.txt
 src/quant_research/data/__init__.py
 src/quant_research/data/calendar.py
+src/quant_research/data/h002_universe.py
 src/quant_research/data/loaders.py
 src/quant_research/data/schemas.py
 src/quant_research/data/snapshots.py
@@ -30,6 +33,7 @@ src/quant_research/execution/paper.py
 src/quant_research/execution/safeguards.py
 src/quant_research/experiments/__init__.py
 src/quant_research/experiments/automation.py
+src/quant_research/experiments/h001_confirmation.py
 src/quant_research/experiments/leaderboard.py
 src/quant_research/experiments/operations.py
 src/quant_research/experiments/overnight.py
@@ -38,6 +42,7 @@ src/quant_research/experiments/promotion.py
 src/quant_research/experiments/protocol.py
 src/quant_research/experiments/registry.py
 src/quant_research/features/__init__.py
+src/quant_research/features/assembly.py
 src/quant_research/features/cross_asset_spillover.py
 src/quant_research/features/finbert.py
 src/quant_research/features/information.py
@@ -50,6 +55,9 @@ src/quant_research/features/registry.py
 src/quant_research/features/volatility_risk_premium.py
 src/quant_research/portfolio/__init__.py
 src/quant_research/portfolio/construction.py
+src/quant_research/portfolio/h002_portfolio.py
+src/quant_research/portfolio/h002_returns.py
+src/quant_research/portfolio/h003_portfolio.py
 src/quant_research/portfolio/risk.py
 src/quant_research/portfolio/skfolio_adapter.py
 src/quant_research/strategies/__init__.py
@@ -66,7 +74,10 @@ tests/test_delay_invariants.py
 tests/test_discovery_causal.py
 tests/test_execution_ledger.py
 tests/test_experiment_automation.py
+tests/test_feature_assembly.py
 tests/test_features.py
+tests/test_h002_pipeline.py
+tests/test_h003_pipeline.py
 tests/test_integrity.py
 tests/test_metrics.py
 tests/test_paper_execution_controls.py

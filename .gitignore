@@ -1,51 +1,59 @@
 ```
-# Dependencies
-node_modules/
-
-# Python cache
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Build artifacts
-dist/
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 *.egg-info/
+.installed.cfg
+*.egg
 
-# Environment files
-.env
-.env.local
-.env.*
+# Artifacts
+artifacts/
+
+# Data
+data/raw_snapshots/*.meta.json
+data/raw_snapshots/*.parquet
 
 # Logs
 *.log
 
-# Data files that might be temporary
-*.csv
-*.json
-*.parquet
+# Environment
+.env
+.env.local
+.env.*
+.venv/
+venv/
 
-# Coverage reports
-coverage/
-htmlcov/
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# OS generated files
+# OS
 .DS_Store
 Thumbs.db
 
-# Artifacts directory
-artifacts/
+# Coverage
+.coverage
+htmlcov/
+coverage/
 
-# Data snapshots
-data/raw_snapshots/*.meta.json
-data/raw_snapshots/*.parquet
-
-# Temporary run logs
-**/run_log.txt
-
-# Lock files for counters
-**/trial_counter.json.lock
-**/test_lock.json
-
+# Temporary files
+*.tmp
+*.temp
 ```

@@ -1,0 +1,69 @@
+{
+  "dataset_hash": "3f3e0ef4c8181b51",
+  "snapshot": {
+    "snapshot_id": "20260915T115441Z_yfinance_overnight_3f3e0ef4c8181b51",
+    "path": "data/raw_snapshots/20260915T115441Z_yfinance_overnight_3f3e0ef4c8181b51.parquet",
+    "dataset_hash": "3f3e0ef4c8181b51",
+    "n_rows": 29393,
+    "symbols": [
+      "EEM",
+      "EFA",
+      "GLD",
+      "IWM",
+      "QQQ",
+      "SPY",
+      "TLT"
+    ],
+    "created_utc": "20260915T115441Z"
+  },
+  "data_meta": {
+    "mode": "yfinance",
+    "assets": [
+      "SPY",
+      "QQQ",
+      "IWM",
+      "EFA",
+      "EEM",
+      "TLT",
+      "GLD"
+    ],
+    "target": "SPY",
+    "start": "2010-01-01",
+    "end": "2026-09-15",
+    "frequency": "1d",
+    "exchange_calendar": "XNYS",
+    "exchange_calendar_library_version": "4.13.2",
+    "dataset_hash": "3f3e0ef4c8181b51",
+    "assumptions": "yfinance daily bars, auto_adjust=True: split/dividend-adjusted OHLC (documented corporate-action basis)",
+    "n_observed_symbols": 7,
+    "n_requested_symbols": 7
+  },
+  "feature_version": "0cacdf8c0553a5e5",
+  "n_features": 20,
+  "development_fold_ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "confirmation_fold": {
+    "fold_id": 10,
+    "train_start": "2010-01-04",
+    "train_end": "2024-01-09",
+    "val_start": "2024-01-18",
+    "val_end": "2025-01-17",
+    "test_start": "2025-01-28",
+    "test_end": "2026-01-28",
+    "purge_bars": 5,
+    "embargo_bars": 5,
+    "n_train": 3528,
+    "n_val": 252,
+    "n_test": 252
+  }
+}

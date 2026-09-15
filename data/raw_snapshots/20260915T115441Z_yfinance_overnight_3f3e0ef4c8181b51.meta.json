@@ -1,0 +1,16 @@
+{
+  "snapshot_id": "20260915T115441Z_yfinance_overnight_3f3e0ef4c8181b51",
+  "path": "data/raw_snapshots/20260915T115441Z_yfinance_overnight_3f3e0ef4c8181b51.parquet",
+  "dataset_hash": "3f3e0ef4c8181b51",
+  "n_rows": 29393,
+  "symbols": [
+    "EEM",
+    "EFA",
+    "GLD",
+    "IWM",
+    "QQQ",
+    "SPY",
+    "TLT"
+  ],
+  "created_utc": "20260915T115441Z"
+}

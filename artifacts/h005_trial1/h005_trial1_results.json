@@ -1,0 +1,126 @@
+{
+  "hypothesis_id": "H-005",
+  "hypothesis_name": "Overnight-Intraday Return Decomposition",
+  "trial_number": 1,
+  "config_file": "configs/h005_overnight_intraday_trial1.yaml",
+  "execution_timestamp": "2026-09-15T11:50:22.376237+00:00",
+  "data": {
+    "assets": [
+      "SPY",
+      "QQQ",
+      "IWM",
+      "EFA",
+      "EEM",
+      "TLT",
+      "GLD"
+    ],
+    "target": "SPY",
+    "period_start": "2010-01-01",
+    "period_end": "2021-12-31"
+  },
+  "model": {
+    "type": "logistic_regression",
+    "hyperparameters": {
+      "C": 0.01,
+      "random_state": 44,
+      "max_iter": 1000
+    }
+  },
+  "features": {
+    "count": 13,
+    "source": "overnight_intraday",
+    "names": [
+      "overnight_ret_1d",
+      "overnight_ret_5d",
+      "overnight_ret_20d",
+      "intraday_ret_1d",
+      "intraday_ret_5d",
+      "overnight_vol_ratio",
+      "gap_size",
+      "overnight_skew",
+      "vix_regime",
+      "intraday_fill_ratio",
+      "overnight_ret_20d_lag1",
+      "overnight_ret_5d_lag1",
+      "intraday_ret_5d_lag1"
+    ]
+  },
+  "validation": {
+    "method": "walk_forward",
+    "folds": 5,
+    "fold_results": [
+      {
+        "fold": 1,
+        "sharpe": -0.074,
+        "return": -0.0116,
+        "samples": 252
+      },
+      {
+        "fold": 2,
+        "sharpe": 1.664,
+        "return": 0.206,
+        "samples": 252
+      },
+      {
+        "fold": 3,
+        "sharpe": 3.329,
+        "return": 0.2261,
+        "samples": 252
+      },
+      {
+        "fold": 4,
+        "sharpe": -0.1,
+        "return": -0.0176,
+        "samples": 252
+      },
+      {
+        "fold": 5,
+        "sharpe": 2.469,
+        "return": 0.2908,
+        "samples": 252
+      }
+    ],
+    "aggregate": {
+      "mean_sharpe": 1.457,
+      "std_sharpe": 1.528,
+      "total_return": 0.6938,
+      "positive_folds": 3,
+      "total_folds": 5
+    }
+  },
+  "gates": {
+    "min_median_oos_sharpe": {
+      "threshold": 0.0,
+      "actual": 1.664,
+      "passed": true
+    },
+    "min_mean_oos_sharpe": {
+      "threshold": 0.0,
+      "actual": 1.457,
+      "passed": true
+    },
+    "max_oos_dd": {
+      "threshold": -0.2,
+      "actual": null,
+      "passed": null
+    },
+    "min_bootstrap_positive_prob": {
+      "threshold": 0.8,
+      "actual": null,
+      "passed": null
+    },
+    "max_single_fold_share": {
+      "threshold": 0.6,
+      "actual": null,
+      "passed": null
+    }
+  },
+  "status": "preliminary_validation_complete",
+  "notes": [
+    "vix_regime feature had all NaN values (VIX not available in yfinance data)",
+    "3 of 5 folds showed positive Sharpe ratios",
+    "High variance across folds (std=1.528) suggests regime sensitivity",
+    "Total validation return of 69.4% over 5 years is promising",
+    "Further trials needed to test robustness and confirm hypothesis"
+  ]
+}
