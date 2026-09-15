@@ -18,6 +18,7 @@ from .price_volume import FEATURE_VERSION, SIGNAL_EXT_VERSION
 from .cross_asset_spillover import CROSS_ASSET_FEATURE_VERSION
 from .liquidity_reversal import LIQUIDITY_FEATURE_VERSION
 from .volatility_risk_premium import VOLATILITY_FEATURE_VERSION
+from .factor_mean_reversion import FACTOR_FEATURE_VERSION
 
 PRICE_VOLUME_SOURCE = "price_volume"
 INFORMATION_SOURCE = "information"
@@ -33,6 +34,7 @@ class FeatureSpec:
     missing_data_policy: str
     normalization_rule: str
     version: str
+    hypothesis: str = ""
 
 
 def price_volume_feature_specs() -> List[FeatureSpec]:
@@ -137,11 +139,18 @@ def h003_r1_feature_specs() -> List[FeatureSpec]:
     ]
 
 
+def h006_factor_mean_reversion_feature_specs() -> List[FeatureSpec]:
+    """H-006 factor exposure mean reversion features."""
+    from .factor_mean_reversion import get_feature_specs as get_factor_specs
+    specs_dict = get_factor_specs()
+    return [FeatureSpec(**spec) for spec in specs_dict]
+
+
 def registry() -> List[FeatureSpec]:
     return (price_volume_feature_specs() + signal_extension_feature_specs()
             + information_feature_specs() + cross_asset_spillover_feature_specs()
             + liquidity_reversal_feature_specs() + volatility_risk_premium_feature_specs()
-            + h003_r1_feature_specs())
+            + h003_r1_feature_specs() + h006_factor_mean_reversion_feature_specs())
 
 
 def registry_hash(names: List[str]) -> str:

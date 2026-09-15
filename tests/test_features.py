@@ -26,6 +26,11 @@ from quant_research.features.registry import (
     registry,
     registry_hash,
 )
+from quant_research.features.factor_mean_reversion import (
+    compute_factor_mean_reversion_features,
+    validate_factor_features,
+    get_feature_specs as h006_feature_specs,
+)
 from quant_research.strategies.baseline import build_model
 
 
@@ -204,3 +209,122 @@ def test_leakage_membership_detects_old_style_dedup_contamination(
     # the old builder leaks: removing the not-yet-available copy changes the
     # retained story's historical corroboration, so the probe must fail
     assert not res["passed"]
+
+
+def test_h006_features_no_lookahead():
+    """H-006 features use only past data; no future information leakage."""
+    np.random.seed(42)
+    n_days = 1000
+    dates = pd.date_range('2010-01-01', periods=n_days, freq='B')
+    
+    close = pd.Series(100 * np.cumprod(1 + np.random.randn(n_days) * 0.02), index=dates)
+    high = close * (1 + np.abs(np.random.randn(n_days) * 0.01))
+    low = close * (1 - np.abs(np.random.randn(n_days) * 0.01))
+    volume = pd.Series(np.random.randint(1e6, 1e7, n_days), index=dates)
+    benchmark_close = pd.Series(100 * np.cumprod(1 + np.random.randn(n_days) * 0.015), index=dates, name='SPY')
+    
+    features = compute_factor_mean_reversion_features(
+        close=close, high=high, low=low, volume=volume,
+        benchmark_close=benchmark_close
+    )
+    
+    # Verify warm-up period produces NaN (not zero-filled)
+    assert features['h006_beta_zscore'].iloc[:300].isna().any()
+    
+    # Verify changing today's price doesn't change yesterday's feature
+    alt_close = close.copy()
+    alt_close.iloc[-1] *= 1.5
+    alt_features = compute_factor_mean_reversion_features(
+        close=alt_close, high=high, low=low, volume=volume,
+        benchmark_close=benchmark_close
+    )
+    
+    # Features at t-1 should be identical when we change price at t
+    assert features['h006_beta_zscore'].iloc[-2] == alt_features['h006_beta_zscore'].iloc[-2]
+    assert features['h006_momentum_deviation'].iloc[-2] == alt_features['h006_momentum_deviation'].iloc[-2]
+
+
+def test_h006_feature_specs_complete():
+    """H-006 feature specs have all required metadata."""
+    specs = h006_feature_specs()
+    assert len(specs) == 5
+    
+    expected_names = {
+        'h006_beta_zscore',
+        'h006_momentum_deviation',
+        'h006_volatility_percentile',
+        'h006_correlation_extreme',
+        'h006_drawdown_recovery'
+    }
+    
+    actual_names = {s['feature_name'] for s in specs}
+    assert actual_names == expected_names
+    
+    for spec in specs:
+        assert spec['definition']
+        assert spec['source'] == 'factor_mean_reversion'
+        assert spec['required_history'] >= 1
+        assert spec['availability_rule']
+        assert spec['missing_data_policy']
+        assert spec['normalization_rule']
+        assert spec['version'] == 'h006.v1.0'
+
+
+def test_h006_features_in_registry():
+    """H-006 features are registered in the central registry."""
+    all_specs = registry()
+    h006_features = [s for s in all_specs if s.feature_name.startswith('h006_')]
+    assert len(h006_features) == 5
+    
+    names = {s.feature_name for s in h006_features}
+    assert 'h006_beta_zscore' in names
+    assert 'h006_momentum_deviation' in names
+    assert 'h006_volatility_percentile' in names
+    assert 'h006_correlation_extreme' in names
+    assert 'h006_drawdown_recovery' in names
+
+
+def test_h006_validation_passes():
+    """H-006 feature validation passes on valid data."""
+    np.random.seed(42)
+    n_days = 1000
+    dates = pd.date_range('2010-01-01', periods=n_days, freq='B')
+    
+    close = pd.Series(100 * np.cumprod(1 + np.random.randn(n_days) * 0.02), index=dates)
+    high = close * (1 + np.abs(np.random.randn(n_days) * 0.01))
+    low = close * (1 - np.abs(np.random.randn(n_days) * 0.01))
+    volume = pd.Series(np.random.randint(1e6, 1e7, n_days), index=dates)
+    benchmark_close = pd.Series(100 * np.cumprod(1 + np.random.randn(n_days) * 0.015), index=dates)
+    
+    features = compute_factor_mean_reversion_features(
+        close=close, high=high, low=low, volume=volume,
+        benchmark_close=benchmark_close
+    )
+    
+    is_valid, errors = validate_factor_features(features)
+    assert is_valid, f"Validation failed: {errors}"
+
+
+def test_h006_features_handle_missing_data():
+    """H-006 features handle missing data gracefully."""
+    np.random.seed(42)
+    n_days = 500
+    dates = pd.date_range('2010-01-01', periods=n_days, freq='B')
+    
+    close = pd.Series(100 * np.cumprod(1 + np.random.randn(n_days) * 0.02), index=dates)
+    high = close * (1 + np.abs(np.random.randn(n_days) * 0.01))
+    low = close * (1 - np.abs(np.random.randn(n_days) * 0.01))
+    volume = pd.Series(np.random.randint(1e6, 1e7, n_days), index=dates)
+    benchmark_close = pd.Series(100 * np.cumprod(1 + np.random.randn(n_days) * 0.015), index=dates)
+    
+    # Introduce some NaN values
+    close.iloc[50:55] = np.nan
+    
+    features = compute_factor_mean_reversion_features(
+        close=close, high=high, low=low, volume=volume,
+        benchmark_close=benchmark_close
+    )
+    
+    # Should still produce output with appropriate NaN handling
+    assert isinstance(features, pd.DataFrame)
+    assert len(features) > 0

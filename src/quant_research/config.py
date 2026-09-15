@@ -24,7 +24,7 @@ class ConfigError(ValueError):
 
 @dataclass(frozen=True)
 class DataConfig:
-    mode: str = "synthetic"  # synthetic | csv | yfinance | h002 | h003
+    mode: str = "synthetic"  # synthetic | csv | yfinance | h002 | h003 | h006
     assets: List[str] = field(default_factory=lambda: ["SPY"])
     target: str = "SPY"
     start: str = "2012-01-01"
@@ -41,9 +41,9 @@ class DataConfig:
     h002_max_tickers: Optional[int] = None
 
     def __post_init__(self) -> None:
-        if self.mode not in {"synthetic", "csv", "yfinance", "h002", "h003"}:
+        if self.mode not in {"synthetic", "csv", "yfinance", "h002", "h003", "h006"}:
             raise ConfigError(
-                "data.mode must be synthetic|csv|yfinance|h002|h003, "
+                "data.mode must be synthetic|csv|yfinance|h002|h003|h006, "
                 f"got {self.mode!r}"
             )
         if self.mode == "csv" and not self.csv_path:
@@ -96,13 +96,15 @@ class ExecutionConfig:
     signal_delay_bars: int = 0
     target_vol: float = 0.10
     max_position: float = 1.0
+    gross_leverage_cap: float = 1.0
+    net_exposure_cap: float = 1.0
 
     def __post_init__(self) -> None:
         import math
         # Phase 4: strict finite-value + integer-type validation. Fail fast
         # before expensive research on NaN/inf costs, non-integral delays,
         # or degenerate volatility targets.
-        for _name in ("fee_bps", "slippage_bps", "target_vol", "max_position"):
+        for _name in ("fee_bps", "slippage_bps", "target_vol", "max_position", "gross_leverage_cap", "net_exposure_cap"):
             _v = getattr(self, _name)
             if isinstance(_v, bool) or not isinstance(_v, (int, float)):
                 raise ConfigError(f"execution.{_name} must be a real number, got {_v!r}")
@@ -143,6 +145,7 @@ class ModelConfig:
     gb_learning_rate: Optional[float] = None
     gb_n_estimators: Optional[int] = None
     hold_bars: Optional[int] = None
+    rebalance_day: Optional[str] = None  # For H-006 weekly rebalance (e.g., "wednesday")
 
     def __post_init__(self) -> None:
         import math
@@ -173,8 +176,8 @@ class ModelConfig:
             raise ConfigError("model.logreg_C must be positive")
         if self.gb_learning_rate is not None and not 0 < self.gb_learning_rate <= 1:
             raise ConfigError("model.gb_learning_rate must be in (0, 1]")
-        if self.type not in {"logistic", "gradient_boosting"}:
-            raise ConfigError(f"model.type must be logistic|gradient_boosting, got {self.type!r}")
+        if self.type not in {"logistic", "gradient_boosting", "none"}:
+            raise ConfigError(f"model.type must be logistic|gradient_boosting|none, got {self.type!r}")
         if self.random_seed < 0:
             raise ConfigError("random_seed must be a non-negative integer")
 
@@ -229,6 +232,10 @@ class PromotionConfig:
     min_mean_oos_sharpe: float = 0.0
     max_oos_dd: float = -0.50
     cost_stress_fee_bps: float = 10.0
+    cost_stress_slippage_bps: float = 5.0
+    slippage_stress_multiplier: float = 2.0
+    parameter_robustness_pct: float = 0.20
+    missing_data_pct: float = 0.05
     delay_stress_bars: int = 1
     min_bootstrap_positive_prob: float = 0.60
     min_placebo_percentile: float = 0.95
@@ -241,6 +248,7 @@ class PromotionConfig:
     # p = 0.5 and must always fail).
     min_placebo_runs: int = 20
     max_placebo_adjusted_p: float = 0.10
+    min_capacity_aum: float = 10000000.0  # Minimum capacity in dollars
     # B10: predeclared research-family selection-correction policy.  Repeated
     # candidate research on the same OOS family inflates the chance of a
     # spuriously strong result; this declares HOW that is handled:

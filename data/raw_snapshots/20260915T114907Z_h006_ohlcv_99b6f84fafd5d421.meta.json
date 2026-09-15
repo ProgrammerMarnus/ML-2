@@ -1,0 +1,26 @@
+{
+  "snapshot_id": "20260915T114907Z_h006_ohlcv_99b6f84fafd5d421",
+  "path": "data/raw_snapshots/20260915T114907Z_h006_ohlcv_99b6f84fafd5d421.parquet",
+  "dataset_hash": "99b6f84fafd5d421",
+  "n_rows": 59874,
+  "symbols": [
+    "DBC",
+    "DIA",
+    "EEM",
+    "EFA",
+    "GLD",
+    "HYG",
+    "IEF",
+    "IWM",
+    "LQD",
+    "QQQ",
+    "SHY",
+    "SPY",
+    "TLT",
+    "USO",
+    "VEA",
+    "VNQ",
+    "VWO"
+  ],
+  "created_utc": "20260915T114907Z"
+}
