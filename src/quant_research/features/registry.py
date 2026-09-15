@@ -162,11 +162,26 @@ def registry() -> List[FeatureSpec]:
             + overnight_intraday_feature_specs())
 
 
+def _hashable_spec(spec: FeatureSpec) -> dict:
+    """Serialize a spec for ``registry_hash`` without empty optional metadata.
+
+    ``registry_hash`` pins the pre-existing feature contracts, so adding a new
+    optional field must not move a historical hash.  Optional metadata is
+    therefore emitted only when it carries a value: H-006 tags its specs with
+    ``hypothesis``, while H-001/H-002/H-003/H-005 leave it empty and keep the
+    hash they were audited with.
+    """
+    record = asdict(spec)
+    if not record.get("hypothesis"):
+        record.pop("hypothesis", None)
+    return record
+
+
 def registry_hash(names: List[str]) -> str:
     """Deterministic hash of a named feature subset (for experiment records)."""
     specs = {s.feature_name: s for s in registry()}
     unknown = [n for n in names if n not in specs]
     if unknown:
         raise KeyError(f"features not in registry: {unknown}")
-    payload = json.dumps([asdict(specs[n]) for n in sorted(names)], sort_keys=True, default=str)
+    payload = json.dumps([_hashable_spec(specs[n]) for n in sorted(names)], sort_keys=True, default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
