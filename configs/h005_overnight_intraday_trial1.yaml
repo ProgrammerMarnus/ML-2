@@ -1,0 +1,64 @@
+# H-005 Overnight-Intraday Return Decomposition - Trial 1
+# Preregistered configuration following HYPOTHESIS_H005_OVERNIGHT_INTRADAY.md
+
+data:
+  mode: yfinance
+  assets: [SPY, QQQ, IWM, EFA, EEM, TLT, GLD]
+  target: SPY
+  start: "2010-01-01"
+  end: "2021-12-31"
+  frequency: 1d
+  exchange_calendar: XNYS
+  raw_snapshot_dir: data/raw_snapshots
+
+evaluation:
+  # 7-fold walk-forward as specified in hypothesis
+  # Each fold: 5 years train (1260 bars), 1 year test (252 bars)
+  train_window: 1260
+  validation_window: 252
+  test_window: 252
+  step_bars: 252
+  purge_bars: 5
+  embargo_bars: 5
+  expanding: true
+
+execution:
+  fee_bps: 8.0
+  slippage_bps: 3.0
+  signal_delay_bars: 0
+  target_vol: 0.10
+  max_position: 0.15
+
+model:
+  type: logistic
+  random_seed: 44
+  logreg_C: 0.01
+
+features:
+  include_sources: [overnight_intraday]
+  exclude_features: []
+
+research:
+  max_trials: 10
+  bootstrap_samples: 500
+  placebo_runs: 20
+  threshold_candidates: [0.5]
+  protocol_path: artifacts/h005_trial1/h005_protocol.json
+
+promotion:
+  # Standard gates
+  min_median_oos_sharpe: 0.0
+  min_mean_oos_sharpe: 0.0
+  max_oos_dd: -0.20
+  cost_stress_fee_bps: 8.0
+  delay_stress_bars: 1
+  min_bootstrap_positive_prob: 0.80
+  min_placebo_percentile: 0.85
+  min_placebo_runs: 20
+  max_placebo_adjusted_p: 0.15
+  max_single_fold_share: 0.60
+  max_annual_turnover: 36.0
+  selection_correction: none
+  max_family_searches: 10
+
+output_dir: artifacts/h005_trial1

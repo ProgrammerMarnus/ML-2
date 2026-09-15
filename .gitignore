@@ -1,43 +1,73 @@
-```gitignore
-# Python compiled files
-*.pyc
+# ---- Python ----
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Logs
-*.log
+# ---- Dependencies ----
+node_modules/
 
-# Artifacts and data
-artifacts/
-data/raw_snapshots/
-logs/
-
-# Dependencies (if any virtual environments exist)
-.venv/
-venv/
+# ---- Environments ----
 .env
 .env.local
+.env.*
 *.env.*
+.venv/
+venv/
 
-# Build/dist directories (if they exist)
-dist/
-build/
-target/
+# ---- Research artifacts and scratch outputs ----
+# NOTE: tracked artifacts stay tracked; this only stops new scratch output
+# from showing up as untracked. New research artifacts must be added
+# explicitly (or with `git add -f`).
+artifacts/
+artifacts_*/
+data_cache/
+logs/
 
-# Coverage reports
+# ---- Data snapshots ----
+# Snapshots are a deliberate, reviewable commit: use `git add -f` for new ones.
+data/raw_snapshots/*.meta.json
+data/raw_snapshots/*.parquet
+data/universe_*.csv
+
+# ---- Logs and lock files ----
+*.log
+**/run_log.txt
+**/trial_counter.json.lock
+**/test_lock.json
+
+# ---- Coverage ----
 .coverage
 coverage/
 htmlcov/
 
-# Editors/IDE
+# ---- Editors / IDE ----
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS files
+# ---- OS ----
 .DS_Store
 Thumbs.db
 
-# Research specific
-src/quant_research.egg-info/
-```
+# ---- Temporary files ----
+*.tmp
+*.temp
