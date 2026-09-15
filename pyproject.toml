@@ -19,7 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 market = ["yfinance>=0.2"]
-dev = ["pytest>=8.0", "nbformat>=5.9", "nbclient>=0.10", "jupyter_core"]
+dev = ["pytest>=8.0", "pytest-xdist>=3.8", "nbformat>=5.9", "nbclient>=0.10", "jupyter_core"]
 # These integrations are intentionally opt-in: none is allowed to make an
 # unpinned network request from a research run.  Model/data revisions are
 # recorded by the adapters before their output enters the PIT feature store.
@@ -35,7 +35,10 @@ include = ["quant_research*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-q"
+# Run the suite on all CPU cores via pytest-xdist.  loadscope keeps each test
+# module on a single worker (safe for module-scoped fixtures and in-module
+# state).  Fall back to serial with:  pytest -p no:xdist   or   -o addopts=
+addopts = "-q -n auto --dist=loadscope"
 
 [tool.setuptools]
 include-package-data = false

@@ -58,12 +58,17 @@ def test_rerun_same_experiment_new_id_without_resetting_highwater(tmp_path):
     snap_dir.mkdir(exist_ok=True)
     cfg = AppConfig(
         data=DataConfig(mode="synthetic", assets=["SPY"], target="SPY",
-                        start="2020-01-01", end="2022-01-01",
+                        start="2020-01-01", end="2021-01-01",
                         raw_snapshot_dir=str(snap_dir)),
-        evaluation=EvaluationConfig(train_window=120, validation_window=40,
-                                    test_window=40, step_bars=40,
-                                    purge_bars=2, embargo_bars=2, expanding=True),
-        research=ResearchConfig(placebo_runs=1, bootstrap_samples=20),
+        evaluation=EvaluationConfig(train_window=60, validation_window=20,
+                                    test_window=20, step_bars=20,
+                                    purge_bars=1, embargo_bars=1, expanding=True),
+        # Reduced discovery sweep (2x2 instead of 6x4 candidates): the
+        # assertions are trial-counter structure (IDs, monotonic high-water),
+        # not candidate statistics.
+        research=ResearchConfig(placebo_runs=1, bootstrap_samples=20,
+                                threshold_candidates=[0.75, 0.85],
+                                hold_candidates=[10, 20]),
     )
     r1 = run_research_pipeline(cfg, str(tmp_path))
     c1 = json.loads((tmp_path / "trial_counter.json").read_text())["count"]

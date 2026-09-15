@@ -2,6 +2,18 @@
 
 from __future__ import annotations
 
+import os as _os
+
+# Pin BLAS/OpenMP thread pools to one thread per process.  Under pytest-xdist
+# each of the 4 workers would otherwise spawn its own full-size BLAS pool,
+# oversubscribing the 4 physical cores and thrashing the scheduler.  These are
+# small synthetic matrices, so single-threaded BLAS is neutral-to-faster and
+# removes nondeterministic scheduling noise.  setdefault keeps them
+# overridable from the environment.
+_os.environ.setdefault("OMP_NUM_THREADS", "1")
+_os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+_os.environ.setdefault("MKL_NUM_THREADS", "1")
+
 import sys
 from pathlib import Path
 from typing import Generator
@@ -59,6 +71,38 @@ def small_config(tmp_path_factory) -> AppConfig:
                                     test_window=40, step_bars=40,
                                     purge_bars=2, embargo_bars=2, expanding=True),
         research=ResearchConfig(placebo_runs=3, bootstrap_samples=100),
+    )
+
+
+@pytest.fixture(scope="session")
+def tiny_config(tmp_path_factory) -> AppConfig:
+    """Fast config for structure/provenance/ledger-only pipeline tests.
+
+    Two independent reductions vs small_config, both invisible to assertions
+    that check record *structure* rather than statistics:
+      1. Half-length panel with proportionally scaled windows.
+      2. Reduced fixed-sweep budgets: 2 threshold x 2 hold discovery trials
+         (vs 6x4), 1 placebo run per mode (vs 3), 20 bootstrap samples
+         (vs 100).  This is what actually dominates pipeline wall time --
+         a run is ~30 walk-forward executions, mostly discovery trials and
+         placebo replays, whose counts are data-size independent.
+    Statistical/promotion behavior (placebo counts, stress grids, gates,
+    trial accounting at scale) stays covered by small_config in
+    test_full_pipeline_end_to_end.  Do NOT add statistical assertions to
+    tiny_config tests.
+    """
+    snapshot_dir = tmp_path_factory.mktemp("tiny_raw_snapshots")
+    return AppConfig(
+        data=DataConfig(mode="synthetic", assets=["SPY"], target="SPY",
+                        start="2020-01-01", end="2021-01-01",
+                        raw_snapshot_dir=str(snapshot_dir)),
+        evaluation=EvaluationConfig(train_window=60, validation_window=20,
+                                    test_window=20, step_bars=20,
+                                    purge_bars=1, embargo_bars=1, expanding=True),
+        research=ResearchConfig(
+            placebo_runs=1, bootstrap_samples=20,
+            threshold_candidates=[0.75, 0.85], hold_candidates=[10, 20],
+        ),
     )
 
 

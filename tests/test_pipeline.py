@@ -255,18 +255,21 @@ def test_full_pipeline_end_to_end(small_config, tmp_output):
     assert isinstance(report["promotion"]["failed_gates"], list)
 
 
-def test_pipeline_records_the_declared_feature_sources_as_provenance(small_config, tmp_output):
+def test_pipeline_records_the_declared_feature_sources_as_provenance(tiny_config, tmp_output):
     """A run must name the feature families it consumed, not a generic default.
 
     The H-005 engine trial that first passed every gate was recorded as
     ``["price_volume"]`` although it consumed the registered
     ``overnight_intraday`` panel; provenance must follow the declared contract.
+
+    Uses tiny_config: the assertion is about record structure (provenance),
+    not statistics.
     """
     from dataclasses import replace
 
     from quant_research.config import FeatureConfig
 
-    cfg = replace(small_config, features=FeatureConfig(include_sources=["price_volume"]))
+    cfg = replace(tiny_config, features=FeatureConfig(include_sources=["price_volume"]))
     report = run_research_pipeline(cfg, str(tmp_output))
     rec = report["experiment_record"]
     assert rec["information_sources"] == ["price_volume"]
@@ -276,18 +279,22 @@ def test_pipeline_records_the_declared_feature_sources_as_provenance(small_confi
     assert line["information_sources"] == ["price_volume"]
 
 
-def test_pipeline_records_overnight_intraday_provenance(small_config, tmp_output):
-    """The H-005 path must record its own registered source family."""
+def test_pipeline_records_overnight_intraday_provenance(tiny_config, tmp_output):
+    """The H-005 path must record its own registered source family.
+
+    Uses tiny_config: the assertion is about record structure (provenance),
+    not statistics.
+    """
     from dataclasses import replace
 
     from quant_research.config import DataConfig, FeatureConfig
 
     cfg = replace(
-        small_config,
+        tiny_config,
         data=DataConfig(
             mode="synthetic", assets=["SPY", "^VIX"], target="SPY",
-            start="2020-01-01", end="2022-01-01",
-            raw_snapshot_dir=small_config.data.raw_snapshot_dir,
+            start=tiny_config.data.start, end=tiny_config.data.end,
+            raw_snapshot_dir=tiny_config.data.raw_snapshot_dir,
         ),
         features=FeatureConfig(include_sources=["overnight_intraday"]),
     )
@@ -295,9 +302,10 @@ def test_pipeline_records_overnight_intraday_provenance(small_config, tmp_output
     assert report["experiment_record"]["information_sources"] == ["overnight_intraday"]
 
 
-def test_pipeline_second_run_appends_new_record(small_config, tmp_output):
-    run_research_pipeline(small_config, str(tmp_output))
-    report2 = run_research_pipeline(small_config, str(tmp_output))
+def test_pipeline_second_run_appends_new_record(tiny_config, tmp_output):
+    """Uses tiny_config: assertions are registry structure (append semantics)."""
+    run_research_pipeline(tiny_config, str(tmp_output))
+    report2 = run_research_pipeline(tiny_config, str(tmp_output))
     reg_file = tmp_output / "experiment_registry.jsonl"
     lines = [json.loads(l) for l in reg_file.read_text().strip().splitlines()]
     assert len(lines) == 2
@@ -307,9 +315,10 @@ def test_pipeline_second_run_appends_new_record(small_config, tmp_output):
     assert len(lb) == 2
 
 
-def test_locked_test_survives_across_pipeline_runs(small_config, tmp_output):
-    run_research_pipeline(small_config, str(tmp_output))
-    run_research_pipeline(small_config, str(tmp_output))
+def test_locked_test_survives_across_pipeline_runs(tiny_config, tmp_output):
+    """Uses tiny_config: assertions are lock persistence (registry structure)."""
+    run_research_pipeline(tiny_config, str(tmp_output))
+    run_research_pipeline(tiny_config, str(tmp_output))
     reg_file = tmp_output / "experiment_registry.jsonl"
     lines = [json.loads(l) for l in reg_file.read_text().strip().splitlines()]
     assert len(lines) == 2
@@ -338,13 +347,18 @@ def _reconstruct_pipeline_inputs(cfg):
 
 
 def test_pipeline_risk_report_uses_executed_positions_and_forward_benchmark(
-        small_config, tmp_output):
+        tiny_config, tmp_output):
     """A14 integration: the risk report must describe the ACTUAL executed
     portfolio (real position ledger + forward-return benchmark), not the old
-    0.55 probability proxy / same-session benchmark."""
-    report = run_research_pipeline(small_config, str(tmp_output))
-    feats, y, fwd = _reconstruct_pipeline_inputs(small_config)
-    res = run_walk_forward(feats, y, fwd, small_config)
+    0.55 probability proxy / same-session benchmark.
+
+    Uses tiny_config: the assertions are self-consistent arithmetic equalities
+    between the pipeline report and an independently reconstructed
+    walk-forward of the SAME config — exact at any panel size.
+    """
+    report = run_research_pipeline(tiny_config, str(tmp_output))
+    feats, y, fwd = _reconstruct_pipeline_inputs(tiny_config)
+    res = run_walk_forward(feats, y, fwd, tiny_config)
     pos = res.oos_positions
     # exposure == actual mean |position|
     assert report["risk"]["avg_gross_exposure"] == pytest.approx(

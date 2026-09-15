@@ -23,16 +23,26 @@ from quant_research.run import generate_synthetic_events, run_research_pipeline
 from quant_research.strategies.baseline import run_walk_forward, summarize_experiment
 
 
-def _simple_cfg(placebo_runs=2, bootstrap_samples=50, snapshot_dir=None):
+def _simple_cfg(placebo_runs=1, bootstrap_samples=20, snapshot_dir=None):
+    """Reduced-budget config for arithmetic-invariant tests.
+
+    The assertions here (Sharpe recomputation, cost reconciliation) are
+    self-consistent arithmetic equalities that hold at any panel size, so the
+    panel and sweep budgets are shrunk vs the original 4-year/50-sample
+    settings.  Statistical/promotion behavior is covered by
+    test_full_pipeline_end_to_end at full fidelity.
+    """
     return AppConfig(
         data=DataConfig(mode="synthetic", assets=["SPY"], target="SPY",
-                        start="2016-01-01", end="2020-01-01",
+                        start="2020-01-01", end="2021-01-01",
                         raw_snapshot_dir=snapshot_dir or "data/raw_snapshots"),
-        evaluation=EvaluationConfig(train_window=200, validation_window=50,
-                                    test_window=50, step_bars=50,
-                                    purge_bars=2, embargo_bars=2, expanding=True),
+        evaluation=EvaluationConfig(train_window=60, validation_window=20,
+                                    test_window=20, step_bars=20,
+                                    purge_bars=1, embargo_bars=1, expanding=True),
         research=ResearchConfig(placebo_runs=placebo_runs,
-                                bootstrap_samples=bootstrap_samples),
+                                bootstrap_samples=bootstrap_samples,
+                                threshold_candidates=[0.75, 0.85],
+                                hold_candidates=[10, 20]),
     )
 
 
